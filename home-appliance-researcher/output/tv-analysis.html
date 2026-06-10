@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>电视机工程分析报告 — Home Appliance Researcher</title>
+<style>
+  :root {
+    --nav-width: 260px;
+    --color-bg: #f8f9fa; --color-surface: #ffffff; --color-text: #212529;
+    --color-muted: #6c757d; --color-accent: #0d6efd; --color-warn: #dc3545;
+    --color-good: #198754; --color-border: #dee2e6;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; font-size: 15px; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans SC", sans-serif;
+    background: var(--color-bg); color: var(--color-text); line-height: 1.7; overflow-x: hidden;
+  }
+  nav {
+    position: fixed; top: 0; left: 0; width: var(--nav-width); height: 100vh;
+    background: #1a1d23; color: #ccc; overflow-y: auto; z-index: 100; padding: 24px 0;
+  }
+  nav .brand {
+    font-size: 1.1rem; font-weight: 700; color: #fff; padding: 0 20px 20px;
+    border-bottom: 1px solid #333; margin-bottom: 12px; letter-spacing: 0.5px;
+  }
+  nav .brand span { display: block; font-size: 0.7rem; color: #888; font-weight: 400; margin-top: 2px; }
+  nav a {
+    display: block; padding: 7px 20px; color: #aaa; text-decoration: none;
+    font-size: 0.85rem; transition: color 0.15s, background 0.15s;
+    border-left: 3px solid transparent;
+  }
+  nav a:hover, nav a.active { color: #fff; background: rgba(255,255,255,0.05); }
+  main { margin-left: var(--nav-width); padding: 48px 60px; width: calc(100vw - var(--nav-width)); }
+  h1 { font-size: 2rem; margin-bottom: 8px; }
+  h2 { font-size: 1.4rem; margin: 48px 0 16px; padding-bottom: 8px; border-bottom: 2px solid var(--color-border); }
+  h3 { font-size: 1.15rem; margin: 32px 0 12px; color: #333; }
+  h4 { font-size: 1rem; margin: 20px 0 8px; }
+  p { margin-bottom: 12px; }
+  .subtitle { color: var(--color-muted); font-size: 0.95rem; margin-bottom: 40px; }
+  .card {
+    background: var(--color-surface); border: 1px solid var(--color-border);
+    border-radius: 8px; padding: 20px 24px; margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .card h3 { margin-top: 0; }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+  @media (max-width: 768px) { .cols { grid-template-columns: 1fr; } }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0 20px; font-size: 0.9rem; }
+  th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--color-border); }
+  th { background: #f1f3f5; font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--color-muted); }
+  tr:hover td { background: #fafbfc; }
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.3px; }
+  .tag-a{background:#d1fae5;color:#065f46}.tag-b{background:#fef3c7;color:#92400e}.tag-c{background:#fee2e2;color:#991b1b}
+  .tag-good{background:#d1fae5;color:#065f46}.tag-warn{background:#fef3c7;color:#92400e}.tag-bad{background:#fee2e2;color:#991b1b}
+  .callout {
+    border-left: 4px solid var(--color-accent); background: #e7f1ff;
+    padding: 14px 18px; border-radius: 0 6px 6px 0; margin: 16px 0; font-size: 0.9rem;
+  }
+  .callout.warn{border-left-color:var(--color-warn);background:#fff5f5}
+  .callout.good{border-left-color:var(--color-good);background:#f0fdf4}
+  .arch-layer {
+    border: 1px solid var(--color-border); border-radius: 6px; padding: 16px;
+    margin-bottom: 12px; background: #fafbfc;
+  }
+  .arch-layer .label {
+    font-weight: 700; font-size: 0.8rem; color: var(--color-muted);
+    text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;
+  }
+  .arch-layer .parts { font-size: 0.9rem; }
+  .flow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 12px 0; font-size: 0.9rem; }
+  .flow .step {
+    background: var(--color-surface); border: 1px solid var(--color-border);
+    border-radius: 6px; padding: 6px 14px;
+  }
+  .flow .arrow { color: var(--color-muted); font-weight: 700; }
+  .bathtub {
+    background: #f9fafb; border: 1px dashed var(--color-border); border-radius: 8px;
+    padding: 40px 24px; text-align: center; margin: 16px 0;
+  }
+  .bathtub svg { max-width: 600px; }
+  .conclusion {
+    background: linear-gradient(135deg, #1a1d23, #2d3139); color: #e0e0e0;
+    border-radius: 10px; padding: 28px 32px; margin-top: 48px;
+  }
+  .conclusion h2 { color: #fff; border-bottom-color: #444; font-size: 1.2rem; }
+  .conclusion p { font-size: 1.05rem; line-height: 1.8; }
+  @media print { nav { display: none; } main { margin-left: 0; padding: 20px; width: auto; } }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="brand">
+    电视机工程分析
+    <span>Home Appliance Researcher v3.0</span>
+  </div>
+  <a href="#sec-0">1. 系统本质</a>
+  <a href="#sec-1">2. 系统架构拆解</a>
+  <a href="#sec-2">3. 核心部件工程分析</a>
+  <a href="#sec-3">4. 制造模式分析</a>
+  <a href="#sec-4">5. 技术路线对比</a>
+  <a href="#sec-5">6. 可靠性工程模型</a>
+  <a href="#sec-6">7. 用户体验建模</a>
+  <a href="#sec-7">8. 营销系统识别</a>
+  <a href="#sec-8">9. TCO成本模型</a>
+  <a href="#sec-9">10. 供应链与产业结构</a>
+  <a href="#sec-10">11. 安装与环境影响</a>
+  <a href="#sec-11">12. 品牌工程评级</a>
+  <a href="#sec-12">13. 购买决策系统</a>
+  <a href="#sec-13" style="color: #60a5fa;">14. 一句话结论</a>
+</nav>
+
+<main>
+
+<h1>电视机工程分析报告</h1>
+<p class="subtitle">
+  分析框架：物理原理 &gt; 系统架构 &gt; 核心部件 &gt; 制造质量 &gt; 可靠性 &gt; 使用体验 &gt; 成本结构 &gt; 品牌 &gt; 功能营销<br>
+  分析日期：2026-06-09 &nbsp;|&nbsp; 分析对象：家用平板电视（LCD/LED, Mini-LED, QLED, OLED, QD-OLED）
+</p>
+
+<!-- ─── 1. 系统本质 ─── -->
+<h2 id="sec-0">1. 系统本质</h2>
+
+<div class="card">
+  <h3>电视是什么？</h3>
+  <table>
+    <tr><th style="width:120px">系统类型</th><td>光电显示系统（Optoelectronic Display System）——将数字视频信号（HDMI/流媒体/广播）转换为大面积、高亮度、高色准的可见光图像。本质是一个<strong>将电信号逐像素映射为可控光输出的空间光调制器阵列</strong>，每帧画面需要在16.7ms内（60Hz）完成约830万个子像素（4K RGB×3）的独立光强调制。</td></tr>
+    <tr><th>输入</th><td>电能（110–240V AC，功率55–500W）+ 数字视频信号（HDMI 2.1 48Gbps / 流媒体 / DVB-T/C/S 广播RF信号）+ 用户遥控指令（IR/蓝牙）</td></tr>
+    <tr><th>输出</th><td>可见光图像（亮度100–2000nit，色域覆盖DCI-P3 90–99%，ΔE<1–3色准）+ 声音（2.0–5.1.2声道，5–60W）+ 热量（电能→光能效率仅5–15%，其余全部为热）</td></tr>
+    <tr><th>能量形式</th><td><strong>LCD路径：</strong>AC → DC电源转换（开关电源 90%+效率）→ LED背光（电→光，蓝光LED+荧光粉→白光，效率~30–40%）→ 偏光片（损失50%+光能）→ 液晶层（电压控制偏振旋转，每个子像素是一个模拟光阀）→ 彩色滤光片（RGB滤光，损失~70%光能）→ 屏幕出光。总光电效率：仅<strong>5–7%</strong>——输入100W电能，只有5–7W变成屏幕上的可见光。<br><strong>OLED路径：</strong>AC → DC → 像素驱动TFT → OLED有机材料（电→光，电子-空穴对复合发光，电流直接比例于亮度），无背光、无液晶层、无彩色滤光片（WOLED用白色OLED+滤光片；QD-OLED用蓝色OLED+量子点转换）。总效率约<strong>10–15%</strong>，是LCD的2–3倍，但峰值亮度受限。</td></tr>
+    <tr><th>核心物理原理</th><td><strong>1. 液晶光阀效应（LCD）：</strong>液晶分子在电场作用下发生取向变化→改变通过光线的偏振方向→配合前后偏光片形成"电压控制的光开关"。每个子像素的液晶就是一个模拟调光器——0V=全开（最亮），最大驱动电压=全关（最暗）。这决定了LCD的<strong>对比度天生受限</strong>：液晶在"关"态仍有微弱漏光→黑位永远不是纯黑（典型对比度1000:1–5000:1）。<br><strong>2. 有机电致发光（OLED）：</strong>有机半导体在电流注入下，电子和空穴在发光层复合→激子退激发→光子发射。RGB三色有机材料独立发光→每个像素<strong>可完全关闭</strong>→实现理论上无穷大的对比度。但有机材料在高电流密度下会逐渐降解（氧化/结晶化）→亮度衰减→这就是OLED烧屏（burn-in）的物理本质。<br><strong>3. 量子点光转换（QLED/QD-OLED）：</strong>半导体纳米晶（CdSe/InP，2–10nm直径）吸收蓝光后重发射为极窄带宽（FWHM~30nm）的纯色光。粒径决定发射波长（2nm=蓝，4nm=绿，6nm=红）。量子点技术的核心价值是<strong>色纯度极高</strong>（窄光谱→可覆盖更宽色域）和<strong>光转换效率高</strong>（>90%）。</td></tr>
+  </table>
+</div>
+
+<div class="callout">
+  <strong>工程视角的关键认知：</strong>电视是<strong>光机电算一体化的最高复杂度消费电子品</strong>——一块65寸4K面板上有830万个像素、2490万个子像素，每个像素都需要独立控制且不能有任何一个坏点。面板制造涉及：玻璃基板（康宁）+ 光刻（TFT阵列）+ 液晶灌注/OLED蒸镀 + 偏光片贴合 + 驱动IC绑定（COF/COG，线距<50μm）+ 背光模组组装。工厂洁净度要求Class 10（每立方英尺空气不超过10颗≥0.5μm颗粒），一条10.5代线投资在300–500亿人民币级别。这是<strong>资本密集型+技术密集型</strong>的超级制造业，与空调冰箱完全不在一个产业量级。
+</div>
+
+<!-- ─── 2. 系统架构拆解 ─── -->
+<h2 id="sec-1">2. 系统架构拆解</h2>
+
+<h3>2.1 LCD电视（含Mini-LED/QLED）</h3>
+
+<div class="arch-layer">
+  <div class="label">Layer 1 · 能源层 Energy</div>
+  <div class="parts"><strong>开关电源板</strong>（AC-DC，输出12V/24V/5V等多路低压直流）→ <strong>LED背光驱动板</strong>（DC-DC恒流升压，输出电压60–200V，驱动LED灯条。Mini-LED背光的驱动板复杂度远高于普通LED——需要成百上千个独立调光通道，每个通道独立PWM控制）。辅助电源：<strong>待机电源</strong>（独立微型AC-DC，<0.5W待机功耗，维持红外接收/蓝牙/Wake-on-LAN）</div>
+</div>
+<div class="arch-layer">
+  <div class="label">Layer 2 · 执行层 Actuation（光电转换链）</div>
+  <div class="parts"><strong>背光模组（BLU）</strong>：LED灯珠（蓝光LED+荧光粉→白光，色温8000–12000K）→ 导光板（PMMA亚克力，将点光源扩散为均匀面光源）→ 扩散膜+棱镜膜（BEF，将光线汇聚到±35°视角内提升正面亮度）→ 反射膜（底部回收背向光线）。Mini-LED则用<strong>成千上万颗Mini-LED（0.05–0.2mm）直接阵列式排布</strong>，取消导光板，通过分区独立控光实现接近OLED的对比度。<br><strong>液晶面板（LCD Cell）</strong>：下偏光片 → TFT玻璃基板（每个子像素有一个薄膜晶体管开关+透明ITO像素电极）→ 液晶层（3–5μm厚，向列型液晶）→ 彩色滤光片（CF玻璃基板，RGB三色有机颜料+BM黑矩阵隔离）→ 上偏光片（偏振方向与下偏光片垂直）。TFT的栅极逐行扫描打开→源极驱动IC将模拟电压写入像素电极→液晶偏转角度=亮度。</div>
+</div>
+<div class="arch-layer">
+  <div class="label">Layer 3 · 控制层 Control</div>
+  <div class="parts"><strong>主板（Main Board）</strong>：SoC芯片（如联发科MT9600系列/Realtek RTD2873/Amlogic T982，集成4×Cortex-A55 CPU+Mali-G52 GPU+NPU+视频解码+HDMI 2.1 PHY）→ HDMI输入信号 → SoC解码/缩放/画质处理 → LVDS/V-by-One信号输出到T-CON。<br><strong>T-CON（时序控制器）</strong>：接收主板送来的图像数据→缓存→重新编排时序→生成栅极驱动IC和源极驱动IC所需的控制信号（时钟/行同步/列同步）→驱动面板逐行刷新。<strong>T-CON还负责过驱动（Overdrive）算法</strong>——预先增加液晶驱动电压以加速液晶响应（灰阶响应时间从15ms→5ms）。<br><strong>画质引擎</strong>：MEMC运动补偿（插帧，将24fps→60fps/120fps）、超分辨率（1080p→4K升频）、HDR色调映射（静态/动态元数据→面板亮度范围映射）、降噪、色彩管理（3D LUT查找表实现ΔE<1的色准）。</div>
+</div>
+<div class="arch-layer">
+  <div class="label">Layer 4 · 结构层 Structural</div>
+  <div class="parts"><strong>前框+中框</strong>（铝合金/塑料）+ <strong>背板</strong>（SECC镀锌钢板/铝合金）+ <strong>散热系统</strong>（无风扇被动散热——LED背光的热量通过铝基板→背板传导和自然对流耗散；Mini-LED因背光功率密度更高，需要更严格的散热设计）。<strong>底座/挂架</strong> + <strong>后壳</strong> + <strong>扬声器腔体</strong>（通常是向下或向后发声的微型全频单元+被动辐射器）。</div>
+</div>
+
+<h3>2.2 OLED电视（WOLED / QD-OLED）</h3>
+
+<div class="arch-layer">
+  <div class="label">Layer 1 · 能源层 Energy</div>
+  <div class="parts">开关电源设计与LCD类似，但<strong>无需背光驱动电路</strong>——OLED面板直接由TFT阵列驱动，每个像素的驱动电流由源极驱动IC输出（电流驱动而非电压驱动）。OLED面板的供电需要正负双电源（ELVDD + ELVSS），并对电压纹波极度敏感（电压波动会直接表现为亮度波动→需要极低噪声的DC-DC电路）。</div>
+</div>
+<div class="arch-layer">
+  <div class="label">Layer 2 · 执行层 Actuation（OLED独有）</div>
+  <div class="parts"><strong>WOLED（LG Display）：</strong>基板（玻璃）→ TFT驱动阵列（低温多晶硅LTPS或氧化物Oxide TFT）→ 白色OLED堆叠层（蓝光OLED+红/绿荧光粉 或 蓝+黄绿双stack串联以延长寿命）→ 彩色滤光片（RGBW四子像素，W白色子像素用于提升亮度效率并分担RGB子像素的负载以延缓烧屏）→ 封装层（多层无机-有机薄膜交替，阻隔水氧渗透，WVTR要求<10⁻⁶ g/m²/day）。<br><strong>QD-OLED（Samsung Display）：</strong>蓝色OLED发光层 → 量子点色彩转换层（蓝色OLED激发红色/绿色量子点→纯红/纯绿出光；蓝色子像素直接透过）→ 封装。QD-OLED的蓝色OLED层本身就是"背光"——但与LCD背光完全不同：它是<strong>逐像素控制的</strong>，每个蓝色OLED子像素独立发光。</div>
+</div>
+<div class="arch-layer">
+  <div class="label">Layer 3 · 控制层 Control（OLED特色）</div>
+  <div class="parts">与LCD相同的SoC主板架构，但T-CON需要额外处理：<strong>① 像素亮度衰减补偿</strong>——OLED每个子像素的使用时间不同（红色老化最慢、蓝色最快→累积色偏），T-CON实时追踪每个子像素的累积点亮时间并动态调整驱动电流以补偿亮度衰减；<strong>② 烧屏保护算法</strong>——静态元素检测（台标/血条/UI）→对该区域局部降低亮度或像素位移（pixel shift）1–2像素；<strong>③ ABL（自动亮度限制）</strong>——当全屏白色占比超过一定比例（如>50%），总电流会超过电源/散热极限→自动降低全屏亮度（WOLED全屏白色亮度通常只有峰值亮度的30–40%）。</div>
+</div>
+<div class="arch-layer">
+  <div class="label">Layer 4 · 结构层 Structural</div>
+  <div class="parts">OLED面板本身就是最终的显示器件——无需背光模组、无需液晶层、无需彩色滤光片（QD-OLED无，WOLED有）。整机可以做到<strong>极致纤薄</strong>（面板厚度<5mm）。但OLED面板是柔性/半柔性的，需要结构支撑框架保证平整度。高端OLED电视利用面板柔性实现<strong>可卷曲</strong>（LG Signature R）但成本极高且可靠性存疑。</div>
+</div>
+
+<h3>2.3 能量流对比</h3>
+
+<div class="cols">
+<div class="card">
+  <h4>LCD（含Mini-LED）</h4>
+  <div class="flow">
+    <span class="step">AC</span><span class="arrow">→</span><span class="step">DC电源</span><span class="arrow">→</span><span class="step">LED背光（白光）</span><span class="arrow">→</span><span class="step">偏光片1（偏振）</span><span class="arrow">→</span><span class="step">液晶层（光阀调幅）</span><span class="arrow">→</span><span class="step">偏光片2</span><span class="arrow">→</span><span class="step">彩色滤光片（RGB）</span><span class="arrow">→</span><span class="step">屏幕光</span>
+  </div>
+  <p style="font-size:0.85rem;color:var(--color-muted)">总效率5–7%。<strong>对比度受液晶漏光限制</strong>，黑位是灰色。Mini-LED通过分区控光大幅缩小差距。</p>
+</div>
+<div class="card">
+  <h4>OLED</h4>
+  <div class="flow">
+    <span class="step">AC</span><span class="arrow">→</span><span class="step">DC电源</span><span class="arrow">→</span><span class="step">TFT驱动</span><span class="arrow">→</span><span class="step">OLED像素（逐像素直接发光）</span><span class="arrow">→</span><span class="step">封装/偏振片（防反射）</span><span class="arrow">→</span><span class="step">屏幕光</span>
+  </div>
+  <p style="font-size:0.85rem;color:var(--color-muted)">总效率10–15%。<strong>像素可完全关闭→无穷对比度</strong>。但亮度受限且有烧屏风险。</p>
+</div>
+</div>
+
+<!-- ─── 3. 核心部件工程分析 ─── -->
+<h2 id="sec-2">3. 核心部件工程分析</h2>
+
+<h3>3.1 Single Point of Failure（SPoF）</h3>
+
+<table>
+  <tr><th>部件</th><th>为何是SPoF</th><th>失效模式</th><th>寿命区间</th><th>修复可行性</th></tr>
+  <tr>
+    <td><strong>面板（Panel）</strong></td>
+    <td>面板损坏=整机报废。面板占整机BOM的50–70%，是电视的"不可替代心脏"</td>
+    <td>物理撞击碎裂；TFT短路→竖线/横线；偏光片鼓泡/脱层；OLED烧屏/亮度衰减；背光LED烧毁（区域性暗区）</td>
+    <td>LCD: 5–10年（背光LED/灯条先于液晶失效）<br>OLED: 3–7年（有机材料衰减+烧屏风险）</td>
+    <td><strong>不可修复</strong>——面板更换成本超过整机价值的70%，经济上等同于报废</td>
+  </tr>
+  <tr>
+    <td><strong>电源板</strong></td>
+    <td>电源板完全失效→整机无电→黑屏。是第二大常见故障点</td>
+    <td>电解电容老化（ESR增大→纹波增大→电路不稳定/保护停机）；MOSFET击穿；焊点热疲劳裂纹；雷击/浪涌损坏</td>
+    <td>3–8年（电容寿命是短板）</td>
+    <td>可更换（¥100–400），但需要拆机+型号匹配</td>
+  </tr>
+  <tr>
+    <td><strong>主板（Main Board）</strong></td>
+    <td>主板故障→无图像/花屏/无法开机。复杂的BGA封装的SoC对焊接质量敏感</td>
+    <td>SoC BGA虚焊（热胀冷缩循环→焊球断裂→间歇性故障）；DDR内存颗粒失效；eMMC闪存寿命耗尽（写次数有限，系统日志/缓存持续写入→5–8年可能出现坏块）</td>
+    <td>4–8年（BGA焊点热循环疲劳是主因）</td>
+    <td>可更换（¥200–600），但主板型号需匹配面板型号</td>
+  </tr>
+  <tr>
+    <td><strong>T-CON板</strong></td>
+    <td>面板驱动信号丢失→无图像/异常画面。是面板与主板之间的"桥梁"</td>
+    <td>COF（Chip on Film）柔性连接器断裂（机械应力/热循环）；Gamma电压偏移→色偏</td>
+    <td>4–8年</td>
+    <td>可更换（¥80–200），但部分型号T-CON集成在面板上不可单独更换</td>
+  </tr>
+  <tr>
+    <td><strong>LED背光灯条（LCD专有）</strong></td>
+    <td>灯条烧毁→局部暗区/亮度降低/完全黑屏。是高发故障</td>
+    <td>LED芯片热退化（光衰，L70寿命30,000–50,000小时）；单个LED短路/开路→整串LED熄灭；灯条焊点老化</td>
+    <td>3–7年（亮度下降到70%的时间）</td>
+    <td>可更换灯条（¥100–300），但需要拆解面板——操作风险高，非专业不可行</td>
+  </tr>
+</table>
+
+<div class="callout warn">
+  <strong>SPoF结论：</strong>电视的SPoF结构与其他家电有本质差异——<strong>面板是绝对不可修复的不可替代单点</strong>，且成本占比极高。一台¥5000的65寸电视，面板坏了就是¥5000全损。这个特性使得<strong>电视的保修期和延保</strong>比其他家电更有价值。从可靠性角度，LCD面板（含背光）的故障模式比OLED更多（增加了背光系统），但OLED的核心脆弱性（有机材料衰减+烧屏）是<strong>缓慢但确定的退化过程</strong>——它不是突然坏，而是逐渐变差。两种技术的SPoF各有不同：LCD是"可能突然坏"（灯条/电源），OLED是"一定会慢慢变差"（烧屏/衰减）。
+</div>
+
+<h3>3.2 核心部件性能等级</h3>
+
+<table>
+  <tr><th>部件</th><th>高端（旗舰）</th><th>中端</th><th>入门/低成本</th></tr>
+  <tr>
+    <td><strong>面板类型</strong></td>
+    <td>QD-OLED / WOLED-EX / Mini-LED IPS（1000+分区）</td>
+    <td>Mini-LED VA（200–500分区）/ QLED VA / IPS</td>
+    <td>普通LED VA / IPS / ADS（无分区或边缘式背光）</td>
+  </tr>
+  <tr>
+    <td><strong>面板制造商</strong></td>
+    <td>LG Display（WOLED）/ Samsung Display（QD-OLED）/ 友达/群创（高端Mini-LED）</td>
+    <td>京东方BOE / 华星光电CSOT / HKC惠科 / INX群创</td>
+    <td>BOE / CSOT / HKC / Panda中电熊猫（成本优先产线）</td>
+  </tr>
+  <tr>
+    <td><strong>SoC芯片</strong></td>
+    <td>联发科Pentonic 2000 / Sony XR处理器 /三星Neo Quantum</td>
+    <td>联发科MT96xx / Amlogic T98x / Realtek RTD28xx</td>
+    <td>联发科MT58xx / Amlogic T95x / 全志/瑞芯微RK</td>
+  </tr>
+  <tr>
+    <td><strong>画质引擎</strong></td>
+    <td>自研芯片+算法（Sony XR/LG α9/Samsung NQ8）+ 硬件级3D LUT + AI超分辨率</td>
+    <td>SoC内置算法+品牌调校（MEMC/超分辨率/降噪）+ 软件级色彩管理</td>
+    <td>SoC默认参数，仅基础缩放+降噪，无MEMC</td>
+  </tr>
+  <tr>
+    <td><strong>背光系统</strong></td>
+    <td>Mini-LED（数千分区，单区独立PWM调光，峰值亮度1500–2000nit）</td>
+    <td>直下式LED（数十至数百分区，峰值亮度400–800nit）</td>
+    <td>侧入式LED（单灯条，无分区，亮度250–350nit）</td>
+  </tr>
+  <tr>
+    <td><strong>T-CON/驱动</strong></td>
+    <td>独立T-CON板+高阶过驱动算法+12bit/14bit处理位深</td>
+    <td>集成T-CON（SoC内）+ 标准过驱动</td>
+    <td>面板内置T-CON（固定参数，无可调空间）</td>
+  </tr>
+  <tr>
+    <td><strong>HDMI</strong></td>
+    <td>4×HDMI 2.1 48Gbps（VRR+ALLM+4K144）+ eARC</td>
+    <td>1–2×HDMI 2.1 + 2×HDMI 2.0</td>
+    <td>HDMI 2.0 × 2–3</td>
+  </tr>
+  <tr>
+    <td><strong>扬声器</strong></td>
+    <td>独立分频（高音+中低音+低音）+ 独立功放芯片+总功率40–100W+杜比全景声</td>
+    <td>全频单元×2+低音被动辐射器，总功率16–30W</td>
+    <td>向下发声微型全频单元×2，8–12W</td>
+  </tr>
+</table>
+
+<h3>3.3 BOM（Bill of Materials）拆解 — 65寸4K电视</h3>
+
+<table>
+  <tr><th>子系统</th><th>入门LCD ¥2500</th><th>中端Mini-LED ¥5000</th><th>高端QD-OLED ¥12000</th></tr>
+  <tr><td><strong>面板</strong></td><td>BOE/CSOT 60Hz VA ¥900</td><td>CSOT/BOE Mini-LED VA 144Hz ¥2000</td><td>QD-OLED面板 + 驱动IC ¥5500</td></tr>
+  <tr><td><strong>背光模组</strong></td><td>侧入式LED灯条+导光板 ¥200</td><td>Mini-LED阵列+驱动板 ¥800</td><td>N/A（OLED自发光） ¥0</td></tr>
+  <tr><td><strong>电源板</strong></td><td>100W集成电源板 ¥60</td><td>200W电源+Mini-LED驱动 ¥180</td><td>180W电源板 ¥120</td></tr>
+  <tr><td><strong>主板+SoC</strong></td><td>Amlogic T95x 集成主板 ¥120</td><td>联发科MT9600+独立T-CON ¥250</td><td>Pentonic 2000+自研画质芯片 ¥500</td></tr>
+  <tr><td><strong>结构件</strong></td><td>塑料框+铁背板+塑料底座 ¥100</td><td>金属窄框+铝合金底座 ¥200</td><td>全金属机身+超薄设计 ¥400</td></tr>
+  <tr><td><strong>扬声器</strong></td><td>8W×2 ¥20</td><td>15W×2 ¥40</td><td>10W×2+20W低音炮 ¥120</td></tr>
+  <tr><td><strong>线材/遥控/包装</strong></td><td>¥40</td><td>¥60</td><td>¥100</td></tr>
+  <tr><th>BOM合计</th><th>≈¥1,440</th><th>≈¥3,530</th><th>≈¥6,740</th></tr>
+  <tr><th>零售价</th><th>¥2,000–3,000</th><th>¥4,000–6,000</th><th>¥10,000–15,000</th></tr>
+  <tr><th>面板占BOM%</th><th>62%</th><th>57%</th><th>82%</th></tr>
+</table>
+
+<div class="callout">
+  <strong>BOM关键发现：</strong>① 面板是电视成本的绝对主导——占比57–82%，且随尺寸增长呈平方级增长（面积×2=面板成本×2.5–3，因大尺寸面板良率更低）。② QD-OLED的BOM中面板占比高达82%，意味着OLED电视的<strong>面板几乎就是整机</strong>——其他部件（主板/电源/结构）都是围绕面板的附属。③ 入门级电视的BOM占比约50–60%（留出渠道+品牌利润），高端电视BOM占比更低（约50–55%），品牌溢价和研发摊销空间更大。
+</div>
+
+<!-- ─── 4. 制造模式分析 ─── -->
+<h2 id="sec-3">4. 制造模式分析</h2>
+
+<div class="cols">
+<div class="card">
+  <h3>制造模式概览</h3>
+  <table>
+    <tr><th style="width:100px">模式</th><th>代表</th><th>特征</th></tr>
+    <tr><td><strong>面板自产+整机</strong></td><td>Samsung、LG、TCL</td><td>面板是自家集团工厂制造（三星显示/LG显示/TCL华星光电），垂直整合面板→整机</td></tr>
+    <tr><td><strong>面板外购+整机自研</strong></td><td>Sony、海信、创维</td><td>向LG Display/Samsung Display/BOE/CSOT采购面板，自研主板+画质芯片+算法+结构+组装</td></tr>
+    <tr><td><strong>纯ODM组装</strong></td><td>小米/Redmi、OPPO、华为智慧屏（部分）</td><td>面板+主板全套方案由ODM厂提供（冠捷TPV/兆驰AMTC/惠科HKC/康冠KTC），品牌提供ID+软件UI+渠道</td></tr>
+    <tr><td><strong>白牌/山寨</strong></td><td>各种杂牌</td><td>采购B级面板（有瑕疵/降级品）+公板主板+公模外壳组装。价格低但品质完全不可控</td></tr>
+  </tbody>
+</table>
+</div>
+<div class="card">
+  <h3>核心能力自主度判断</h3>
+  <table>
+    <tr><th>能力</th><th>自研自控</th><th>外购依赖</th></tr>
+    <tr><td><strong>面板</strong></td><td>Samsung/LG/TCL（华星）</td><td>所有其他品牌（Sony、海信、小米等）</td></tr>
+    <tr><td><strong>画质芯片/算法</strong></td><td>Sony（XR）、Samsung（NQ）、LG（α）、海信（信芯）</td><td>小米、OPPO、多数ODM品牌</td></tr>
+    <tr><td><strong>SoC</strong></td><td>无——三星/LG/Sony均采购联发科</td><td>100%依赖联发科/Amlogic/Realtek</td></tr>
+    <tr><td><strong>背光系统</strong></td><td>Samsung、Sony（Mini-LED方案自研）</td><td>中低端品牌使用面板厂配套背光</td></tr>
+    <tr><td><strong>主板PCBA</strong></td><td>Sony/Samsung/LG自研设计</td><td>ODM品牌使用方案公司公板</td></tr>
+    <tr><td><strong>操作系统</strong></td><td>Samsung Tizen / LG webOS（自研）</td><td>Google TV / Android TV（通用）+ 国内各品牌的AOSP定制</td></tr>
+  </table>
+</div>
+</div>
+
+<div class="callout">
+  <strong>产业真相：</strong>全球电视产业的本质是<strong>"面板决定物理上限，画质算法决定你离上限有多近"</strong>。面板制造是300–500亿级别的资本游戏——全球只有6家公司拥有高世代面板产线（京东方/华星光电/惠科/LG显示/三星显示/群创/友达/夏普）。而主板/SoC/操作系统几乎完全同质化（大家都在用联发科SoC+Google TV/MEMC一套方案）。因此，品牌真正的差异化在于：<strong>① 能拿到什么等级的面板（A+级vs A级vs B级）；② 画质调校能力（3D LUT/色准/运动补偿/HDR映射）；③ 背光系统设计（Mini-LED分区的独立研发能力）。</strong>Sony的竞争力恰恰在第②项——他们用LG的面板，但调校出的画质常优于LG自家电视。
+</div>
+
+<!-- ─── 5. 技术路线对比 ─── -->
+<h2 id="sec-4">5. 技术路线对比</h2>
+
+<table>
+  <tr><th>维度</th><th>普通LED LCD</th><th>QLED（量子点LCD）</th><th>Mini-LED LCD</th><th>WOLED</th><th>QD-OLED</th></tr>
+  <tr><td><strong>发光原理</strong></td><td>LED背光+液晶光阀</td><td>蓝光LED+量子点膜→白光+液晶光阀</td><td>Mini-LED阵列直下式背光+液晶光阀</td><td>白色OLED+彩色滤光片（RGBW）</td><td>蓝色OLED+量子点色彩转换（RGB）</td></tr>
+  <tr><td><strong>对比度</strong></td><td>1000:1–5000:1（漏光）</td><td>同LCD</td><td>10万:1–100万:1（分区控光）</td><td><strong>∞</strong>（纯黑）</td><td><strong>∞</strong>（纯黑，且无色彩串扰）</td></tr>
+  <tr><td><strong>峰值亮度</strong></td><td>250–400nit</td><td>400–800nit</td><td><strong>1500–2500nit</strong></td><td>600–1000nit（小窗口）<br>150–250nit（全屏白）</td><td>1000–1500nit（小窗口）<br>200–350nit（全屏白）</td></tr>
+  <tr><td><strong>色域</strong></td><td>DCI-P3 70–85%</td><td>DCI-P3 90–98%</td><td>DCI-P3 90–98%</td><td>DCI-P3 96–99%</td><td><strong>DCI-P3 99%+ BT.2020 ~90%</strong></td></tr>
+  <tr><td><strong>色准ΔE</strong></td><td>3–6</td><td>2–4</td><td>1–3（需校准）</td><td><1（出厂校准）</td><td><1（出厂校准）</td></tr>
+  <tr><td><strong>可视角度</strong></td><td>VA:窄 IPS:好</td><td>VA:窄 IPS:好</td><td>VA:窄（加广视角膜改善）</td><td><strong>极好（~178°无色偏）</strong></td><td><strong>极好（~178°无色偏）</strong></td></tr>
+  <tr><td><strong>响应时间</strong></td><td>5–15ms（GTG）</td><td>同LCD</td><td>同LCD（分区控光可能引入光晕延迟）</td><td><strong><0.1ms</strong></td><td><strong><0.1ms</strong></td></tr>
+  <tr><td><strong>烧屏风险</strong></td><td>无</td><td>无</td><td>无</td><td><strong>有</strong>（静态元素/高亮度加速）</td><td><strong>有</strong>（蓝色OLED衰减更快）</td></tr>
+  <tr><td><strong>寿命（L70@4h/d）</strong></td><td>8–12年</td><td>8–12年</td><td>7–10年（背光LED更多=故障概率更高）</td><td>5–8年（有机材料退化+烧屏累积）</td><td>4–7年（蓝色OLED老化快于WOLED）</td></tr>
+  <tr><td><strong>功耗（65寸典型）</strong></td><td>80–120W</td><td>100–150W</td><td>120–180W</td><td>90–150W（取决于内容亮度）</td><td>100–180W（取决于内容亮度）</td></tr>
+  <tr><td><strong>厚度</strong></td><td>40–80mm</td><td>40–80mm</td><td>40–60mm（Mini-LED散热空间）</td><td><strong>3–5mm（面板部分）</strong></td><td><strong>3–5mm（面板部分）</strong></td></tr>
+  <tr><td><strong>价格（65寸）</strong></td><td>¥2000–4000</td><td>¥3000–5500</td><td>¥4000–9000</td><td>¥7000–15000</td><td>¥10000–20000</td></tr>
+</table>
+
+<div class="callout good">
+  <strong>技术路线结论：</strong>Mini-LED LCD是2026年的<strong>技术甜点</strong>——以OLED 50–70%的价格实现了85–90%的OLED画质（除纯黑场景外），且无烧屏焦虑。OLED的价值主张是<strong>绝对黑位+极致响应+完美视角</strong>——如果你看大量暗场景电影（诺兰/恐怖片/太空片），OLED的"像素级开关"带来的沉浸感是任何LCD无法媲美的。但如果你主要看新闻/综艺/游戏（大量静态UI），OLED的烧屏风险是真实存在的——不是"会不会"而是"多快"的问题。<strong>QLED（量子点LCD不带Mini-LED）是营销概念>>实际技术类别</strong>——它只是在普通LCD上加了一层量子点膜提升色域，对比度和黑位没有任何改善。
+</div>
+
+<!-- ─── 6. 可靠性工程模型 ─── -->
+<h2 id="sec-5">6. 可靠性工程模型</h2>
+
+<h3>6.1 浴盆曲线（Bathtub Curve）</h3>
+
+<div class="bathtub">
+  <svg viewBox="0 0 600 200" width="100%" height="auto">
+    <defs>
+      <linearGradient id="fade" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#dc3545" stop-opacity="0.12"/>
+        <stop offset="100%" stop-color="#dc3545" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+    <line x1="50" y1="160" x2="560" y2="160" stroke="#aaa" stroke-width="1"/>
+    <line x1="50" y1="20" x2="50" y2="160" stroke="#aaa" stroke-width="1"/>
+    <text x="300" y="190" font-size="10" fill="#888" text-anchor="middle">使用时间</text>
+    <text x="15" y="95" font-size="10" fill="#888" text-anchor="middle" transform="rotate(-90, 15, 95)">失效率</text>
+    <path d="M50,115 C100,128 150,100 200,40 C220,25 260,18 300,22 C340,26 380,24 440,45 C470,60 500,85 520,110 L560,118"
+          fill="none" stroke="#dc3545" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M50,115 C100,128 150,100 200,40 C220,25 260,18 300,22 C340,26 380,24 440,45 C470,60 500,85 520,110 L560,118 L560,160 L50,160 Z"
+          fill="url(#fade)"/>
+    <text x="130" y="78" font-size="10" fill="#dc3545" text-anchor="middle">早期失效期<br/><tspan font-size="8">（DOA/坏点/漏光/虚焊）</tspan></text>
+    <text x="310" y="40" font-size="10" fill="#198754" text-anchor="middle">稳定期 · 偶发失效</text>
+    <text x="500" y="68" font-size="10" fill="#dc3545" text-anchor="middle">损耗失效期<br/><tspan font-size="8">（LED光衰/电容老化/OLED烧屏）</tspan></text>
+    <line x1="190" y1="145" x2="190" y2="160" stroke="#888" stroke-width="0.5" stroke-dasharray="4,3"/>
+    <text x="190" y="172" font-size="8" fill="#888" text-anchor="middle">0–6月</text>
+    <line x1="420" y1="145" x2="420" y2="160" stroke="#888" stroke-width="0.5" stroke-dasharray="4,3"/>
+    <text x="420" y="172" font-size="8" fill="#888" text-anchor="middle">5–8年</text>
+  </svg>
+</div>
+
+<h3>6.2 故障模式与影响分析（FMEA）</h3>
+
+<table>
+  <tr><th>故障模式</th><th>发生率</th><th>影响</th><th>可探测性</th><th>修复成本</th><th>RPN</th></tr>
+  <tr>
+    <td>面板物理损坏（撞击/压力）</td>
+    <td><span class="tag tag-warn">低（意外事件）</span></td>
+    <td>整机报废</td>
+    <td>高（明显裂痕/漏液）</td>
+    <td>极高（=新机）</td>
+    <td><strong>极高</strong></td>
+  </tr>
+  <tr>
+    <td>LED背光衰减/烧毁（LCD）</td>
+    <td><span class="tag tag-bad">高（5–8年）</span></td>
+    <td>亮度降低/局部暗区/偏色</td>
+    <td>中（亮度逐渐降低不易察觉；暗区明显）</td>
+    <td>中（换灯条¥200–400，需拆面板）</td>
+    <td><strong>高</strong></td>
+  </tr>
+  <tr>
+    <td>OLED烧屏/亮度衰减</td>
+    <td><span class="tag tag-bad">高（3–7年，取决于使用模式）</span></td>
+    <td>静态元素残影/整体亮度下降/色偏（蓝色衰减最快→偏黄）</td>
+    <td>中（烧屏是渐进过程，早期不可见）</td>
+    <td>极高（不可修复=换机）</td>
+    <td><strong>高</strong></td>
+  </tr>
+  <tr>
+    <td>电源板电容老化</td>
+    <td><span class="tag tag-warn">中（3–7年）</span></td>
+    <td>无法开机/自动关机/画面闪烁</td>
+    <td>低（需要拆机检查电容鼓包或ESR表测量）</td>
+    <td>低–中（换电源板¥100–300）</td>
+    <td><strong>中</strong></td>
+  </tr>
+  <tr>
+    <td>主板BGA虚焊/SoC故障</td>
+    <td><span class="tag tag-warn">中（4–8年）</span></td>
+    <td>花屏/间歇性不开机/HDMI无信号</td>
+    <td>低（症状不稳定，需要专业诊断）</td>
+    <td>中（换主板¥200–600）</td>
+    <td><strong>中</strong></td>
+  </tr>
+  <tr>
+    <td>T-CON/COF连接故障</td>
+    <td><span class="tag tag-warn">低–中（4–8年）</span></td>
+    <td>竖线/横线/半屏无图像</td>
+    <td>高（明显的固定线条）</td>
+    <td>中（换T-CON板¥80–200，但COF故障需压屏设备）</td>
+    <td><strong>中</strong></td>
+  </tr>
+  <tr>
+    <td>WiFi/BT模块失效</td>
+    <td><span class="tag tag-warn">低–中（3–6年）</span></td>
+    <td>无法连接网络/遥控器</td>
+    <td>高（连接失败）</td>
+    <td>低（USB外接WiFi适配器¥30–50）</td>
+    <td><strong>低</strong></td>
+  </tr>
+  <tr>
+    <td>扬声器破音/杂音</td>
+    <td><span class="tag tag-warn">低–中（3–7年）</span></td>
+    <td>声音失真/音量降低</td>
+    <td>高（听觉明显）</td>
+    <td>低（外接Soundbar/音箱绕过）</td>
+    <td><strong>低</strong></td>
+  </tr>
+</table>
+
+<h3>6.3 关键可靠性洞察</h3>
+
+<div class="callout warn">
+  <strong>电视可靠性三大铁律：</strong><br>
+  <strong>① 面板是"一次性"的——</strong>任何面板故障的经济成本=整机报废。保护面板就是保护投资（避免撞击/按压/阳光直射/极端温度）。<br>
+  <strong>② OLED是"消耗品"——</strong>有机材料的老化是不可逆的物理化学过程。一台OLED电视在每天使用4小时的情况下，3–5年后亮度衰减10–20%是正常的物理预期，不属于故障。选择OLED就要接受"用几年画质会逐渐下降"的现实。<br>
+  <strong>③ 电视的维修逻辑是"模块级更换"——</strong>维修店不会修电源板的电容，而是直接换整块电源板。这意味着<strong>你的电视能否被修好，取决于备件供应链是否还存在这个型号的板子</strong>。小众品牌/老型号的面板/T-CON备件会首先断供——很可能一台可修的电视因为"没备件"而报废。
+</div>
+
+<!-- ─── 7. 用户体验建模 ─── -->
+<h2 id="sec-6">7. 用户体验建模</h2>
+
+<h3>7.1 体验维度权重排序</h3>
+
+<table>
+  <tr><th>优先级</th><th>维度</th><th>权重</th><th>工程解释</th></tr>
+  <tr><td>1</td><td><strong>画质（综合）</strong></td><td>40%</td><td>对比度（黑位层次）+ 峰值亮度（HDR冲击力）+ 色准（肤色/天空/草地的自然度）+ 运动清晰度（体育/游戏）。这是电视的<strong>核心价值函数</strong>。值得注意的是，<strong>内容源的质量对画质的影响通常大于电视本身</strong>——一个高品质4K HDR蓝光源在¥3000电视上的表现，可能好过低码率流媒体在¥20000 OLED上的表现。</td></tr>
+  <tr><td>2</td><td><strong>系统流畅度</strong></td><td>20%</td><td>开机速度+主页加载时间+APP切换流畅度+遥控器响应延迟。电视是"每天交互"的设备——卡顿的开机动画（30秒+广告）+ 3秒的输入延迟，一年累积的等待时间是十几个小时的纯粹浪费。SoC性能不足是低中端电视最大的体验杀手。</td></tr>
+  <tr><td>3</td><td><strong>音质</strong></td><td>15%</td><td>电视自带扬声器的物理限制（超薄机身无法容纳大尺寸单元）意味着<strong>任何电视的内置音响都无法与¥300以上的独立Soundbar竞争</strong>。但集成音响的清晰度（对白可懂度）和低频表现仍会影响日常使用体验。</td></tr>
+  <tr><td>4</td><td><strong>遥控器设计</strong></td><td>10%</td><td>按键布局+盲操作可行性+按键反馈手感+语音键是否易误触。遥控器是用户与电视交互的<strong>唯一物理接口</strong>——一个反人类的遥控器可以毁掉整台电视的体验。精简遥控器（Apple TV风格）vs 全按键遥控器（传统风格）是两条路线，各有用户群体。</td></tr>
+  <tr><td>5</td><td><strong>外观/工业设计</strong></td><td>8%</td><td>在关机状态下，电视是客厅里最大的黑色矩形。窄边框/超薄/线缆管理影响"静态视觉质量"——但当内容开始播放时，外观的影响迅速归零。</td></tr>
+  <tr><td>6</td><td><strong>智能功能/扩展性</strong></td><td>7%</td><td>应用生态+投屏兼容性+智能家居联动+语音助手。生态的封闭性（Samsung Tizen/LG webOS独立生态）vs开放性（Google TV/Android TV）是长期使用的关键差异。</td></tr>
+</table>
+
+<h3>7.2 内容源质量 > 电视画质</h3>
+
+<div class="card">
+  <table>
+    <tr><th>信号源</th><th>典型码率/参数</th><th>画质潜力</th><th>适配电视</th></tr>
+    <tr><td>UHD蓝光（碟片）</td><td>50–100Mbps, 4K HDR10+/DV, BT.2020色域</td><td><strong>极限</strong></td><td>高端OLED/Mini-LED能发挥全部潜力</td></tr>
+    <tr><td>Netflix/Apple TV+（流媒体）</td><td>15–25Mbps, 4K Dolby Vision</td><td>极高</td><td>中高端电视能看到明显提升</td></tr>
+    <tr><td>国内视频平台（爱优腾）</td><td>4–8Mbps, 4K（疑似升频）</td><td>中等</td><td>中端电视足够——高端电视的优势在此码率下被大幅压缩</td></tr>
+    <tr><td>广电有线电视</td><td>2–5Mbps, 1080i/720P</td><td>低</td><td>这种信号源下，¥3000和¥30000的电视画质差距显著缩小</td></tr>
+    <tr><td>IPTV/OTT盒子</td><td>3–6Mbps, 1080P</td><td>低–中</td><td>瓶颈在信号源而非电视</td></tr>
+  </table>
+  <p style="font-size:0.85rem;color:var(--color-muted);margin-top:8px">结论：如果你80%的内容是广电+国内流媒体（总码率<10Mbps），买¥8000+的电视是典型的<strong>"法拉利开在乡间小路上"</strong>——电视的画质潜力永远被困在低品质信号源的瓶颈里。</p>
+</div>
+
+<!-- ─── 8. 营销系统识别 ─── -->
+<h2 id="sec-7">8. 营销系统识别</h2>
+
+<table>
+  <tr><th>类别</th><th>技术/功能</th><th>工程判断</th><th>识别依据</th></tr>
+  <tr>
+    <td><span class="tag tag-a">A·真实技术</span></td>
+    <td>OLED / QD-OLED</td>
+    <td>真实的物理革命——像素级自发光带来的∞:1对比度和<0.1ms响应时间是任何LCD无法复制的物理优势</td>
+    <td>有机电致发光是不同物理原理，差异可盲测感知</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-a">A·真实技术</span></td>
+    <td>Mini-LED多分区背光</td>
+    <td>真实的技术进步——数千个独立控光分区使LCD的对比度从千级跃升到十万级。分区数越多（1000+分区开始），光晕（blooming）越小，越接近OLED的黑位表现</td>
+    <td>分区数量和光晕控制可客观测量（亮度计+测试图）</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-a">A·真实技术</span></td>
+    <td>HDMI 2.1 48Gbps（4K144/VRR/ALLM）</td>
+    <td>真实的高带宽需求——次世代游戏（PS6/Xbox 2027）需要4K 120fps+ VRR。对非游戏用户效用有限</td>
+    <td>带宽和功能有明确的行业标准规范</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-a">A·真实技术</span></td>
+    <td>Dolby Vision / HDR10+ 动态元数据</td>
+    <td>真实的HDR增强——逐场景甚至逐帧的动态亮度映射比静态HDR10更精细。需要内容端+电视端双方支持</td>
+    <td>动态元数据的亮度映射是实实在在的图像质量提升</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-a">A·真实技术</span></td>
+    <td>3D LUT硬件色彩校准</td>
+    <td>高端的出厂校准（Sony/Samsung/LG旗舰/Panasonic）使用3D LUT（17³点或更高精度色空间映射）实现ΔE<1的色准。这是真实的硬件+算法投资</td>
+    <td>色准可仪器测量（色度计/分光光度计），ΔE<1 vs ΔE>3在肤色表现上有肉眼可察觉的差异</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-b">B·体验增强</span></td>
+    <td>量子点（QLED / QD-OLED）</td>
+    <td><strong>在OLED（QD-OLED）上是革命性的</strong>——蓝色OLED+量子点色彩转换消除了WOLED的彩色滤光片光损失，亮度和色域同时大幅提升。<strong>在LCD（QLED）上是渐进改善</strong>——只提升色域覆盖，对比度和黑位不变</td>
+    <td>同叫"量子点"，在LCD和OLED上的价值完全不同——需要区分语境</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-b">B·体验增强</span></td>
+    <td>MEMC运动补偿（插帧）</td>
+    <td>对24fps电影和体育赛事有真实平滑效果，但会产生"肥皂剧效应"（过度平滑显得不自然）。对于游戏反而增加输入延迟需关闭</td>
+    <td>插帧是成熟算法，但审美偏好因人而异</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-b">B·体验增强</span></td>
+    <td>抗反射涂层</td>
+    <td>真实的光学处理——减少环境光在屏幕上的镜面反射→白天/明亮客厅的观看体验显著提升。但这个特性几乎没有品牌会重点宣传</td>
+    <td>光学薄膜技术，效果肉眼可辨</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-b">B·体验增强</span></td>
+    <td>eARC音频回传</td>
+    <td>通过一根HDMI线将电视的高清音频（Dolby Atmos/DTS:X）无损传输到Soundbar/AV功放。对有外部音响的用户是刚需</td>
+    <td>HDMI标准定义的规范功能</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-c">C·营销功能</span></td>
+    <td>"8K分辨率"</td>
+    <td>在65–75寸、正常观看距离（2–3m）下，<strong>人眼无法区分4K和8K</strong>（已超出人眼角分辨率极限）。8K面板需要4倍于4K的像素驱动——更多的TFT=更大的开口率损失=更低的亮度/更高的功耗。更致命的是<strong>8K内容几乎不存在</strong>（全球8K内容总量<0.01%）。8K是纯面板厂商的产能消化策略</td>
+    <td>人眼角分辨率极限计算（2m观看距离/65寸，人眼可分辨约80–100 PPD，4K已经达到约60 PPD，8K是120 PPD但已超出人眼极限）</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-c">C·营销功能</span></td>
+    <td>"AI画质引擎" / "AI超分辨率"</td>
+    <td>真正的AI超分辨率（如NVIDIA DLSS风格）需要专门的AI加速器（NPU/GPU）。电视SoC中的"AI"通常是简化版的超分辨率算法+对比度增强+降噪——属于传统图像处理，与"AI"无关。真正的AI upscaling需要每帧推理（20–40ms@4K），这要求至少TOPS级别的算力。</td>
+    <td>检查SoC规格中的NPU算力（TOPS），如未标注具体数值→基本是软件算法而非AI</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-c">C·营销功能</span></td>
+    <td>"120Hz / 144Hz 高刷"</td>
+    <td>对游戏玩家有实际价值（需要显卡输出+游戏支持）。对<strong>观看电影/电视节目为零价值</strong>——电影是24fps，电视是25/30fps。120Hz面板在播放24fps内容时可以实现5:5 pulldown（均匀显示每个电影帧），消除3:2 pulldown的抖动——但这是帧率一致性的改善，不是"高刷"本身的功劳</td>
+    <td>区分用户场景——游戏=有真价值；纯影视=宣传>实际</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-c">C·营销功能</span></td>
+    <td>"无边全面屏" / "99%屏占比"</td>
+    <td>边框从8mm缩小到3mm在工程上需要更精密的模具和更强的结构设计——但<strong>用户从不关注1cm以下的边框差异</strong>。当画面亮起时，3mm和8mm的边框对沉浸感的影响趋近于零</td>
+    <td>当用户在卖场并排比较时"感知差异"巨大；在家中单独使用时完全不会注意到</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-c">C·营销功能</span></td>
+    <td>"智能语音助手" / "IoT控制中心"</td>
+    <td>OK，你可以用语音换台。但按遥控器只需要0.3秒。至于用电视控制全屋智能设备——你确定要在一台5–8年寿命的设备上运行智能家居中枢？独立的中枢设备（如HomePod/小爱音箱）更可靠且寿命/更新周期更长。</td>
+    <td>功能堆砌，非核心价值。电视的硬件更新周期（5–8年）与智能家居中枢的需求（持续更新+长期在线）冲突</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-c">C·营销功能</span></td>
+    <td>开机广告（国内品牌）</td>
+    <td>不是"功能"，是<strong>商业模式</strong>——国内品牌以硬件低利润甚至亏损销售（小米模式），靠开机广告+系统广告分成回收利润。<strong>广告收入每台约¥30–100/年</strong>，这就是为什么同配置的国内品牌比国际品牌便宜¥1000–2000。你在用注意力支付这个差价。</td>
+    <td>商业模型分析：硬件定价=成本+预期广告收入分成。低价是有代价的</td>
+  </tr>
+</table>
+
+<div class="callout warn">
+  <strong>电视营销识别法则：</strong>① 分辨率超过4K → 忽略（人眼极限+无内容）。② "AI"一词出现但未标注NPU算力 → 忽略（传统图像处理）。③ "量子点"在LCD上 → 色域提升是真的，但别指望黑位改善。④ "高刷" → 不玩游戏=不Care。⑤ 尺寸是最诚实的参数——在预算允许的前提下，<strong>买大不买小</strong>。一台65寸中端Mini-LED的观影沉浸感远胜55寸旗舰OLED——沉浸感的第一驱动因子是<strong>屏幕在视场中的占比</strong>，而非画质的细微差异。
+</div>
+
+<!-- ─── 9. TCO成本模型 ─── -->
+<h2 id="sec-8">9. TCO成本模型</h2>
+
+<h3>9.1 10年TCO计算 — 65寸，每日使用4小时</h3>
+
+<table>
+  <tr><th>成本项</th><th>入门LCD ¥2500</th><th>中端Mini-LED ¥5000</th><th>高端QD-OLED ¥12000</th></tr>
+  <tr><td>采购成本</td><td>¥2,500</td><td>¥5,000</td><td>¥12,000</td></tr>
+  <tr><td>10年电费<br><span style="font-size:0.8rem;color:var(--color-muted)">100W/130W/150W × 4h × 365 × 10 × ¥0.6</span></td><td>¥876</td><td>¥1,139</td><td>¥1,314</td></tr>
+  <tr><td>挂架/安装</td><td>¥150（含挂架）</td><td>¥200（含挂架）</td><td>¥300（含挂架+专业安装）</td></tr>
+  <tr><td>维修/延保</td><td>¥300（电源板一次）</td><td>¥400（延保3年 ≈ ¥300 + 维修一次）</td><td>¥800（延保3年 ≈ ¥500 + 可能维修）</td></tr>
+  <tr><td><strong>10年TCO</strong></td><td><strong>≈¥3,826</strong></td><td><strong>≈¥6,739</strong></td><td><strong>≈¥14,414</strong></td></tr>
+  <tr><td>日均成本</td><td>¥1.05</td><td>¥1.85</td><td>¥3.95</td></tr>
+  <tr><td>每小时成本</td><td>¥0.26</td><td>¥0.46</td><td>¥0.99</td></tr>
+</table>
+
+<div class="callout good">
+  <strong>TCO核心发现：</strong>电视的电费在10年TCO中占比只有17–23%——与冰箱（电费占TCO的70%+）形成鲜明对比。这意味着<strong>电视的能效差异不重要</strong>（一台节能电视10年省的电费可能只有¥200–300）。TCO的主要驱动力是<strong>采购成本+寿命</strong>。而这恰恰是电视TCO的悖论——高端电视采购成本高3–5倍，但寿命可能更短（OLED burn-in），导致每小时使用成本差异巨大。如果按"每小时的品质享受"来算ROI，对于每天4小时的电视重度用户来说，高端电视可能是合理的"体验投资"；对于每天<1小时的轻度用户，入门级足够了。
+</div>
+
+<!-- ─── 10. 供应链与产业结构 ─── -->
+<h2 id="sec-9">10. 供应链与产业结构</h2>
+
+<h3>10.1 产业链层级</h3>
+
+<table>
+  <tr><th>层级</th><th>内容</th><th>核心企业</th><th>产业特征</th></tr>
+  <tr>
+    <td><strong>Tier 1 · 上游材料/设备</strong></td>
+    <td>玻璃基板、偏光片、液晶材料、OLED有机材料、光刻胶、驱动IC晶圆、量子点材料、LED芯片</td>
+    <td>康宁/AGC/NEG（玻璃基板）、日东电工/住友化学（偏光片）、Merck/JNC（液晶）、UDC/出光兴产（OLED材料）、联詠/奇景/瑞鼎（驱动IC）</td>
+    <td>极高技术壁垒+高度集中。玻璃基板和OLED材料几乎被少数几家企业垄断。一台电视的显示性能天花板由这些上游供应商决定</td>
+  </tr>
+  <tr>
+    <td><strong>Tier 2 · 面板制造</strong></td>
+    <td>TFT阵列制造 + 液晶灌注/OLED蒸镀 + 模组组装（切割/绑定/贴合）</td>
+    <td><strong>中国：</strong>BOE京东方/CSOT华星光电/HKC惠科（LCD全球前三，OLED追赶中）<br><strong>韩国：</strong>LG Display（WOLED全球垄断）/ Samsung Display（QD-OLED全球垄断，LCD已退出）<br><strong>中国台湾：</strong>群创/友达（LCD）<br><strong>日本：</strong>夏普SDP（LCD，已被鸿海收购）</td>
+    <td>全球LCD面板产能的70%+在中国大陆。<strong>OLED大尺寸面板被韩国100%垄断</strong>（LG Display WOLED + Samsung Display QD-OLED），但中国BOE/CSOT的WOLED产线正在建设中。<br>面板产线的投资门槛：10.5代线（3370×2940mm玻璃）≈¥300–500亿/条</td>
+  </tr>
+  <tr>
+    <td><strong>Tier 3 · 整机集成/品牌</strong></td>
+    <td>整机设计+主板研发+画质调校+组装+品牌+渠道</td>
+    <td><strong>全球Top 5：</strong>Samsung/LG/TCL/海信/Sony<br><strong>中国主力：</strong>小米/创维/康佳/长虹/海尔/华为<br><strong>ODM代工巨头：</strong>冠捷TPV（全球最大TV ODM）、兆驰AMTC、康冠KTC</td>
+    <td>品牌集中度中等。Samsung连续17年全球出货量第一（约20%份额），其次是LG/TCL/海信/Sony。<br>代工比例很高——即使是Samsung/LG也有部分中低端机型由TPV等代工</td>
+  </tr>
+</table>
+
+<h3>10.2 面板产业的"大国博弈"</h3>
+
+<div class="callout">
+  <strong>供应链核心洞察：</strong>全球电视产业的竞争本质是<strong>面板产业的竞争</strong>。从2010年代起，中国以国家资本+产业政策驱动LCD面板的"逆周期投资"，在行业低谷期大规模扩产，逼退了韩国（Samsung/LG退出LCD）、日本（夏普/松下/JDI全面溃败）的LCD产能。到2026年，中国在LCD领域的全球份额>70%，拥有绝对的供应定价权。<strong>但OLED大尺寸面板仍然是韩国垄断的堡垒</strong>——这决定了OLED电视的价格在可预见的未来不会出现LCD那样的"腰斩式降价"。只有当BOE/CSOT的8.5代WOLED产线量产后，OLED电视价格才有可能大幅下探。
+</div>
+
+<!-- ─── 11. 安装与环境影响 ─── -->
+<h2 id="sec-10">11. 安装与环境影响</h2>
+
+<div class="cols">
+<div class="card">
+  <h3>安装因素（被严重低估）</h3>
+  <table>
+    <tr><th>因素</th><th>影响程度</th><th>说明</th></tr>
+    <tr><td><strong>观看距离/尺寸匹配</strong></td><td>极大</td><td>65寸的最佳观看距离是2.0–2.8m（4K内容）或2.5–3.5m（1080P内容）。距离过近→可见像素/眼部疲劳；过远→丧失沉浸感→大屏的钱白花了。<strong>最常见的安装错误：买了大屏但挂得太远/太高</strong></td></tr>
+    <tr><td><strong>安装高度</strong></td><td>大</td><td>屏幕中心应处于<strong>坐姿视线水平高度（约地面以上100–110cm）</strong>。多数家庭的电视挂得太高（壁炉上方/柜台上方仰视）→颈部疲劳+图像色彩/对比度因视角偏移而劣化（特别是VA面板垂直视角窄）</td></tr>
+    <tr><td><strong>墙面类型</strong></td><td>中</td><td>空心砖/石膏板墙不能直接挂大尺寸电视（65寸≈20–25kg）→需要加固/穿透到龙骨（木龙骨）或使用专用膨胀螺栓（混凝土/实心砖）。挂架脱落是真实的物理风险</td></tr>
+    <tr><td><strong>环境光控制</strong></td><td>大</td><td>明亮的客厅（落地窗/无遮光窗帘）→屏幕反射会严重降低对比度感知→OLED/Mini-LED的画质优势被环境光"抹平"。<strong>环境光控制（窗帘/百叶窗）的投资回报率远高于升级电视</strong></td></tr>
+    <tr><td><strong>线缆管理</strong></td><td>小</td><td>HDMI线/电源线/网线/音箱线的隐蔽走线影响美观。预埋管线（装修时）是理想方案；装修后只能使用线槽/线管</td></tr>
+  </table>
+</div>
+<div class="card">
+  <h3>环境与使用因素</h3>
+  <table>
+    <tr><th>因素</th><th>影响</th></tr>
+    <tr><td><strong>日照/紫外线</strong></td><td>阳光直射面板→加速偏光片老化（变黄/脱层）+ 有机材料（OLED）加速降解。朝南/朝西的客厅需特别注意</td></tr>
+    <tr><td><strong>温度/湿度</strong></td><td>极端高温（>40°C连续）→加速LED光衰/电容老化。高湿环境（>80%RH）→电路板腐蚀/连接器氧化。但一般家庭使用环境在电视设计容差范围内</td></tr>
+    <tr><td><strong>电源质量</strong></td><td>电压波动大/频繁停电/雷击→电源板浪涌损坏。建议使用带浪涌保护的排插（不是普通排插）</td></tr>
+    <tr><td><strong>清洁方式</strong></td><td>使用含酒精/氨水的清洁剂→破坏屏幕抗反射涂层和偏光片表面。只能用<strong>纯水+超细纤维布</strong>轻轻擦拭。这是最常见的"爱护性损坏"</td></tr>
+    <tr><td><strong>静态内容（OLED）</strong></td><td>长时间显示新闻台标/游戏HUD/股票走势→OLED burn-in。这是OLED用户必须改变的使用习惯——不能像对待LCD那样"开机不管"</td></tr>
+  </table>
+</div>
+</div>
+
+<div class="callout">
+  <strong>核心结论：</strong>电视的<strong>安装质量（尺寸/距离/高度/环境光）对体验的影响≥电视本身的画质差异</strong>。一台¥3000的65寸电视在正确距离+正确高度+良好环境光控制下，提供的观影体验可以超过一台¥15000的电视在错误安装条件下的体验。<strong>花¥200换遮光窗帘的边际画质提升，大于花¥2000升级到更高档次的电视。</strong>
+</div>
+
+<!-- ─── 12. 品牌工程评级 ─── -->
+<h2 id="sec-11">12. 品牌工程评级</h2>
+
+<table>
+  <tr><th>梯队</th><th>品牌</th><th>技术能力</th><th>制造模式</th><th>核心优势</th><th>短板</th></tr>
+  <tr>
+    <td rowspan="3"><strong>第一梯队<br>技术主导型</strong></td>
+    <td><strong>Sony 索尼</strong></td>
+    <td>画质算法全球最佳——自研XR认知处理器+硬件级3D LUT色彩校准。虽然面板采购自LG/Samsung/BOE，但<strong>索尼调校过的LG面板通常比LG自家电视更好</strong></td>
+    <td>面板外购+自研主板/画质芯片+自研算法+马来西亚/中国组装</td>
+    <td>色准（电影/肤色表现无可匹敌）+ HDR动态色调映射，MEMC/超分辨率/降噪三项均为行业标杆</td>
+    <td>价格高；不支持Samsung Tizen/LG webOS的完整智能生态；对游戏功能的支持晚于LG/Samsung</td>
+  </tr>
+  <tr>
+    <td><strong>LG</strong></td>
+    <td>WOLED面板全球垄断供应商。自家电视在OLED技术的调校上有先天优势（面板特性最了解）</td>
+    <td>面板自产（LG Display）+ 整机自研制造</td>
+    <td>OLED产品线最全（42–97寸），游戏功能最强（4×HDMI 2.1+0.1ms响应+VRR/G-Sync全支持），webOS系统流畅</td>
+    <td>LCD产品线竞争力弱；画质调校（尤其是HDR映射和肤色）不如Sony；WOLED亮度不如QD-OLED</td>
+  </tr>
+  <tr>
+    <td><strong>Samsung 三星</strong></td>
+    <td>QD-OLED面板全球垄断供应商+自研NQ8画质芯片。Mini-LED背光技术（Neo QLED）也是行业标杆</td>
+    <td>面板自产（Samsung Display）+ 整机自研制造</td>
+    <td>QD-OLED在亮度和色域上领先WOLED；Mini-LED背光分区数和控光算法领先；Tizen系统生态完善</td>
+    <td>不支持Dolby Vision（推自家HDR10+，生态远弱于DV）；Tizen应用选择少于Google TV；QD-OLED烧屏风险比WOLED可能更高（蓝色OLED驱动）</td>
+  </tr>
+  <tr>
+    <td rowspan="3"><strong>第二梯队<br>平衡型</strong></td>
+    <td><strong>TCL</strong></td>
+    <td>华星光电面板（自产）+ Mini-LED技术（"万象分区"）+ 自研画质算法（AiPQ引擎）</td>
+    <td>面板自产（CSOT）+ 整机自研制造</td>
+    <td>垂直整合（面板→整机）成本优势最强；Mini-LED技术布局最早、分区数最多；国内品牌中画质调校最好</td>
+    <td>软件/系统体验不如LG/Samsung；画质算法与Sony仍有差距（尤其肤色/暗场处理）；品牌溢价能力弱于日韩</td>
+  </tr>
+  <tr>
+    <td><strong>海信 Hisense</strong></td>
+    <td>自研"信芯"画质芯片+ ULED技术（Mini-LED自研背光方案）。激光电视品类全球领先</td>
+    <td>面板外购（BOE/CSOT/LGD）+ 自研背光+自研画质芯片+自产整机</td>
+    <td>国内品牌中画质自研能力仅次于Sony/Samsung；性价比优秀（同价位的分区数/亮度通常优于竞品）；VIDAA系统海外表现良好</td>
+    <td>国内版VIDAA系统广告+推荐内容过多；品控一致性不如Sony/LG</td>
+  </tr>
+  <tr>
+    <td><strong>创维 Skyworth</strong></td>
+    <td>长期与LG Display合作（WOLED面板优先供应）+ 自研"蜂鸟"画质芯片</td>
+    <td>面板外购+自研整机</td>
+    <td>OLED产品线在国内品牌中布局最早、最全；性价比OLED策略（比LG/Sony便宜¥2000–5000）</td>
+    <td>画质调校细节不如海信/TCL；品牌近年增长乏力</td>
+  </tr>
+  <tr>
+    <td rowspan="2"><strong>第三梯队<br>ODM/性价比型</strong></td>
+    <td><strong>小米/Redmi</strong></td>
+    <td>硬件规格达标（面板/SoC参数接近中端），但画质调校基本无自研（依赖SoC厂商默认参数和ODM方案）</td>
+    <td>纯ODM（冠捷TPV/兆驰AMTC等代工）</td>
+    <td>将大尺寸面板的"规格平民化"——¥2000的65寸/¥4000的75寸在纯尺寸/分辨率/亮度规格上无可匹敌</td>
+    <td>开机广告+系统广告（商业模式决定的代价）；画质调校/色准/HDR映射/运动补偿均弱于自主品牌；品控一致性依赖ODM厂</td>
+  </tr>
+  <tr>
+    <td><strong>华为智慧屏</strong></td>
+    <td>鸿蒙OS生态整合+AI摄像头交互是差异化方向。但画质芯片/算法的深度积累不足</td>
+    <td>面板外购+ODM+自研主板和软件</td>
+    <td>鸿蒙生态协同（多屏互动/智能家居）+ AI摄像头（视频通话/体感游戏）</td>
+    <td>电视画质核心技术积累远不如Sony/Samsung/海信；产品线单一，价格偏高（"智慧"溢价）；受制裁影响芯片供应链</td>
+  </tr>
+</table>
+
+<div class="callout">
+  <strong>品牌评级方法论：</strong>电视品牌的工程排名的核心判断标准是：<strong>① 有没有自研画质芯片/算法团队（而非SoC内置）</strong>→ 这是区分"技术型品牌"和"组装型品牌"的第一分水岭；<strong>② 面板采购等级</strong>——同一条面板产线出厂的A+级面板（最好的5%）和A级面板（标准品）在均匀性/坏点率/漏光控制上有真实差异，大品牌（Sony/Samsung）能优先挑走A+级面板；<strong>③ 品控投入</strong>——出厂校准（逐台校色 vs 批次抽检）的成本差异巨大，但对色准的影响是决定性的。
+</div>
+
+<!-- ─── 13. 购买决策系统 ─── -->
+<h2 id="sec-12">13. 购买决策系统</h2>
+
+<div class="card">
+  <h3>Step 1：定义需求——内容·环境·人</h3>
+  <table>
+    <tr><th>参数</th><th>影响</th></tr>
+    <tr><td><strong>主要内容类型</strong></td>
+    <td>电影/剧集为主→ 重视对比度/黑位/色准（OLED > Mini-LED > LCD）<br>游戏（PS/Xbox/PC）→ 重视HDMI 2.1(4K120+VRR)+低延迟+无烧屏焦虑（Mini-LED > OLED > LCD）<br>体育/新闻→ 重视运动清晰度+亮度+无烧屏（Mini-LED高亮度 > OLED > LCD）<br>综艺/国产流媒体→ 任何中端电视都够用（信号源瓶颈远大于电视）</td></tr>
+    <tr><td><strong>房间亮度</strong></td>
+    <td>明亮客厅（白天为主/大窗户/无遮光）→ Mini-LED LCD（高亮度抵抗环境光，1500–2500nit峰值亮度在明亮环境中优势明显）<br>暗光/可控光（遮光窗帘/地下室/晚间为主）→ OLED（暗光环境是OLED的主场——∞对比度和纯黑的优势只有在暗光环境下才能充分体现）</td></tr>
+    <tr><td><strong>观看距离</strong></td>
+    <td>1.5–2.2m → 55寸；2.0–2.8m → 65寸；2.5–3.5m → 75寸；3.0m+ → 85寸+。<strong>在预算和空间允许的前提下，尺寸优先于面板技术</strong>——从55寸升级到65寸的沉浸感提升 > 从LCD升级到OLED的画质提升</td></tr>
+    <tr><td><strong>使用年限预期</strong></td>
+    <td>3–5年（跟随技术更新换代）→ 中端即可，不必过度投资<br>5–10年（稳定长期使用）→ 建议投资高端LCD（Mini-LED），比OLED更"耐久"<br>在乎3–5年后二手残值→ Sony/LG（保值率显著高于国产品牌）</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <h3>Step 2–6：技术路线→核心规格→风险过滤→TCO→品牌</h3>
+  <table>
+    <tr><th>检查项</th><th>通过标准</th></tr>
+    <tr><td><strong>面板技术</strong></td><td>预算<¥4000→ 高端LCD/QLED（色域>90% DCI-P3）<br>预算¥4000–8000→ Mini-LED LCD（分区数>300，峰值亮度>1000nit）<br>预算>¥8000→ 根据使用环境选OLED（暗室）或旗舰Mini-LED（明亮）<br><strong>避坑：</strong>"QLED"如果不带Mini-LED=仅色域提升=对比度和LCD一样=<strong>溢价不值得</strong></td></tr>
+    <tr><td><strong>分辨率</strong></td><td>4K（3840×2160）已经达到65寸/2m距离的人眼分辨极限。<strong>8K是纯噱头——多花的钱买来的是零可感知画质提升+更高的功耗+更少的内容</strong></td></tr>
+    <tr><td><strong>峰值亮度</strong></td><td>HDR内容的画质上限由峰值亮度决定。亮度<400nit→HDR无效（与SDR无差别）。亮度>1000nit→HDR效果开始明显。<strong>Mini-LED电视的峰值亮度（1500–2500nit）在明亮环境中的优势远超OLED（600–1000nit小窗口）</strong></td></tr>
+    <tr><td><strong>HDMI 2.1接口</strong></td><td>游戏玩家：至少2×HDMI 2.1 48Gbps（4K120/144Hz + VRR + ALLM）。<br>非游戏用户：HDMI 2.0完全足够——4K60Hz看电影不需要HDMI 2.1</td></tr>
+    <tr><td><strong>操作系统</strong></td><td>Google TV（最开放/应用最全/更新最及时） > LG webOS / Samsung Tizen（流畅但封闭） > 国内品牌定制AOSP（广告多/更新慢/可能几年后卡顿）。<strong>操作系统是决定5年后电视是否仍然"好用"的核心因素</strong></td></tr>
+    <tr><td><strong>出厂色准</strong></td><td>如果重视电影/肤色真实→ 查找评测中的ΔE值（出厂模式）。ΔE<2=优秀（肉眼不可辨偏色），ΔE 2–4=良好，ΔE>4=可感知偏色</td></tr>
+    <tr><td><strong>反射率</strong></td><td>明亮的客厅→ 关注屏幕的抗反射处理。磨砂屏（雾面）vs 镜面屏的抗反射效果差异巨大，但品牌几乎不标注这一参数——<strong>只能去实体店看实际环境下的反光情况</strong></td></tr>
+    <tr><td><strong>品牌最后看</strong></td><td>在技术条件筛选后的候选池中，按售后网点密度+系统体验+开机广告情况做最终选择</td></tr>
+  </table>
+</div>
+
+<div class="callout good">
+  <strong>最优购买策略（2026年）：</strong><br>
+  <strong>甜点级（¥3500–5000）：</strong>TCL/海信 65寸 Mini-LED（分区>300，亮度>1000nit）——Mini-LED技术下放到中端价位，这是目前工程价值密度最高的区间。<br>
+  <strong>品质级（¥6000–9000）：</strong>Sony X95系列 65寸 Mini-LED（画质调校业界最佳 + Mini-LED硬件）或 LG C系列 55/65寸 OLED（游戏+电影双修的最佳平衡点）。<br>
+  <strong>旗舰级（¥10000+）：</strong>Samsung QD-OLED S95系列 / Sony A95系列（QD-OLED+Sony调校=画质天花板）或 LG G系列 WOLED-EX（MLA微透镜技术大幅提升亮度）。<br>
+  <strong>避坑提醒：</strong>不要买任何品牌的8K电视；不要在明亮客厅买OLED；不要为了"智能功能"付溢价（¥300的外接流媒体盒子可以秒杀任何内置系统）；不要买低于55寸的"大屏"（55寸以下是电视体验的临界点——低于这个尺寸不如用平板/显示器）。
+</div>
+
+<!-- ─── 14. 一句话结论 ─── -->
+<h2 id="sec-13">14. 一句话结论</h2>
+
+<div class="conclusion">
+  <h2>一句话结论</h2>
+  <p>
+    <strong>电视的工程本质是"将视频信号转化为可控大面积光输出的光电系统"——面板决定了物理上限（对比度/亮度/色域），画质算法决定了你能多接近这个上限，而环境光控制和安装质量决定了你到底能看到这个上限的百分之多少。</strong>在2026年，65寸Mini-LED LCD（¥3500–5000）已经覆盖了85%+的工程价值——Mini-LED弥合了LCD与OLED之间最大的对比度鸿沟，且无烧屏焦虑。OLED的价值在于暗光环境下的"像素级沉浸感"，但这是奢侈品等级的边际体验，你为这15%的体验增量需要支付100–200%的价格溢价。至于8K、AI画质、大屏语音——它们的工程贡献总和趋近于零。<strong>把钱花在更大的尺寸和更好的环境光控制上，永远是更优的边际投资。</strong>
+  </p>
+  <p style="margin-top:16px; font-size:0.85rem; color:#888;">
+    <strong>工程甜点推荐：</strong>TCL/海信 65寸 Mini-LED（分区>300，亮度>1000nit）——这是2026年电视品类中"工程价值/价格"比的最高点。<br>
+    <strong>核心提醒：</strong>¥200的遮光窗帘对画质体验的提升 > ¥2000的电视差价。买电视前先看看你客厅下午三点的窗边有多亮。
+  </p>
+</div>
+
+</main>
+
+<script>
+(function() {
+  var links = document.querySelectorAll('nav a[href^="#sec-"]');
+  var sections = [];
+  links.forEach(function(a) {
+    var el = document.getElementById(a.getAttribute('href').slice(1));
+    if (el) sections.push({el: el, a: a});
+  });
+  function update() {
+    var top = window.scrollY + 120;
+    var cur = sections[0];
+    for (var i = 0; i < sections.length; i++) {
+      if (sections[i].el.offsetTop <= top) cur = sections[i];
+    }
+    links.forEach(function(l) { l.classList.remove('active'); });
+    if (cur) cur.a.classList.add('active');
+  }
+  window.addEventListener('scroll', update, {passive: true});
+  update();
+})();
+</script>
+
+</body>
+</html>

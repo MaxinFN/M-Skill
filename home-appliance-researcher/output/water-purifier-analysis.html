@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>净水器工程分析报告 — Home Appliance Researcher</title>
+<style>
+  :root {
+    --nav-width: 260px;
+    --color-bg: #f8f9fa;
+    --color-surface: #ffffff;
+    --color-text: #212529;
+    --color-muted: #6c757d;
+    --color-accent: #0d6efd;
+    --color-warn: #dc3545;
+    --color-good: #198754;
+    --color-border: #dee2e6;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; font-size: 15px; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans SC", sans-serif;
+    background: var(--color-bg);
+    color: var(--color-text);
+    line-height: 1.7; overflow-x: hidden;
+  }
+  nav {
+    position: fixed; top: 0; left: 0; width: var(--nav-width); height: 100vh;
+    background: #1a1d23; color: #ccc; overflow-y: auto; z-index: 100;
+    padding: 24px 0;
+  }
+  nav .brand {
+    font-size: 1.1rem; font-weight: 700; color: #fff; padding: 0 20px 20px;
+    border-bottom: 1px solid #333; margin-bottom: 12px; letter-spacing: 0.5px;
+  }
+  nav .brand span { display: block; font-size: 0.7rem; color: #888; font-weight: 400; margin-top: 2px; }
+  nav a {
+    display: block; padding: 7px 20px; color: #aaa; text-decoration: none;
+    font-size: 0.85rem; transition: color 0.15s, background 0.15s;
+    border-left: 3px solid transparent;
+  }
+  nav a:hover, nav a.active { color: #fff; background: rgba(255,255,255,0.05); }
+  main {
+    margin-left: var(--nav-width); padding: 48px 60px; width: calc(100vw - var(--nav-width));
+  }
+  h1 { font-size: 2rem; margin-bottom: 8px; }
+  h2 { font-size: 1.4rem; margin: 48px 0 16px; padding-bottom: 8px; border-bottom: 2px solid var(--color-border); }
+  h3 { font-size: 1.15rem; margin: 32px 0 12px; color: #333; }
+  h4 { font-size: 1rem; margin: 20px 0 8px; }
+  p { margin-bottom: 12px; }
+  .subtitle { color: var(--color-muted); font-size: 0.95rem; margin-bottom: 40px; }
+  .card {
+    background: var(--color-surface); border: 1px solid var(--color-border);
+    border-radius: 8px; padding: 20px 24px; margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .card h3 { margin-top: 0; }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+  @media (max-width: 768px) { .cols { grid-template-columns: 1fr; } }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0 20px; font-size: 0.9rem; }
+  th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--color-border); }
+  th { background: #f1f3f5; font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--color-muted); }
+  tr:hover td { background: #fafbfc; }
+  .tag {
+    display: inline-block; padding: 2px 8px; border-radius: 4px;
+    font-size: 0.75rem; font-weight: 600; letter-spacing: 0.3px;
+  }
+  .tag-a{background:#d1fae5;color:#065f46}.tag-b{background:#fef3c7;color:#92400e}.tag-c{background:#fee2e2;color:#991b1b}
+  .tag-good{background:#d1fae5;color:#065f46}.tag-warn{background:#fef3c7;color:#92400e}.tag-bad{background:#fee2e2;color:#991b1b}
+  .callout {
+    border-left: 4px solid var(--color-accent); background: #e7f1ff;
+    padding: 14px 18px; border-radius: 0 6px 6px 0; margin: 16px 0; font-size: 0.9rem;
+  }
+  .callout.warn{border-left-color:var(--color-warn);background:#fff5f5}
+  .callout.good{border-left-color:var(--color-good);background:#f0fdf4}
+  .arch-layer {
+    border: 1px solid var(--color-border); border-radius: 6px; padding: 16px;
+    margin-bottom: 12px; background: #fafbfc;
+  }
+  .arch-layer .label {
+    font-weight: 700; font-size: 0.8rem; color: var(--color-muted);
+    text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;
+  }
+  .arch-layer .parts { font-size: 0.9rem; }
+  .flow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 12px 0; font-size: 0.9rem; }
+  .flow .step {
+    background: var(--color-surface); border: 1px solid var(--color-border);
+    border-radius: 6px; padding: 6px 14px;
+  }
+  .flow .arrow { color: var(--color-muted); font-weight: 700; }
+  .bathtub {
+    background: #f9fafb; border: 1px dashed var(--color-border); border-radius: 8px;
+    padding: 40px 24px; text-align: center; margin: 16px 0;
+  }
+  .bathtub svg { max-width: 600px; }
+  .conclusion {
+    background: linear-gradient(135deg, #1a1d23, #2d3139); color: #e0e0e0;
+    border-radius: 10px; padding: 28px 32px; margin-top: 48px;
+  }
+  .conclusion h2 { color: #fff; border-bottom-color: #444; font-size: 1.2rem; }
+  .conclusion p { font-size: 1.05rem; line-height: 1.8; }
+  @media print { nav { display: none; } main { margin-left: 0; padding: 20px; width: auto; } }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="brand">
+    净水器工程分析
+    <span>Home Appliance Researcher v3.0</span>
+  </div>
+  <a href="#sec-0">1. 系统本质</a>
+  <a href="#sec-1">2. 系统架构拆解</a>
+  <a href="#sec-2">3. 核心部件工程分析</a>
+  <a href="#sec-3">4. 制造模式分析</a>
+  <a href="#sec-4">5. 技术路线对比</a>
+  <a href="#sec-5">6. 可靠性工程模型</a>
+  <a href="#sec-6">7. 用户体验建模</a>
+  <a href="#sec-7">8. 营销系统识别</a>
+  <a href="#sec-8">9. TCO成本模型</a>
+  <a href="#sec-9">10. 供应链与产业结构</a>
+  <a href="#sec-10">11. 安装与环境影响</a>
+  <a href="#sec-11">12. 品牌工程评级</a>
+  <a href="#sec-12">13. 购买决策系统</a>
+  <a href="#sec-13" style="color: #60a5fa;">14. 一句话结论</a>
+</nav>
+
+<main>
+
+<h1>净水器工程分析报告</h1>
+<p class="subtitle">
+  分析框架：物理原理 &gt; 系统架构 &gt; 核心部件 &gt; 制造质量 &gt; 可靠性 &gt; 使用体验 &gt; 成本结构 &gt; 品牌 &gt; 功能营销<br>
+  分析日期：2026-06-09 &nbsp;|&nbsp; 分析对象：家用净水器（RO反渗透 / 超滤 / 活性炭 / 前置过滤器）
+</p>
+
+<!-- ─── 2. 系统架构拆解 ─── -->
+<h2 id="sec-0">1. 系统本质</h2>
+
+<div class="card">
+  <h3>净水器是什么？</h3>
+  <table>
+    <tr><th style="width:120px">系统类型</th><td>流体处理系统 — 通过物理过滤、吸附和膜分离技术，去除自来水中的悬浮物、余氯、重金属、细菌、病毒、水垢离子和溶解性有机物</td></tr>
+    <tr><th>输入</th><td>市政自来水（已符合GB 5749生活饮用水标准，含余氯0.05–4mg/L、溶解性固体TDS 50–500mg/L、可能含微量重金属/有机物）</td></tr>
+    <tr><th>输出</th><td>净化水（TDS ≤50mg/L 反渗透出水 / 超滤保留矿物质但TDS不变） + 浓缩水/冲洗废水（反渗透机型产生）</td></tr>
+    <tr><th>能量形式</th><td><strong>无电力型（超滤/活性炭/前置）：</strong>依赖自来水自身压力（0.1–0.4 MPa）驱动过滤，无外加能量。<br><strong>有电力型（RO反渗透）：</strong>增压泵（24V DC，功率30–80W）将水压提升至0.5–0.8MPa以克服RO膜渗透压，实现反渗透分离。</td></tr>
+    <tr><th>核心物理原理</th><td><strong>RO反渗透：</strong>对浓溶液侧施加大于渗透压的压力，迫使水分子逆浓度梯度穿过半透膜（RO膜孔径约0.0001μm，仅允许水分子通过），截留99%+的溶解性盐类、重金属、细菌、病毒。<br><strong>超滤：</strong>物理筛分，膜孔径0.01–0.1μm，截留细菌、铁锈、胶体，但溶解性物质（钙镁离子、重金属离子）会通过。<br><strong>活性炭：</strong>物理吸附，多孔碳材料比表面积500–1500m²/g，吸附余氯、异味、部分有机物。</td></tr>
+  </table>
+</div>
+
+<div class="callout">
+  <strong>工程视角的关键认知：</strong>净水器的本质是一个<strong>滤材消耗品 + 管路系统</strong>。它和其他家电最大的不同在于——净水器本身只是一个"壳子"，<strong>真正起作用的是内部的滤芯</strong>。买净水器的本质是<strong>买一个滤芯平台</strong>，后续的滤芯更换成本才是真正的长期支出。理解了这一点，你就会关注两个核心指标：①RO膜的脱盐率和寿命（决定了出水水质能维持多久）；②滤芯的年均更换成本（决定了长期持有成本）。
+</div>
+
+<!-- ─── 3. 核心部件工程分析 ─── -->
+<h2 id="sec-1">2. 系统架构拆解</h2>
+
+<h3>RO反渗透净水器（主流）架构</h3>
+
+<div class="arch-layer">
+  <div class="label">Layer 1 · 能源层 Energy</div>
+  <div class="parts"><strong>增压泵</strong>（24V DC隔膜泵/柱塞泵，功率30–80W，扬程5–8bar）。提供克服RO膜渗透压所需的高压（进水0.1–0.4MPa → 增压至0.5–0.8MPa）。<strong>电源适配器</strong>（220V AC→24V DC）。</div>
+</div>
+<div class="arch-layer">
+  <div class="label">Layer 2 · 执行层 Actuation — 多级滤芯串联</div>
+  <div class="parts"><strong>PP棉（聚丙烯熔喷）</strong>— 第1级，孔径1–5μm，截留铁锈/泥沙/悬浮物。保护后续滤芯。<br><strong>前置活性炭（GAC/烧结活性炭）</strong>— 第2级，吸附余氯和部分有机物。保护RO膜免受余氯氧化。<br><strong>RO反渗透膜</strong>— 第3级（核心），孔径0.0001μm，截留重金属/水垢/细菌/病毒/溶解盐。<br><strong>后置活性炭（椰壳炭棒）</strong>— 第4级，改善口感，去除储水桶/管路可能带来的异味。<br><strong>进水电磁阀</strong>（控制通断）、<strong>废水比/冲洗电磁阀</strong>（控制废水比+膜冲洗）、<strong>单向阀</strong>（防止纯水回流）、<strong>高压开关</strong>（检测储水桶满停泵）、<strong>低压开关</strong>（断水保护泵空转）。</div>
+</div>
+<div class="arch-layer">
+  <div class="label">Layer 3 · 控制层 Control</div>
+  <div class="parts">主控MCU（8-bit / ARM）、TDS传感器（进水+出水，检测水质和滤芯寿命）、流量计（计量制水量，智能冲洗判断）、LED/显示屏（TDS实时显示+滤芯寿命提醒）、漏水检测传感器（底部电极式，自动关阀断水）</div>
+</div>
+<div class="arch-layer">
+  <div class="label">Layer 4 · 结构层 Structural</div>
+  <div class="parts">滤瓶/膜壳（食品级PP/ABS塑料，承受0.8MPa静压）、管路（PE管，食品级）、外壳（ABS/钣金，台上式/厨下式）、水龙头（无铅铜/不锈钢/食品级塑料，双出水/单出水）</div>
+</div>
+
+<h3>水流路径</h3>
+<div class="flow">
+  <span class="step">自来水(0.1–0.4MPa)</span><span class="arrow">→</span>
+  <span class="step">进水电磁阀</span><span class="arrow">→</span>
+  <span class="step">PP棉(一级，5μm)</span><span class="arrow">→</span>
+  <span class="step">前置活性炭(二级，除余氯)</span><span class="arrow">→</span>
+  <span class="step">增压泵(加压至0.5–0.8MPa)</span><span class="arrow">→</span>
+  <span class="step">RO膜(三级，0.0001μm)</span>
+</div>
+<div class="flow" style="margin-top:4px;">
+  <span class="step">RO膜产水→单向阀→后置活性炭(四级，改善口感)→高压开关→水龙头→纯水</span>
+</div>
+<div class="flow" style="margin-top:4px;">
+  <span class="step">RO膜浓水→废水比电磁阀→排水管→下水道</span>
+</div>
+
+<!-- ─── 4. 制造模式分析 ─── -->
+<h2 id="sec-2">3. 核心部件工程分析</h2>
+
+<h3>2.1 Single Point of Failure (SPoF)</h3>
+
+<div class="card">
+  <h4>🔴 RO反渗透膜 — 净水器的灵魂，也是SPoF</h4>
+  <p><strong>为什么是它？</strong>RO膜是净水器中唯一不可替代的部件。PP棉堵了换PP棉，活性炭失效了换活性炭——但RO膜一旦被余氯氧化或严重堵塞，整机出水TDS飙升，机器几乎报废（更换RO膜的成本占整机价格30–50%）。RO膜的性能衰减是渐进且不可逆的。</p>
+  <table>
+    <tr><th>参数</th><th>进口RO膜 (DOW/东丽/世韩/GE)</th><th>国产RO膜 (时代沃顿/九阳/沁园)</th></tr>
+    <tr><td>脱盐率（初始）</td><td>98–99%</td><td>96–98%</td></tr>
+    <tr><td>脱盐率（3年后）</td><td>95–97%（衰减缓慢）</td><td>90–95%（衰减较快）</td></tr>
+    <tr><td>设计寿命</td><td>3–5年（市政自来水）</td><td>2–4年</td></tr>
+    <tr><td>耐余氯</td><td>优（聚酰胺复合膜+抗氧化涂层）</td><td>中等</td></tr>
+    <tr><td>膜面积/产量</td><td>400–1200G高通量（卷制工艺优秀）</td><td>400–800G（快速进步中）</td></tr>
+    <tr><td>典型失效模式</td><td>余氯氧化膜片→脱盐率下降→TDS升高</td><td>同左，衰减更快</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <h4>🟡 增压泵 — 第二核心（RO机型）</h4>
+  <p>增压泵是RO机唯一的运动部件。它需要在0.5–0.8MPa高压下长期工作，泵体密封、隔膜和单向阀是易损件。泵老化表现为压力下降→产水量减少→废水比增加。</p>
+</div>
+
+<h3>2.2 核心部件性能等级</h3>
+
+<table>
+  <tr><th>部件</th><th>工业级/旗舰</th><th>消费级/中端</th><th>成本优化型</th></tr>
+  <tr>
+    <td>RO膜</td>
+    <td>DOW Filmtec (美)、东丽 (日)、世韩 (韩) — 脱盐率98%+，3–5年寿命稳定</td>
+    <td>时代沃顿 (国产龙头)、九阳膜 — 脱盐率96–98%，2–3年</td>
+    <td>小厂膜片卷制 — 脱盐率不稳定，1–2年快速衰减</td>
+  </tr>
+  <tr>
+    <td>增压泵</td>
+    <td>三角洲 (国产标杆)、Aquatec (美) — 大流量+低噪音+长寿命</td>
+    <td>科漫、强生 — 性能良好</td>
+    <td>杂牌泵 — 1–2年压力衰减，噪音增大</td>
+  </tr>
+  <tr>
+    <td>前置活性炭</td>
+    <td>椰壳炭棒 (碘值>1000mg/g) + 烧结成型，余氯去除率>95%</td>
+    <td>椰壳/煤质GAC颗粒炭</td>
+    <td>煤质炭 (碘值<700，吸附差)</td>
+  </tr>
+  <tr>
+    <td>PP棉</td>
+    <td>5μm + 1μm双级PP棉（分级过滤，延长后续寿命）</td>
+    <td>5μm单级PP棉</td>
+    <td>杂牌PP棉（纤维不均匀，过滤效果差）</td>
+  </tr>
+  <tr>
+    <td>后置活性炭</td>
+    <td>椰壳烧结炭棒（无黑水、抑菌、口感好）</td>
+    <td>椰壳GAC颗粒炭（可能有碳粉泄漏）</td>
+    <td>普通GAC + 碳粉泄漏→出水变黑</td>
+  </tr>
+</table>
+
+<h3>2.3 BOM拆解 — RO膜来源识别</h3>
+
+<div class="card">
+  <p>RO膜占净水器BOM成本的 <strong>25%–40%</strong>。识别RO膜供应商是判断净水器档次的最快方法。</p>
+  <table>
+    <tr><th>RO膜品牌</th><th>国家</th><th>特点</th><th>搭载品牌</th></tr>
+    <tr><td>DOW Filmtec (杜邦水处理)</td><td>美国</td><td>全球RO膜发明者+份额第一，脱盐率最稳定，寿命最长</td><td>安吉尔高端、怡口、3M高端</td></tr>
+    <tr><td>东丽 (Toray)</td><td>日本</td><td>日系品质标杆，耐余氯氧化能力出色</td><td>沁园高端、美的COLMO部分机型</td></tr>
+    <tr><td>世韩 (CSM/Saehan)</td><td>韩国</td><td>全球第二大，性价比最高的进口膜</td><td>小米、美的中端、海尔</td></tr>
+    <tr><td>时代沃顿 (Vontron)</td><td>中国</td><td>国产龙头，脱盐率稳定，性价比之王</td><td>美的、沁园、海尔主流机型</td></tr>
+    <tr><td>九阳膜</td><td>中国</td><td>九阳自研，垂直整合</td><td>九阳</td></tr>
+  </table>
+</div>
+
+<!-- ─── 5. 技术路线对比 ─── -->
+<h2 id="sec-3">4. 制造模式分析</h2>
+
+<table>
+  <tr><th>品牌</th><th>制造模式</th><th>RO膜来源</th><th>增压泵来源</th><th>核心竞争力</th></tr>
+  <tr><td>安吉尔 (Angel)</td><td>自研+自产</td><td>自研+DOW/东丽采购</td><td>自研/三角洲</td><td>中国净水器行业先驱，RO膜+卷制工艺自主研发能力强</td></tr>
+  <tr><td>沁园 (Qinyuan)</td><td>自研+自产</td><td>自研+东丽/世韩采购</td><td>三角洲/强生</td><td>净水器品类开创者之一，RO膜自研膜片卷制</td></tr>
+  <tr><td>美的/COLMO</td><td>自研+自产</td><td>自研+东丽/世韩/时代沃顿</td><td>三角洲/强生</td><td>全产业链整合，产销量全球最大之一</td></tr>
+  <tr><td>海尔</td><td>自研+自产</td><td>自研+时代沃顿/世韩</td><td>三角洲/强生</td><td>全品类优势+最强售后网络</td></tr>
+  <tr><td>小米/云米</td><td>ODM外包</td><td>世韩/时代沃顿</td><td>三角洲/科漫</td><td>品牌+渠道+米家IoT，ODM厂商包括溢泰/开能等</td></tr>
+  <tr><td>3M / 怡口 (Ecowater)</td><td>自研+进口</td><td>DOW进口膜</td><td>Aquatec进口泵</td><td>美国高端净水品牌，全套进口膜+泵，价格是国内品牌3–5倍</td></tr>
+</table>
+
+<div class="callout warn">
+  <strong>净水器ODM的真相：</strong>净水器的制造门槛在大家电中是最低的——一个滤瓶+几根PE管+增压泵+RO膜+电源适配器+控制板，零部件几乎全部是标准化外购件。深圳/慈溪/顺德有大量净水器组装厂，采购DOW/世韩膜片自己卷制+三角洲泵+外购滤芯=贴上品牌标签出货。这就是为什么同一个ODM厂的净水器，贴牌小米卖1200元、贴牌某不知名品牌卖500元——硬件高度同质化。差异在于：<strong>RO膜是真正用DOW原装卷制还是"膜片来自DOW"（只有膜片是DOW的，卷制工艺在代工厂）</strong>——两者脱盐率和寿命不是一个级别。
+</div>
+
+<!-- ─── 6. 可靠性工程模型 ─── -->
+<h2 id="sec-4">5. 技术路线对比</h2>
+
+<h3>4.1 RO反渗透 vs 超滤 vs 纳滤</h3>
+
+<table>
+  <tr><th>维度</th><th>RO反渗透</th><th>纳滤 (NF)</th><th>超滤 (UF)</th></tr>
+  <tr><td>膜孔径</td><td>~0.0001μm</td><td>~0.001μm</td><td>0.01–0.1μm</td></tr>
+  <tr><td>截留物质</td><td>重金属✓ 水垢✓ 细菌✓ 病毒✓ 溶解盐✓ 有机物✓</td><td>重金属✓ 水垢△(部分) 细菌✓ 病毒✓ 溶解盐△(一价离子通过)</td><td>细菌✓ 铁锈✓ 胶体✓。重金属✗ 水垢✗ 病毒△</td></tr>
+  <tr><td>出水TDS</td><td><span class="tag tag-good">&lt;50mg/L</span></td><td><span class="tag tag-warn">50–150mg/L</span></td><td><span class="tag tag-bad">=进水TDS (不变)</span></td></tr>
+  <tr><td>保留矿物质</td><td><span class="tag tag-bad">几乎不保留</span></td><td><span class="tag tag-good">部分保留</span> (钙镁部分通过)</td><td><span class="tag tag-good">全部保留</span></td></tr>
+  <tr><td>产生废水</td><td><span class="tag tag-warn">是</span> (废水比 1:1 ~ 3:1)</td><td><span class="tag tag-warn">是</span> (比RO少)</td><td><span class="tag tag-good">否</span> (仅定期冲洗)</td></tr>
+  <tr><td>需要电力</td><td><span class="tag tag-warn">是</span> (增压泵)</td><td><span class="tag tag-warn">是</span> (通常需要)</td><td><span class="tag tag-good">否</span></td></tr>
+  <tr><td>价格</td><td>800–4000元</td><td>1500–4000元</td><td>300–1500元</td></tr>
+  <tr><td>适用场景</td><td><span class="tag tag-a">首选</span> 绝大多数家庭</td><td><span class="tag tag-b">特定场景</span></td><td><span class="tag tag-b">水质较好地区</span></td></tr>
+</table>
+
+<h3>4.2 有桶 vs 无桶（大通量）RO机</h3>
+
+<div class="card">
+  <table>
+    <tr><th></th><th>有桶RO机 (50–100G)</th><th>无桶大通量RO机 (400–1200G)</th></tr>
+    <tr><td>RO膜通量</td><td>50–100GPD (日产50–100加仑)</td><td>400–1200GPD</td></tr>
+    <tr><td>制水速度</td><td>慢 (0.13–0.26L/min)</td><td>快 (1.0–3.0L/min)</td></tr>
+    <tr><td>储水方式</td><td>压力储水桶 (3–5加仑)</td><td>无储水桶，即开即滤</td></tr>
+    <tr><td>第一杯水TDS</td><td>稳定 (桶内纯水)</td><td><span class="tag tag-warn">偏高</span> (停机后RO膜两侧渗透平衡→TDS升高)。需零陈水技术</td></tr>
+    <tr><td>空间占用</td><td>大 (储水桶占半个橱柜)</td><td>小 (无桶，机身紧凑)</td></tr>
+    <tr><td>细菌风险</td><td><span class="tag tag-warn">有</span> (储水桶内部无法清洗，长期可能滋生细菌)</td><td><span class="tag tag-good">低</span></td></tr>
+    <tr><td>成本</td><td>低 (整机600–1500元 + 滤芯便宜)</td><td>中高 (整机1200–4000元 + RO膜贵)</td></tr>
+    <tr><td>工程评级</td><td><span class="tag tag-b">成熟老旧方案</span></td><td><span class="tag tag-a">主流方案</span></td></tr>
+  </table>
+</div>
+
+<h3>4.3 零陈水技术 — 解决无桶机"第一杯水TDS偏高"</h3>
+
+<div class="card">
+  <p>无桶RO机停机后，RO膜纯水侧的水分会向浓水侧渗透（渗透平衡），导致膜壳内的纯水TDS逐渐升高。早上第一杯水TDS可能达到100–300mg/L。零陈水技术通过在停机后用纯水冲洗RO膜或循环回流来解决这一问题。</p>
+  <table>
+    <tr><th>技术方案</th><th>原理</th><th>效果</th></tr>
+    <tr><td>纯水回流冲洗</td><td>停机后，泵将纯水反向循环冲洗RO膜，将浓水侧的高浓度水冲走</td><td>优秀，第一杯水TDS回到正常范围</td></tr>
+    <tr><td>水驱/隔膜罐</td><td>停机后用纯水驱替膜壳内的浓水</td><td>良好</td></tr>
+    <tr><td>定时冲洗</td><td>定时短时间启动制水并排放浓水</td><td>一般，增加废水</td></tr>
+  </table>
+</div>
+
+<div class="callout good">
+  <strong>技术路线核心结论：</strong>对于中国绝大多数市政自来水，<strong>RO反渗透是唯一能确保饮水安全的技术路线</strong>。超滤（UF）无法去除重金属和水垢，纳滤（NF）对一价离子的截留不彻底。如果你关心的是"水里面有没有重金属/农药残留/水垢"——只有RO能做到。<strong>"超滤保留矿物质"是营销话术，不是技术优势——你水里的"矿物质"主要是钙镁离子（=水垢）和可能的微量重金属，你不需要从水里补充这些。</strong>
+</div>
+
+<!-- ─── 7. 用户体验建模 ─── -->
+<h2 id="sec-5">6. 可靠性工程模型</h2>
+
+<h3>5.1 浴盆曲线</h3>
+
+<div class="bathtub">
+  <svg viewBox="0 0 600 180" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#fee2e2" stop-opacity="0.5"/>
+        <stop offset="25%" stop-color="#d1fae5" stop-opacity="0.5"/>
+        <stop offset="75%" stop-color="#d1fae5" stop-opacity="0.5"/>
+        <stop offset="100%" stop-color="#fee2e2" stop-opacity="0.5"/>
+      </linearGradient>
+    </defs>
+    <rect x="30" y="10" width="540" height="120" rx="8" fill="url(#bg)" stroke="#ddd" stroke-width="1"/>
+    <path d="M40,100 Q100,100 130,40 Q160,20 300,20 Q440,20 470,40 Q500,100 560,100"
+          fill="none" stroke="#dc3545" stroke-width="2.5" stroke-linecap="round"/>
+    <text x="90" y="140" text-anchor="middle" font-size="11" fill="#991b1b">早期失效期</text>
+    <text x="300" y="140" text-anchor="middle" font-size="11" fill="#065f46">稳定运行期</text>
+    <text x="510" y="140" text-anchor="middle" font-size="11" fill="#991b1b">磨损失效期</text>
+    <line x1="40" y1="155" x2="40" y2="165" stroke="#999" stroke-width="1"/>
+    <line x1="170" y1="155" x2="170" y2="165" stroke="#999" stroke-width="1"/>
+    <line x1="430" y1="155" x2="430" y2="165" stroke="#999" stroke-width="1"/>
+    <line x1="560" y1="155" x2="560" y2="165" stroke="#999" stroke-width="1"/>
+    <text x="40" y="178" text-anchor="middle" font-size="10" fill="#999">0</text>
+    <text x="170" y="178" text-anchor="middle" font-size="10" fill="#999">6月</text>
+    <text x="430" y="178" text-anchor="middle" font-size="10" fill="#999">3年</text>
+    <text x="560" y="178" text-anchor="middle" font-size="10" fill="#999">5年+</text>
+  </svg>
+</div>
+
+<h3>5.2 故障模式与影响分析 (FMEA)</h3>
+
+<table>
+  <tr><th>故障模式</th><th>发生概率</th><th>影响程度</th><th>修复成本</th><th>风险等级</th></tr>
+  <tr><td>RO膜被余氯氧化→脱盐率下降</td><td>中高 (10–20%)</td><td>严重 — 出水TDS升高，水质不达标</td><td>换RO膜 200–600元</td><td><span class="tag tag-bad">高</span></td></tr>
+  <tr><td>RO膜结垢堵塞</td><td>中 (5–15%，硬水地区更高)</td><td>严重 — 产水量下降，制水噪音增大</td><td>换RO膜 200–600元</td><td><span class="tag tag-bad">高</span></td></tr>
+  <tr><td>增压泵失效 (压力衰减/不启动)</td><td>中 (5–10%)</td><td>严重 — 无法制水/产水量极低</td><td>换泵 150–400元</td><td><span class="tag tag-warn">中高</span></td></tr>
+  <tr><td>管路/接头漏水</td><td>中 (5–10%)</td><td>严重 — 橱柜泡水</td><td>0–100元 (换接头)</td><td><span class="tag tag-warn">中</span></td></tr>
+  <tr><td>进水电磁阀故障</td><td>中低 (3–6%)</td><td>中等 — 常开→废水不停；常闭→不制水</td><td>80–150元</td><td><span class="tag tag-warn">中</span></td></tr>
+  <tr><td>高压开关故障</td><td>中低 (3–5%)</td><td>中等 — 不停机→泵长期运转→过热</td><td>50–100元</td><td><span class="tag tag-warn">中</span></td></tr>
+  <tr><td>PP棉/前置活性炭未及时更换</td><td>高 (30–50%，用户遗忘)</td><td>中等 — 后续滤芯（尤其是RO膜）过早失效</td><td>换RO膜 200–600元</td><td><span class="tag tag-warn">中</span></td></tr>
+  <tr><td>TDS传感器漂移/故障</td><td>低 (2–4%)</td><td>轻微 — 水质显示不准，误导滤芯更换判断</td><td>50–150元</td><td><span class="tag tag-good">低</span></td></tr>
+</table>
+
+<h3>5.3 高风险部件总结</h3>
+
+<div class="cols">
+  <div class="card">
+    <h4>🔴 致命级 (水质不达标)</h4>
+    <ul>
+      <li>RO膜（余氯氧化/结垢→脱盐率下降，不可逆）</li>
+      <li>前置活性炭失效（没有保护好RO膜→RO膜被余氯毁掉）</li>
+      <li>增压泵（压力不足→产水量大幅下降→无法使用）</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h4>🟡 严重级 (漏水/停机)</h4>
+    <ul>
+      <li>管路/接头漏水（橱柜泡水→维修费用可能超过净水器本身）</li>
+      <li>进水电磁阀（常开→废水不停，水费飙升）</li>
+      <li>高压开关（不停机→泵过热烧毁）</li>
+      <li>PP棉/前置炭未及时更换（连锁损坏RO膜）</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ─── 8. 营销系统识别 ─── -->
+<h2 id="sec-6">7. 用户体验建模</h2>
+
+<div class="card">
+  <h3>体验权重排序 (按工程重要性)</h3>
+  <table>
+    <tr><th>#</th><th>维度</th><th>权重</th><th>净水器工程对应项</th></tr>
+    <tr><td>1</td><td>出水水质 (安全性+口感)</td><td>⭐⭐⭐⭐⭐</td><td>TDS稳定≤50mg/L、无异味、无氯味、口感清甜。RO膜脱盐率+后置活性炭品质决定</td></tr>
+    <tr><td>2</td><td>出水速度</td><td>⭐⭐⭐⭐</td><td>接一杯水（200ml）的时间。400G→约8秒，800G→约4秒，1200G→约3秒。通量不足=等水焦虑</td></tr>
+    <tr><td>3</td><td>第一杯水TDS</td><td>⭐⭐⭐⭐</td><td>早晨第一杯水是否和白天一样低。无零陈水技术的无桶机第一杯水TDS常达100–300mg/L</td></tr>
+    <tr><td>4</td><td>滤芯更换便捷性</td><td>⭐⭐⭐</td><td>快拆式（一拧一拉） &gt;&gt; 需要工具拆卸。麻烦的更换=拖延更换=水质风险</td></tr>
+    <tr><td>5</td><td>噪音控制</td><td>⭐⭐⭐</td><td>增压泵运转噪音 40–55dB(A)。厨下安装通常可接受（关柜门减噪）</td></tr>
+    <tr><td>6</td><td>滤芯寿命提醒</td><td>⭐⭐⭐</td><td>TDS实时监测+流量累计+时间三重维度 vs 简单倒计时。智能提醒 &gt; 倒计时</td></tr>
+    <tr><td>7</td><td>废水比</td><td>⭐⭐</td><td>1:1 vs 2:1 vs 3:1（纯水:废水）。高废水比更省水，但年水费差异仅几十元</td></tr>
+  </table>
+</div>
+
+<div class="callout">
+  <strong>关键洞察：</strong>净水器是一个"用了就回不去"的家电。一旦习惯了RO纯水的口感，你再也喝不惯自来水的氯味和瓶装水的塑料味。净水器体验的核心是<strong>水质稳定性+出水速度</strong>。所谓的"智能互联""APP查看TDS""AI滤芯管理"——你一年只会在刚买的时候打开看一次。但每次接水等10秒钟的焦虑是每天都要经历的。<strong>出水通量（G数）是影响日常体验的核心参数。</strong>
+</div>
+
+<!-- ─── 9. TCO成本模型 ─── -->
+<h2 id="sec-7">8. 营销系统识别</h2>
+
+<table>
+  <tr><th>功能/卖点</th><th>分类</th><th>工程评价</th></tr>
+  <tr><td>RO反渗透膜 (DOW/东丽/世韩进口膜)</td><td><span class="tag tag-a">A类 — 真实技术提升</span></td><td>RO膜是净水器的灵魂。进口膜片+优质卷制工艺=脱盐率98%+ + 3–5年寿命</td></tr>
+  <tr><td>零陈水 (纯水回流冲洗)</td><td><span class="tag tag-a">A类 — 真实技术提升</span></td><td>解决无桶机第一杯水TDS偏高的真实痛点。有技术含量，值得选配</td></tr>
+  <tr><td>大通量 (800–1200G)</td><td><span class="tag tag-b">B类 — 体验增强</span></td><td>接水速度快，使用体验提升显著。400G日常够用，800G+体验更好</td></tr>
+  <tr><td>快拆滤芯设计</td><td><span class="tag tag-b">B类 — 体验增强</span></td><td>一拧一拉更换，自己在家就能换，省去叫师傅的麻烦和费用。实用</td></tr>
+  <tr><td>复合滤芯 (PP+活性炭合一)</td><td><span class="tag tag-b">B类 — 体验增强</span></td><td>减少滤芯数量+更换频次。但PP棉和活性炭寿命不同，合一后必须按短的换，有浪费</td></tr>
+  <tr><td>双出水 (纯水+净水分开)</td><td><span class="tag tag-b">B类 — 体验增强</span></td><td>纯水饮用+净水洗菜淘米。减少RO膜消耗，实用设计</td></tr>
+  <tr><td>富锶/矿化滤芯</td><td><span class="tag tag-c">C类 — 营销功能</span></td><td>往纯水里加矿物质=把过滤掉的东西再加回去。你需要从水里补矿物质吗？吃饭就够了</td></tr>
+  <tr><td>氢水/富氢水</td><td><span class="tag tag-c">C类 — 伪科学</span></td><td>电解水产生氢气，"富氢水抗氧化抗衰老"——没有任何可靠临床证据支持</td></tr>
+  <tr><td>磁化水/小分子团水</td><td><span class="tag tag-c">C类 — 伪科学</span></td><td>纯伪科学。水分子团的"大小"在体内立即与体液平衡，没有任何工程或医学依据</td></tr>
+  <tr><td>碱性水/弱碱性水</td><td><span class="tag tag-c">C类 — 伪科学</span></td><td>喝弱碱性水改变不了人体血液pH值（血液pH被严格缓冲在7.35–7.45），这是初中生物知识</td></tr>
+  <tr><td>UV杀菌（末端）</td><td><span class="tag tag-b">B类(有储备水) / C类(无储备)</span></td><td>有储水桶的机型UV有一定意义（桶内抑菌）。无储水桶的即滤机型，UV杀菌=多余</td></tr>
+  <tr><td>APP/Wi-Fi远程查看TDS</td><td><span class="tag tag-c">C类 — 营销功能</span></td><td>你在公司看家里的净水器TDS做什么？龙头上的TDS显示就够了</td></tr>
+  <tr><td>AI滤芯寿命/智能冲洗</td><td><span class="tag tag-b">B类(实用) / C类(话术)</span></td><td>多维度滤芯寿命计算（TDS+流量+时间）有实际价值。叫"AI"是营销放大</td></tr>
+</table>
+
+<div class="callout warn">
+  <strong>净水器行业最大的伪科学重灾区：</strong>净水器是家电中营销伪科学最泛滥的品类。"富氢水""小分子团水""碱性水""磁化水""能量水"——这些概念没有一个是经过科学验证有健康益处的。它们存在的唯一原因是：<strong>RO反渗透技术本身已经高度成熟和同质化，品牌需要制造差异化（哪怕这个差异化是伪科学）来维持溢价</strong>。一台1500元的RO净水器和一台4000元的RO净水器，核心过滤能力完全相同（都用DOW/世韩RO膜），差价全在"富锶""富氢""碱性"这些装饰性功能上。
+</div>
+
+<!-- ─── 10. 供应链与产业结构 ─── -->
+<h2 id="sec-8">9. TCO成本模型</h2>
+
+<div class="card">
+  <h3>案例对比：RO反渗透净水器 (三口之家，日均用水10L纯水)</h3>
+
+  <table>
+    <tr><th>成本项</th><th>有桶RO机 (800元)<br>50G 5级过滤</th><th>无桶RO机 (1500元)<br>600G 5级过滤</th><th>无桶RO高端 (3000元)<br>1000G 进口RO膜+零陈水</th></tr>
+    <tr><td>采购成本</td><td>800</td><td>1,500</td><td>3,000</td></tr>
+    <tr><td>安装费</td><td>100</td><td>100</td><td>100</td></tr>
+    <tr><td>10年滤芯成本<br><span style="font-size:0.8rem;color:var(--color-muted)">PP棉6月×1 30元<br>前置活性炭1年×1 60元<br>RO膜3年×1 300元<br>后置活性炭1年×1 60元</span></td><td>PP棉 20×10年 = 600<br>前置炭 30×10年 = 600<br>RO膜 200×3次 = 600<br>后置炭 30×10年 = 600<br><strong>合计 2,400</strong></td><td>PP棉 50×10年 = 1,000<br>前置炭 60×10年 = 1,200<br>RO膜 400×3次 = 1,200<br>后置炭 60×10年 = 1,200<br><strong>合计 4,600</strong></td><td>复合滤芯 200×5年 = 2,000<br>RO膜 600×2次 = 1,200<br><strong>合计 3,200</strong></td></tr>
+    <tr><td>10年水费<br><span style="font-size:0.8rem;color:var(--color-muted)">纯水10L/天 + 废水10–20L/天<br>3元/吨</span></td><td>≈ 220 (废水比1:2)</td><td>≈ 165 (废水比1:1.5)</td><td>≈ 132 (废水比1:1, 3:1动态)</td></tr>
+    <tr><td>10年电费<br><span style="font-size:0.8rem;color:var(--color-muted)">泵功率40W, 日均工作1–2h<br>0.6元/度</span></td><td>≈ 175</td><td>≈ 175</td><td>≈ 150 (变频泵更省)</td></tr>
+    <tr><td>维修</td><td>泵×1 + 高压开关×1 ≈ <strong>300</strong></td><td>泵×1 ≈ <strong>300</strong></td><td>≈ <strong>150</strong></td></tr>
+    <tr style="font-weight:700; background:#f0fdf4;">
+      <td><strong>10年TCO</strong></td>
+      <td><strong>3,995元</strong></td>
+      <td><strong>6,840元</strong></td>
+      <td><strong>6,732元</strong></td>
+    </tr>
+    <tr>
+      <td>年均</td><td>400元/年</td><td>684元/年</td><td>673元/年</td>
+    </tr>
+    <tr style="background:#fffaf0;">
+      <td><strong>vs 桶装水</strong></td>
+      <td colspan="3">桶装水 10元/桶(18.9L)=0.53元/L × 10L/天 × 365天 × 10年 = <strong>19,345元</strong>。净水器年均成本仅桶装水的1/3–1/5。</td>
+    </tr>
+  </table>
+</div>
+
+<div class="callout good">
+  <strong>TCO核心结论：</strong><br><br>
+  <strong>①滤芯是TCO最大项，不是购机费：</strong>净水器的10年TCO中，滤芯成本占比高达60–70%。一台800元的净水器，10年滤芯费2400元，是购机价的3倍。<strong>买净水器时要关注的不是售价，是滤芯价格表。</strong><br><br>
+  <strong>②高端机TCO和终端机差距不大：</strong>1500元中端机和3000元高端机的10年TCO仅差约100元。高端机的溢价被更便宜的滤芯和更长的RO膜寿命部分抵消。选择高端机的理由不是省钱，是更好的体验（出水速度、零陈水、静音）。<br><br>
+  <strong>③净水器 vs 桶装水 — 净水器完胜：</strong>10年净水器TCO约4000–6800元，同等用水量的桶装水需花费约1.9万元。净水器不到桶装水的1/3成本。加上省去等水/换桶/搬运的隐性时间成本，净水器是经济上绝对合理的投资。
+</div>
+
+<!-- ─── 11. 安装与环境影响 ─── -->
+<h2 id="sec-9">10. 供应链与产业结构</h2>
+
+<div class="card">
+  <h4>Tier 1 — 核心部件供应商</h4>
+  <table>
+    <tr><th>领域</th><th>全球头部</th><th>国内主力</th></tr>
+    <tr><td>RO膜片</td><td>DOW Filmtec (美)、东丽 (日)、世韩CSM (韩)</td><td>时代沃顿(国产龙头)、九阳膜</td></tr>
+    <tr><td>增压泵</td><td>Aquatec (美)</td><td>三角洲(国产标杆)、强生、科漫、柏繁</td></tr>
+    <tr><td>活性炭</td><td>Calgon (美)、Kuraray (日)</td><td>国产椰壳炭(海南/东南亚原料)</td></tr>
+    <tr><td>PP棉</td><td>—</td><td>国产聚丙烯熔喷(慈溪/深圳产业集群)</td></tr>
+    <tr><td>TDS传感器</td><td>—</td><td>国产(深圳传感器产业集群)</td></tr>
+    <tr><td>电磁阀</td><td>SMC (日)</td><td>国产电磁阀(深圳/宁波产业集群)</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <h4>Tier 2 — 系统集成商 / ODM</h4>
+  <p>净水器的制造门槛是大家电中最低的。核心零部件全部标准化外购→组装。深圳、慈溪、顺德三大产业集群聚集了大量净水器组装厂。<strong>溢泰 (Kemflo)</strong>是台湾最大的净水器ODM厂，为3M、小米、怡口等众多品牌代工。<strong>开能健康</strong>是A股上市净水ODM龙头。<strong>美的/安吉尔/沁园</strong>自研+自产，同时也为其他品牌代工。</p>
+</div>
+
+<div class="card">
+  <h4>Tier 3 — 品牌/渠道</h4>
+  <p>小米/云米 — 由溢泰/开能等一线ODM代工，核心RO膜使用世韩CSM或时代沃顿，硬件配置在同价位有竞争力。互联网品牌的竞争力来自渠道效率+米家IoT，不在净水技术本身。大量不知名品牌净水器由慈溪/深圳小厂组装+OEM贴牌，RO膜来源不明（回收膜片/低质卷制），滤芯品质无保障。</p>
+</div>
+
+<!-- ─── 12. 品牌工程评级 ─── -->
+<h2 id="sec-10">11. 安装与环境影响</h2>
+
+<div class="cols">
+  <div class="card">
+    <h4>安装要点</h4>
+    <ul>
+      <li><strong>厨下空间：</strong>需要预留净水器主机（高40–50cm×宽15–35cm×深35–45cm）+ 储水桶（有桶机型）的空间。安装前测量橱柜尺寸</li>
+      <li><strong>电源：</strong>RO机需要220V插座（给增压泵和控制系统供电）。如果水槽下方没有预留插座，需要从其他位置引线</li>
+      <li><strong>进水三通：</strong>需要在冷水角阀上加装三通，引出PE管接净水器进水口</li>
+      <li><strong>排水管：</strong>RO机的废水管需要接入下水管（通过排水管夹/专用接口）。安装需要确保密封，防止下水管臭气回流</li>
+      <li><strong>水龙头开孔：</strong>台面需要有一个直径25–35mm的孔安装净水龙头。如果台面没有预留孔（如不锈钢水槽的皂液器孔），可以在水槽上开孔或者使用台面开孔器</li>
+      <li><strong>漏水保护：</strong>建议安装漏水保护器（或者选购底部有漏水检测探头的机型），一旦检测到漏水自动切断进水+蜂鸣报警</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h4>水质适配 &amp; 使用要点</h4>
+    <ul>
+      <li><strong>进水TDS：</strong>市政自来水TDS 50–500mg/L是RO机的设计工况。TDS>500（少数地区井水）需要加前置预处理</li>
+      <li><strong>进水水压：</strong>水压<0.1MPa可能导致RO机制水极慢或不启动。老旧小区高楼层可能需要加增压泵</li>
+      <li><strong>长期不使用：</strong>休假超过1周不使用，建议关闭进水阀+断电。回家后先放掉前2–3升水再饮用（冲洗管路和膜壳内陈水）</li>
+      <li><strong>滤芯更换周期：</strong>PP棉 6–12个月 / 前置活性炭 12个月 / RO膜 24–48个月 / 后置活性炭 12个月。注意这个是建议周期，实际需根据当地水质和用水量调整。出水TDS明显升高=RO膜需要更换的最可靠信号</li>
+      <li><strong>不要用RO水养鱼：</strong>RO水几乎不含矿物质和溶解氧，鱼会因渗透压失衡而死亡</li>
+    </ul>
+  </div>
+</div>
+
+<div class="callout warn">
+  <strong>净水器安装最常见的坑：</strong>①水槽下方没有预留插座→无法安装RO机（需要增压泵供电）。选购前先打开水槽柜门看一眼。②台面没有净水龙头孔→要么在水槽上开孔（需要专用开孔器），要么买台面钻孔服务。③排水管安装不密封→下水管臭气顺着PE管间隙进入净水器内部→污染后置活性炭→出水有异味。④PP棉和活性炭没有按时更换→RO膜被余氯和颗粒物加速损坏→RO膜提前报废（300–600元代价）。
+</div>
+
+<!-- ─── 13. 购买决策系统 ─── -->
+<h2 id="sec-11">12. 品牌工程评级</h2>
+
+<table>
+  <tr><th>梯队</th><th>类型</th><th>品牌</th><th>核心特征</th></tr>
+  <tr>
+    <td><span class="tag tag-a">第一梯队</span></td>
+    <td>技术主导型</td>
+    <td>安吉尔 (Angel)</td>
+    <td>中国净水行业元老，RO膜自研卷制，自研增压泵，技术底蕴最深。1500–5000元</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-a">第一梯队</span></td>
+    <td>技术主导型</td>
+    <td>沁园 (Qinyuan)</td>
+    <td>净水器品类开创者之一，RO膜自研自卷，滤芯技术积累深厚。1000–4000元</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-a">第一梯队</span></td>
+    <td>技术主导型</td>
+    <td>3M / 怡口 (Ecowater)</td>
+    <td>美国高端净水品牌，全进口DOW膜+Aquatec泵。品质优秀但价格是国内品牌3–5倍。3000–10000元</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-b">第二梯队</span></td>
+    <td>平衡型</td>
+    <td>美的/COLMO</td>
+    <td>全产业链整合，产销量最大，滤芯性价比高。全价格段覆盖 800–4000元</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-b">第二梯队</span></td>
+    <td>平衡型</td>
+    <td>海尔</td>
+    <td>全品类优势+最强售后网络，净水器品类强。1000–3000元</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-b">第二梯队</span></td>
+    <td>平衡型</td>
+    <td>小米/云米</td>
+    <td>ODM代工(溢泰/开能)，核心硬件配置同价位有竞争力。800–2500元</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-c">第三梯队</span></td>
+    <td>组装型/伪科学型</td>
+    <td>各类"能量水""富氢水""碱性水"等营销概念品牌</td>
+    <td>高价低配，营销投入>>研发投入。RO膜来源不明，滤芯品质不可追溯。1000–8000元，溢价全部流向伪科学营销</td>
+  </tr>
+</table>
+
+<!-- ─── 14. 一句话结论 ─── -->
+<h2 id="sec-12">13. 购买决策系统</h2>
+
+<div class="flow" style="flex-direction: column; align-items: flex-start; gap: 16px;">
+  <div class="step" style="width: 100%;">
+    <strong>Step 1 — 确认安装条件</strong><br>
+    <span style="font-size:0.85rem;color:var(--color-muted)">①厨下有电源插座吗？没有=无法装RO机（超滤/前置不需要电）。②台面有净水龙头孔吗？没有=需要开孔。③橱柜空间够吗？量一下高宽深。④进水TDS多少？TDS笔测一下，>500可能需要特殊考虑。</span>
+  </div>
+  <div class="step" style="width: 100%;">
+    <strong>Step 2 — 确定技术路线</strong><br>
+    <span style="font-size:0.85rem;color:var(--color-muted)"><strong>RO反渗透 = 唯一能确保饮水安全的技术路线。</strong>超滤不能去除重金属和水垢。不要被"保留矿物质"的营销话术误导——水里的矿物质主要是钙镁离子（=水垢），你不需要从水里补矿物质。</span>
+  </div>
+  <div class="step" style="width: 100%;">
+    <strong>Step 3 — 确定通量（G数）</strong><br>
+    <span style="font-size:0.85rem;color:var(--color-muted)">400–600G（接一杯水约6–8秒）— 日常够用。800G+（接一杯水约3–4秒）— 体验更好。超过1000G的边际体验提升有限。通量越高RO膜越贵（滤芯成本增加）。</span>
+  </div>
+  <div class="step" style="width: 100%;">
+    <strong>Step 4 — 关注核心配置</strong><br>
+    <span style="font-size:0.85rem;color:var(--color-muted)">①RO膜品牌：DOW/东丽/世韩 &gt; 时代沃顿。②零陈水技术：有（首杯TDS低） &gt; 无。③滤芯更换方式：快拆（一拧一拉） &gt; 需要工具。④前置活性炭类型：椰壳烧结炭棒 &gt; 颗粒GAC。⑤PPP棉：5μm+1μm双级 &gt; 单级5μm。</span>
+  </div>
+  <div class="step" style="width: 100%;">
+    <strong>Step 5 — 计算TCO，关注滤芯价格</strong><br>
+    <span style="font-size:0.85rem;color:var(--color-muted)">购机前先查清楚滤芯价格表。10年滤芯成本通常是购机价的2–4倍。RO膜300元 vs 600元 = 换一次差300元。有些品牌净水器便宜但滤芯奇贵（"耗材盈利模式"）——看起来省了购机费，但长期总花更多。</span>
+  </div>
+  <div class="step" style="width: 100%;">
+    <strong>Step 6 — 筛选品牌 + 拒绝伪科学</strong><br>
+    <span style="font-size:0.85rem;color:var(--color-muted)">性价比首选：美的/小米（800–2000元，滤芯便宜好买）。品质首选：安吉尔/沁园（1500–4000元，自研RO膜）。技术旗舰：3M/怡口（3000+元，全进口膜+泵）。绝对避开：任何宣传"富氢""小分子""碱性""磁化""能量水"的品牌——那是智商税。</span>
+  </div>
+</div>
+
+<!-- ─── 14. 一句话结论 ─── -->
+<h2 id="sec-13">14. 一句话结论</h2>
+
+<div class="conclusion">
+  <h2>最终结论</h2>
+  <p>
+    净水器的本质是一个<strong>滤材消耗品 + 管路系统</strong>——核心价值由<strong>RO膜品质（DOW/东丽/世韩 &gt; 时代沃顿）、前置活性炭（保护RO膜的守门人）、增压泵（压力的心脏）</strong>三要素决定。净水器本身只是一个壳子，10年TCO的60–70%是滤芯费用——<strong>买净水器的本质是买一个便宜的滤芯供应体系。</strong>
+  </p>
+  <p>
+    <strong>1500–2500元的无桶RO机（600–800G+零陈水+快拆滤芯设计）是综合最优解。</strong>RO反渗透是唯一能确保重金属和水垢去除的技术路线。"超滤保留矿物质"是营销不是优势——你不需要从水里补钙镁。净水器年均总成本约400–700元，不到桶装水的1/3。拒绝一切"富氢/碱性/小分子/磁化/能量水"——那是中国小家电行业最大的伪科学集散地。
+  </p>
+  <p style="margin-bottom:0;">
+    <strong>记住三个"绝对不要"：</strong>绝对不要买超滤当主力净水（无法去重金属和水垢），绝对不要买宣传"富氢/小分子/碱性/磁化/能量水"的品牌（智商税），绝对不要拖延续PP棉和活性炭的更换（会连锁损坏RO膜=300–600元代价）。<strong>记住三个"一定要"：</strong>一定要选RO反渗透（安全底线），一定要在购机前查滤芯价格表（滤芯才是长期支出大头），一定要确保厨下有电源插座（RO机需要电）。
+  </p>
+</div>
+
+</main>
+
+<script>
+(function() {
+  const links = document.querySelectorAll('nav a[href^="#sec-"]');
+  const sections = [];
+  links.forEach(a => {
+    const el = document.getElementById(a.getAttribute('href').slice(1));
+    if (el) sections.push({el, a});
+  });
+  function update() {
+    const top = window.scrollY + 120;
+    let cur = sections[0];
+    for (const s of sections) {
+      if (s.el.offsetTop <= top) cur = s;
+    }
+    links.forEach(l => l.classList.remove('active'));
+    if (cur) cur.a.classList.add('active');
+  }
+  window.addEventListener('scroll', update, {passive: true});
+  update();
+})();
+</script>
+<script>
+(function() {
+  var links = document.querySelectorAll('nav a[href^="#sec-"]');
+  var sections = [];
+  links.forEach(function(a) {
+    var el = document.getElementById(a.getAttribute('href').slice(1));
+    if (el) sections.push({el: el, a: a});
+  });
+  function update() {
+    var top = window.scrollY + 120;
+    var cur = sections[0];
+    for (var i = 0; i < sections.length; i++) {
+      if (sections[i].el.offsetTop <= top) cur = sections[i];
+    }
+    links.forEach(function(l) { l.classList.remove('active'); });
+    if (cur) cur.a.classList.add('active');
+  }
+  window.addEventListener('scroll', update, {passive: true});
+  update();
+})();
+</script>
+</body>
+</html>

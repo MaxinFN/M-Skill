@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>空气净化器工程分析报告 — Home Appliance Researcher</title>
+<style>
+  :root {
+    --nav-width: 260px;
+    --color-bg: #f8f9fa; --color-surface: #ffffff; --color-text: #212529;
+    --color-muted: #6c757d; --color-accent: #0d6efd; --color-warn: #dc3545;
+    --color-good: #198754; --color-border: #dee2e6;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; font-size: 15px; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans SC", sans-serif;
+    background: var(--color-bg); color: var(--color-text); line-height: 1.7; overflow-x: hidden;
+  }
+  nav {
+    position: fixed; top: 0; left: 0; width: var(--nav-width); height: 100vh;
+    background: #1a1d23; color: #ccc; overflow-y: auto; z-index: 100; padding: 24px 0;
+  }
+  nav .brand {
+    font-size: 1.1rem; font-weight: 700; color: #fff; padding: 0 20px 20px;
+    border-bottom: 1px solid #333; margin-bottom: 12px; letter-spacing: 0.5px;
+  }
+  nav .brand span { display: block; font-size: 0.7rem; color: #888; font-weight: 400; margin-top: 2px; }
+  nav a {
+    display: block; padding: 7px 20px; color: #aaa; text-decoration: none;
+    font-size: 0.85rem; transition: color 0.15s, background 0.15s;
+    border-left: 3px solid transparent;
+  }
+  nav a:hover, nav a.active { color: #fff; background: rgba(255,255,255,0.05); }
+  main { margin-left: var(--nav-width); padding: 48px 60px; width: calc(100vw - var(--nav-width)); }
+  h1 { font-size: 2rem; margin-bottom: 8px; }
+  h2 { font-size: 1.4rem; margin: 48px 0 16px; padding-bottom: 8px; border-bottom: 2px solid var(--color-border); }
+  h3 { font-size: 1.15rem; margin: 32px 0 12px; color: #333; }
+  h4 { font-size: 1rem; margin: 20px 0 8px; }
+  p { margin-bottom: 12px; }
+  .subtitle { color: var(--color-muted); font-size: 0.95rem; margin-bottom: 40px; }
+  .card {
+    background: var(--color-surface); border: 1px solid var(--color-border);
+    border-radius: 8px; padding: 20px 24px; margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .card h3 { margin-top: 0; }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+  @media (max-width: 768px) { .cols { grid-template-columns: 1fr; } }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0 20px; font-size: 0.9rem; }
+  th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--color-border); }
+  th { background: #f1f3f5; font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--color-muted); }
+  tr:hover td { background: #fafbfc; }
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.3px; }
+  .tag-a{background:#d1fae5;color:#065f46}.tag-b{background:#fef3c7;color:#92400e}.tag-c{background:#fee2e2;color:#991b1b}
+  .tag-good{background:#d1fae5;color:#065f46}.tag-warn{background:#fef3c7;color:#92400e}.tag-bad{background:#fee2e2;color:#991b1b}
+  .callout {
+    border-left: 4px solid var(--color-accent); background: #e7f1ff;
+    padding: 14px 18px; border-radius: 0 6px 6px 0; margin: 16px 0; font-size: 0.9rem;
+  }
+  .callout.warn{border-left-color:var(--color-warn);background:#fff5f5}
+  .callout.good{border-left-color:var(--color-good);background:#f0fdf4}
+  .arch-layer {
+    border: 1px solid var(--color-border); border-radius: 6px; padding: 16px;
+    margin-bottom: 12px; background: #fafbfc;
+  }
+  .arch-layer .label {
+    font-weight: 700; font-size: 0.8rem; color: var(--color-muted);
+    text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;
+  }
+  .arch-layer .parts { font-size: 0.9rem; }
+  .flow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 12px 0; font-size: 0.9rem; }
+  .flow .step {
+    background: var(--color-surface); border: 1px solid var(--color-border);
+    border-radius: 6px; padding: 6px 14px;
+  }
+  .flow .arrow { color: var(--color-muted); font-weight: 700; }
+  .bathtub {
+    background: #f9fafb; border: 1px dashed var(--color-border); border-radius: 8px;
+    padding: 40px 24px; text-align: center; margin: 16px 0;
+  }
+  .bathtub svg { max-width: 600px; }
+  .conclusion {
+    background: linear-gradient(135deg, #1a1d23, #2d3139); color: #e0e0e0;
+    border-radius: 10px; padding: 28px 32px; margin-top: 48px;
+  }
+  .conclusion h2 { color: #fff; border-bottom-color: #444; font-size: 1.2rem; }
+  .conclusion p { font-size: 1.05rem; line-height: 1.8; }
+  @media print { nav { display: none; } main { margin-left: 0; padding: 20px; width: auto; } }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="brand">
+    空气净化器工程分析
+    <span>Home Appliance Researcher v3.0</span>
+  </div>
+  <a href="#sec-0">1. 系统本质</a>
+  <a href="#sec-1">2. 系统架构拆解</a>
+  <a href="#sec-2">3. 核心部件工程分析</a>
+  <a href="#sec-3">4. 制造模式分析</a>
+  <a href="#sec-4">5. 技术路线对比</a>
+  <a href="#sec-5">6. 可靠性工程模型</a>
+  <a href="#sec-6">7. 用户体验建模</a>
+  <a href="#sec-7">8. 营销系统识别</a>
+  <a href="#sec-8">9. TCO成本模型</a>
+  <a href="#sec-9">10. 供应链与产业结构</a>
+  <a href="#sec-10">11. 安装与环境影响</a>
+  <a href="#sec-11">12. 品牌工程评级</a>
+  <a href="#sec-12">13. 购买决策系统</a>
+  <a href="#sec-13" style="color: #60a5fa;">14. 一句话结论</a>
+</nav>
+
+<main>
+
+<h1>空气净化器工程分析报告</h1>
+<p class="subtitle">
+  分析框架：物理原理 &gt; 系统架构 &gt; 核心部件 &gt; 制造质量 &gt; 可靠性 &gt; 使用体验 &gt; 成本结构 &gt; 品牌 &gt; 功能营销<br>
+  分析日期：2026-06-09 &nbsp;|&nbsp; 分析对象：家用空气净化器（纯物理过滤式 / 静电集尘式 / 复合式）
+</p>
+
+<!-- ─── 1. 系统本质 ─── -->
+<h2 id="sec-0">1. 系统本质</h2>
+
+<div class="card">
+  <h3>空气净化器是什么？</h3>
+  <table>
+    <tr><th style="width:120px">系统类型</th><td>空气处理系统（Air Handling System）——通过风机驱动室内空气循环流经多级过滤介质，利用机械拦截、惯性碰撞、布朗扩散、静电吸附和物理吸附等机制，将空气中的颗粒物（PM10/PM2.5/PM0.1）、气态污染物（甲醛/VOCs/NO₂）和生物气溶胶（细菌/病毒/花粉/霉菌孢子）从气流中分离并固定在滤材中，输出洁净空气。本质上是一个<strong>带压降的连续流固-气分离系统</strong>。</td></tr>
+    <tr><th>输入</th><td>电能（220V AC，功率5–80W）+ 室内污浊空气（含颗粒物 10–500μg/m³ + 甲醛 0.02–0.5mg/m³ + CO₂ 400–3000ppm + TVOC + 微生物）+ 滤芯（消耗品）</td></tr>
+    <tr><th>输出</th><td>洁净空气（颗粒物 ≤10μg/m³，依CADR和房间大小决定稳态浓度）+ 截留在滤材中的污染物 + 热量（电机发热+气流摩擦热，<100W，对室温影响可忽略）+ 噪音（30–65dBA）</td></tr>
+    <tr><th>能量形式</th><td>电能 → 电机轴功率（BLDC效率 70–90%）→ 离心风扇动能 → 气流静压（克服滤材阻力）→ 洁净空气排出。系统总效率 = 电机效率 × 风扇气动效率 × 气流组织效率（洁净空气与室内空气的混合效率）。能量最终全部耗散为：① 滤材的黏性压降损失（占主导）；② 风扇/风道的湍流损失；③ 电机铜损/铁损；④ 排出气流的动能（最终在室内耗散为热）。</td></tr>
+    <tr><th>核心物理原理</th><td><strong>1. 机械过滤（HEPA — High Efficiency Particulate Air）：</strong>四种并行机制——<strong>拦截</strong>（颗粒沿流线运动碰到纤维表面被捕获，主导1–10μm颗粒）、<strong>惯性碰撞</strong>（大颗粒因惯性偏离流线撞击纤维，主导>1μm）、<strong>布朗扩散</strong>（超细颗粒<0.1μm因热运动随机位移偏离流线接触纤维，主导<0.1μm）、<strong>筛分</strong>（颗粒大于纤维间隙被直接阻挡，主导>5μm）。关键工程事实：<strong>HEPA滤纸在0.1–0.3μm处过滤效率最低</strong>（MPPS — Most Penetrating Particle Size）——因为这是拦截和扩散两种机制的交接谷底。HEPA等级（H13/H14/U15等）即以MPPS处的穿透率为标定基准。<br><strong>2. 活性炭吸附（气态污染物）：</strong>活性炭的巨大比表面积（800–2000 m²/g）通过范德华力（物理吸附）和表面官能团反应（化学吸附）捕获甲醛/VOCs分子。物理吸附是可逆的——温度升高/浓度降低会释放（脱附）——这是活性炭滤网<strong>会"饱和吐出"污染物</strong>的物理根源。<br><strong>3. 静电集尘（ESP）：</strong>高压电场（6–10kV DC）使颗粒物荷电→带电荷颗粒被收集极板（0V/接地）吸附。ESP的优点是<strong>零滤材阻力</strong>（气流压降极低→可用低功率风扇→极低噪音），但缺点是<strong>臭氧生成</strong>（电晕放电的副产品，O₃是肺部刺激物）和<strong>集尘效率随极板污染快速下降</strong>（需要频繁清洗）。</td></tr>
+  </table>
+</div>
+
+<div class="callout">
+  <strong>工程视角的关键认知：</strong>空气净化器是家电品类中<strong>物理原理最简单但营销噪音最大</strong>的品类。它的核心物理过程就是三个字：<strong>风扇+滤纸</strong>——用风扇把空气推过滤纸。一台空气净化器的性能由三个物理量决定：① <strong>CADR</strong>（Clean Air Delivery Rate，洁净空气输出率，m³/h）——衡量"净化多快"；② <strong>噪音</strong>（dBA @给定CADR）——衡量"安静的净化能力"；③ <strong>CCM</strong>（Cumulative Clean Mass，累积净化量，mg）——衡量"滤芯能装多少脏东西"。这三个物理量之外的所有参数（除甲醛率99.9%/负离子浓度/UV功率/光触媒效率）都需经过严格的工程审视。最容易被忽略的物理量是：<strong>CADR必须匹配房间面积</strong>——CADR(m³/h) × 0.1 ≈ 适用面积(m²)（中国标准：适用面积=CADR×0.1）。一个CADR 300m³/h的净化器放在50m²的客厅里，效果等于杯水车薪。
+</div>
+
+<!-- ─── 2. 系统架构拆解 ─── -->
+<h2 id="sec-1">2. 系统架构拆解</h2>
+
+<div class="arch-layer">
+  <div class="label">Layer 1 · 能源层 Energy</div>
+  <div class="parts"><strong>BLDC电机</strong>（无刷直流电机，24V DC母线，功率15–60W，转速800–2500RPM，PWM调速）——空气净化器对电机的要求是<strong>低振动+低噪音+宽调速范围+长寿命</strong>。BLDC替代交流异步电机是行业标准进化——BLDC的转子无电刷磨损，通过霍尔传感器/反电动势检测实现精确的转速闭环控制。电机的<strong>动平衡等级</strong>（G1.0–G2.5等级）直接决定了整机振动和噪音的下限。<br>
+  <strong>AC-DC开关电源</strong>（220V AC → 24V/12V/5V DC多路输出，功率30–80W）——为电机驱动板和传感器/控制电路供电。</div>
+</div>
+<div class="arch-layer">
+  <div class="label">Layer 2 · 执行层 Actuation（气流组织 + 过滤）</div>
+  <div class="parts"><strong>离心风扇</strong>（前向多翼离心叶轮，塑料/金属，直径200–350mm，蜗壳设计）——将电机轴功率转化为气流动能和静压。离心风扇的<strong>叶型/叶片数量/蜗壳渐开线设计</strong>是决定风量-静压曲线（P-Q曲线）和噪音的核心气动设计参数。空气净化器的风扇需要在<strong>高静压</strong>（滤材压降100–300Pa）下工作——这与普通风扇（零静压自由吹风）的设计目标完全不同。<br>
+  <strong>滤芯（Filter Stack）</strong>——多级过滤：① <strong>预过滤网</strong>（尼龙网/金属网，拦截>5μm大颗粒/毛发/纤维，保护HEPA，可水洗重复使用）；② <strong>HEPA滤纸</strong>（PP+PET复合熔喷无纺布，折褶成瓦楞状以增大过滤面积——展开面积通常是迎风面积的10–20倍。H13级（MPPS穿透率<0.05%）是主流规格）；③ <strong>活性炭层</strong>（柱状炭/颗粒炭/夹炭布，重量300g–3kg，碘值800–1200mg/g表征吸附能力）。高端型号在HEPA和活性炭之间增加<strong>冷触媒/分子筛</strong>层用于甲醛的化学分解。<br>
+  <strong>风道设计</strong>——进风口（通常360°侧面/底部进风）→ 滤芯 → 离心风扇 → 蜗壳 → 出风口（顶部出风，垂直向上是主流方案——利用康达效应让洁净空气沿天花板向房间横向扩散，形成远端循环）。</div>
+</div>
+<div class="arch-layer">
+  <div class="label">Layer 3 · 控制层 Control</div>
+  <div class="parts"><strong>颗粒物传感器</strong>（激光散射式PM2.5传感器——IR LED/激光照射气流中的颗粒→光电二极管检测散射光强度→颗粒计数→换算质量浓度μg/m³。这是净化器"自动模式"的眼睛。传感器精度和响应速度差异巨大：消费级激光传感器（如Plantower PMS5003/7003，¥15–30）误差±15%，工业级传感器（如Sensirion SPS30，¥80–150）误差±5%，且能区分PM1.0/PM2.5/PM4.0/PM10）。<br>
+  <strong>气体传感器</strong>（VOC半导体传感器——金属氧化物半导体（MOS）电阻随VOC浓度变化，成本¥5–15，精度极低（只能检测"变化趋势"，不能给出绝对浓度值），且长期暴露在有机硅（家具蜡/清洁剂）中会永久中毒失效。电化学甲醛传感器（¥50–100）能给出较准确的甲醛浓度绝对值，但寿命仅2–3年）。<br>
+  <strong>MCU</strong>（8位/32位单片机，如STM32/Holtek）→ 读取传感器→PID/模糊逻辑调节电机PWM占空比→自动模式。控制算法需要处理<strong>传感器噪声</strong>（消费级PM传感器的瞬时抖动可达±20μg/m³→需要数字滤波（移动平均/卡尔曼）才能稳定输出）。<br>
+  <strong>操作面板</strong>（LED灯环/数码管/OLED显示屏，触摸按键/APP控制/WiFi模块）。</div>
+</div>
+<div class="arch-layer">
+  <div class="label">Layer 4 · 结构层 Structural</div>
+  <div class="parts"><strong>外壳</strong>（ABS塑料/PP）+ <strong>进风口格栅</strong>（360°环绕进风需保证格栅的总开孔面积>风扇入口面积的1.5倍，否则进风阻力过大→风量下降→CADR降低）。<strong>滤芯仓密封</strong>（滤芯与机身之间的密封条/密封框是决定整机过滤效率的关键——旁路漏气（bypass）意味着一部分空气未经HEPA直接绕过过滤→实际净化效率可能从99.95%降至80%以下。密封设计是区分"真净化"和"样子货"的关键工程细节）。<strong>减震隔音</strong>（电机橡胶减震垫、蜗壳隔音棉、出风口消音结构）。</div>
+</div>
+
+<h3>能量流路径</h3>
+
+<div class="flow">
+  <span class="step">脏空气</span><span class="arrow">→</span>
+  <span class="step">预过滤网（>5μm）</span><span class="arrow">→</span>
+  <span class="step">HEPA（PM0.1–2.5）</span><span class="arrow">→</span>
+  <span class="step">活性炭（甲醛/VOC）</span><span class="arrow">→</span>
+  <span class="step">离心风扇（动能补充）</span><span class="arrow">→</span>
+  <span class="step">顶部排出洁净空气</span>
+</div>
+<p style="font-size:0.85rem;color:var(--color-muted)">气流压降沿程分布：预过滤网 ~10Pa → HEPA ~80–180Pa（占主导，随容尘量增加而上升）→ 活性炭 ~20–60Pa → 风道 ~10–30Pa</p>
+
+<!-- ─── 3. 核心部件工程分析 ─── -->
+<h2 id="sec-2">3. 核心部件工程分析</h2>
+
+<h3>3.1 Single Point of Failure（SPoF）</h3>
+
+<table>
+  <tr><th>部件</th><th>为何是SPoF</th><th>失效模式</th><th>寿命区间</th><th>修复可行性</th></tr>
+  <tr>
+    <td><strong>BLDC电机</strong></td>
+    <td>电机停转→风扇停转→气流为零→净化为零。是系统唯一的能量输入→气流动能转换器</td>
+    <td>轴承磨损（含油轴承→间隙增大→振动/噪音增大→卡死）；绕组绝缘击穿（潮气/粉尘侵入）；驱动板MOSFET烧毁；Hall传感器失效</td>
+    <td>优质（Nidec/NMB）：8–15年<br>国产中端：5–8年<br>低成本：2–5年</td>
+    <td>可更换电机+驱动板模组（¥80–300），但高端型号常需寄回原厂</td>
+  </tr>
+  <tr>
+    <td><strong>PM2.5传感器</strong></td>
+    <td>传感器故障→自动模式失效→可能在不必要的高速档运行（浪费滤芯+噪音）或在需要时不启动。虽然手动模式仍可工作，但用户体验严重退化</td>
+    <td>激光二极管光衰；光路污染（灰尘积累在透镜/光阱）；风扇停转（微型采样风扇寿命2–4年）</td>
+    <td>2–5年（激光二极管光衰+采样风扇寿命是瓶颈）</td>
+    <td>可更换传感器模组（¥20–100），一般用户可自行更换</td>
+  </tr>
+  <tr>
+    <td><strong>滤芯</strong></td>
+    <td>HEPA滤芯饱和→压降过高→风量下降→CADR下降。活性炭饱和→VOC吸附能力归零甚至开始脱附。滤芯是<strong>计划性消耗品</strong>而非故障件</td>
+    <td>HEPA容尘量饱和（压降达到初始值的2倍时建议更换，以维持CADR和能耗）；活性炭吸附饱和（碘值耗尽）；滤芯受潮发霉（高湿环境+关机后滤芯内冷凝水→霉菌滋生→开机吹出霉味）</td>
+    <td>HEPA：6–12个月（取决于空气质量和使用强度）<br>活性炭：3–6个月（甲醛吸附易饱和，远短于HEPA）</td>
+    <td>滤芯是设计为可更换消耗品（¥100–800/套），但<strong>原厂滤芯的持续供应是长期使用的前提</strong>——小众品牌/停产型号的滤芯可能在3–5年后断供</td>
+  </tr>
+  <tr>
+    <td><strong>电源板</strong></td>
+    <td>电源失效→整机无电→停止工作</td>
+    <td>电解电容老化（高温+纹波电流→电解液干涸→电容容量下降→电压纹波增大→电路不稳定）；MOV压敏电阻遭雷击/浪涌短路</td>
+    <td>4–8年（电容寿命是短板）</td>
+    <td>可更换电源板（¥50–150）</td>
+  </tr>
+</table>
+
+<div class="callout warn">
+  <strong>SPoF结论：</strong>空气净化器有三个层级的SPoF——① 电机（一旦坏了整机报废，修复成本接近新机）；② 传感器（坏了体验大幅退化但机器还能用）；③ 滤芯（不是故障但<strong>必须按时更换</strong>，否则净化器变成"空气搅拌机"——只吹风不净化）。其中滤芯的持续可得性是<strong>容易被忽略的隐性SPoF</strong>——如果你买了小众品牌后品牌退出市场/型号停产，无法买到匹配滤芯，这台机器就变成了一个昂贵的风扇。
+</div>
+
+<h3>3.2 核心部件性能等级</h3>
+
+<table>
+  <tr><th>部件</th><th>高端/专业级</th><th>消费级/中端</th><th>低成本/入门</th></tr>
+  <tr>
+    <td><strong>电机</strong></td>
+    <td>Nidec/NMB/EBM-Papst 日本/德国原装BLDC，G1.0动平衡，滚动轴承，>10万小时寿命</td>
+    <td>国产BLDC（威灵/大洋/金龙），G2.5动平衡，含油轴承</td>
+    <td>国产低成本BLDC（塑封电机），G6.3动平衡，含油轴承（寿命<2万小时）</td>
+  </tr>
+  <tr>
+    <td><strong>HEPA滤纸</strong></td>
+    <td>H13/H14级，PP+PET复合，日本/欧洲进口（阿波制纸/Airfil/IREMA），MPPS穿透率<0.05%，低阻力高容尘量，展开面积>3m²</td>
+    <td>H13级，国产PP熔喷（泰达洁净/俊富），展开面积1.5–2.5m²</td>
+    <td>H11/H12级（MPPS穿透率>0.5%），展开面积<1.2m²，高阻力低容尘量</td>
+  </tr>
+  <tr>
+    <td><strong>活性炭</strong></td>
+    <td>柱状活性炭（1.5–3mm），碘值>1100mg/g，椰子壳/煤质，装填量>2kg，化学改性增强甲醛吸附</td>
+    <td>颗粒活性炭+夹炭布，碘值800–1000mg/g，装填量500g–1.5kg</td>
+    <td>夹炭布（炭粉喷涂在无纺布上，炭量<200g，碘值<600），效率低且易发酸（炭粉+胶水分解产生乙酸）</td>
+  </tr>
+  <tr>
+    <td><strong>PM传感器</strong></td>
+    <td>Sensirion SPS30 / Sharp GP2Y系列 / Plantower PMS7003（高精度激光散射+多通道粒径分类）</td>
+    <td>Plantower PMS5003 / Cubic PM2008（标准激光散射）</td>
+    <td>红外LED散射（精度极差，无法检测<1μm颗粒，湿度影响极大）</td>
+  </tr>
+  <tr>
+    <td><strong>甲醛传感器</strong></td>
+    <td>电化学传感器（Dart Sensor/Sensirion SFA30，精度±0.01mg/m³，带基线自动校准）</td>
+    <td>电化学传感器（国产炜盛/四方光电，精度±0.03mg/m³，2–3年寿命）</td>
+    <td>半导体VOC传感器（只能检测"有/无"变化趋势，无法给出具体浓度数值，易中毒）</td>
+  </tr>
+  <tr>
+    <td><strong>风扇叶轮</strong></td>
+    <td>CFD优化叶型+动平衡校准+玻璃纤维增强塑料，低湍流噪音</td>
+    <td>标准多翼离心叶轮，PP塑料</td>
+    <td>低成本模具，动平衡未校准，扇叶不均导致周期性振动噪音</td>
+  </tr>
+  <tr>
+    <td><strong>滤芯密封</strong></td>
+    <td>EPDM/硅胶一体成型密封框+滤芯与机身过盈配合，旁路泄漏率<0.1%</td>
+    <td>EPDM密封条/毛毡条，旁路泄漏率<2%</td>
+    <td>无密封/简单海绵垫，旁路泄漏率>5%（等于20%+的空气绕过HEPA）</td>
+  </tr>
+</table>
+
+<h3>3.3 BOM（Bill of Materials）拆解 — 适用于30–40m²房间的中端净化器</h3>
+
+<table>
+  <tr><th>子系统</th><th>入门（¥400）</th><th>中端（¥1200）</th><th>高端（¥4000）</th></tr>
+  <tr><td>电机+驱动板</td><td>国产BLDC 25W ¥45</td><td>国产中端BLDC 40W ¥80</td><td>Nidec/NMB BLDC 50W ¥250</td></tr>
+  <tr><td>风扇叶轮+蜗壳</td><td>PP注塑 ¥25</td><td>GF-PP注塑 ¥45</td><td>玻纤增强+动平衡 ¥100</td></tr>
+  <tr><td>滤芯（整套）</td><td>H11 HEPA+活性炭布 ¥40</td><td>H13 HEPA+颗粒炭1kg ¥120</td><td>H13 HEPA+柱状炭3kg+冷触媒 ¥350</td></tr>
+  <tr><td>PM传感器</td><td>红外LED ¥8</td><td>激光PM2.5 ¥20</td><td>激光多通道+Sensirion ¥100</td></tr>
+  <tr><td>气体传感器</td><td>无/半导体VOC ¥5</td><td>半导体VOC ¥10</td><td>电化学甲醛+半导体VOC ¥120</td></tr>
+  <tr><td>控制板+MCU+WiFi</td><td>8位MCU+LED ¥25</td><td>32位MCU+OLED+WiFi ¥50</td><td>32位MCU+LCD触屏+WiFi+BT ¥100</td></tr>
+  <tr><td>电源板</td><td>30W ¥20</td><td>50W ¥35</td><td>80W ¥60</td></tr>
+  <tr><td>外壳+结构件</td><td>ABS ¥40</td><td>ABS+密封+隔音 ¥70</td><td>ABS+金属+密封+多层隔音 ¥150</td></tr>
+  <tr><th>BOM合计</th><th>≈¥208</th><th>≈¥430</th><th>≈¥1,230</th></tr>
+  <tr><th>零售价</th><th>¥300–500</th><th>¥800–1500</th><th>¥3000–5000</th></tr>
+  <tr><th>BOM占比</th><th>~50%</th><th>~38%</th><th>~30%</th></tr>
+</table>
+
+<div class="callout">
+  <strong>BOM关键发现：</strong>空气净化器的BOM中，滤芯+电机+传感器构成了核心成本三角。高端净化器的溢价能力极强（BOM占比低至30%），因为品牌/设计/认证/研发摊销占据了大量空间。但中端净化器（¥800–1500）的BOM占比约38%，渠道+品牌利润已经相当薄——这个区间的"工程含金量"最高。<strong>入门净化器（<¥500）的短板主要在传感器精度（红外vs激光）和滤芯品质（H11 vs H13）</strong>——这两者直接决定了"自动模式是否可信"和"滤芯多久发酸"。
+</div>
+
+<!-- ─── 4. 制造模式分析 ─── -->
+<h2 id="sec-3">4. 制造模式分析</h2>
+
+<div class="cols">
+<div class="card">
+  <h3>制造模式概览</h3>
+  <table>
+    <tr><th>模式</th><th>代表品牌</th><th>特征</th></tr>
+    <tr><td><strong>自研自产</strong></td><td>小米/智米、352、海尔</td><td>自研风道+自研控制+自研滤芯规格，部分自建组装线</td></tr>
+    <tr><td><strong>OEM（委托制造）</strong></td><td>Blueair、Dyson（部分）、Philips（部分）</td><td>品牌研发设计+指定核心部件（电机/滤材/传感器供应商）+OEM厂组装</td></tr>
+    <tr><td><strong>ODM（全套外包）</strong></td><td>多数小品牌/白牌</td><td>全套方案由ODM厂提供（深圳/东莞/顺德净化器工厂），品牌方提供Logo+包装+渠道</td></tr>
+    <tr><td><strong>纯进口</strong></td><td>IQAir（瑞士）、Airgle（美国）、Daikin（日本高端线）</td><td>原产国制造，全球销售。溢价中包含进口关税+物流+汇率风险</td></tr>
+  </table>
+</div>
+<div class="card">
+  <h3>核心能力自主度判断</h3>
+  <table>
+    <tr><th>能力</th><th>自研</th><th>外购</th></tr>
+    <tr><td>电机</td><td>极少（Dyson自研数字马达）</td><td>绝大多数品牌采购Nidec/NMB/国产威灵等</td></tr>
+    <tr><td>HEPA滤纸</td><td>部分（小米/352/Blueair自定规格）</td><td>滤纸基材100%购自专业供应商（阿波制纸/Airfil/Toray/国产泰达）</td></tr>
+    <tr><td>活性炭</td><td>部分（IQAir自研改性炭配方）</td><td>多数品牌从活性炭供应商采购标准品或定制规格</td></tr>
+    <tr><td>传感器</td><td>极少</td><td>100%外购（Plantower/Sensirion/Sharp/Cubic等）</td></tr>
+    <tr><td>风道/风扇</td><td>有研发实力的品牌（Dyson/Blueair/小米/352）自研气动设计</td><td>ODM品牌使用公模风道</td></tr>
+    <tr><td>控制算法</td><td>有研发实力的品牌自研</td><td>ODM方案公司提供通用固件</td></tr>
+  </table>
+</div>
+</div>
+
+<div class="callout">
+  <strong>产业真相：</strong>空气净化器是<strong>技术门槛最低的家电品类之一</strong>——核心物理原理（风扇+滤纸）已经存在了80+年。这使得行业的进入门槛极低（一个ODM工厂可以为你定制任意品牌的净化器，起订量500台）。但<strong>做好</strong>的门槛并不低——风道气动设计、滤芯密封、噪音控制、传感器选型和算法调校这些"细节工程"直接决定了实际净化效果和用户体验。<strong>硬件同质化的程度越高，软件/算法/气动设计的差异就越重要。</strong>这就是为什么同是"H13 HEPA+BLDC"，¥500和¥1500的净化器在噪音/密封/传感器表现上可能有天壤之别。
+</div>
+
+<!-- ─── 5. 技术路线对比 ─── -->
+<h2 id="sec-4">5. 技术路线对比</h2>
+
+<table>
+  <tr><th>维度</th><th>纯物理过滤（HEPA+活性炭）</th><th>静电集尘（ESP）</th><th>离子/等离子</th><th>光触媒/UV</th></tr>
+  <tr><td><strong>核心机制</strong></td><td>机械拦截+物理吸附</td><td>高压电场荷电+极板吸附</td><td>空气中放电产生正负离子→颗粒荷电凝并→沉降或被带电集尘板吸附</td><td>UV光照射TiO₂催化剂→生成活性氧自由基（·OH）→氧化分解有机物</td></tr>
+  <tr><td><strong>过滤效率</strong></td><td>极高（H13>99.95% @MPPS），不受颗粒成分影响</td><td>中–高（80–98%），对<0.1μm颗粒效率下降</td><td>低–中（对已悬浮颗粒的清除效率低，主要靠沉降到地面/墙面）</td><td>极低（对流动空气中的污染物反应时间<0.1s，远不足以完成充分氧化）</td></tr>
+  <tr><td><strong>滤芯成本</strong></td><td>高（HEPA+活性炭需定期更换，¥100–800/6–12月）</td><td>极低（集尘极板可水洗，永久使用）</td><td>中（集尘极板需清洗，离子发生器寿命3–5年）</td><td>中（UV灯管3–5年寿命，光触媒滤网需更换）</td></tr>
+  <tr><td><strong>臭氧产生</strong></td><td>无（纯物理过程）</td><td><strong>有</strong>（电晕放电必然产生O₃，需要严格控制）</td><td><strong>有</strong>（特别是负离子发生器，O₃是放电副产物）</td><td>有（UV-C 185nm波段产生O₃，254nm不产生但杀菌效率低）</td></tr>
+  <tr><td><strong>噪音</strong></td><td>中–高（风扇需克服HEPA压降）</td><td>极低（无滤材阻力→低转速风扇即可达到相同CADR→噪音可以极低）</td><td>极低（无需强力风扇）</td><td>中（仍需风扇推动气流经过光触媒表面）</td></tr>
+  <tr><td><strong>功耗</strong></td><td>15–60W</td><td>5–15W</td><td>3–10W</td><td>10–30W（UV灯+风扇）</td></tr>
+  <tr><td><strong>可靠性</strong></td><td>高（电机是唯一运动部件）</td><td>中（高压电源模组是薄弱点；集尘极板需要频繁清洗否则效率急剧下降）</td><td>低–中（离子发生器衰退+O₃浓度不稳定）</td><td>低（UV灯管寿命短+光触媒催化剂失活+实际效果极微）</td></tr>
+  <tr><td><strong>二次污染风险</strong></td><td>滤芯受潮→霉菌滋生→吹出霉味/孢子</td><td>O₃超标→呼吸道刺激；集尘极板不洗→二次扬尘</td><td>O₃超标；颗粒沉降→墙面/地面黑化（"黑墙效应"）</td><td>不完全氧化→产生甲醛/乙醛等中间产物（比原来的VOCs更毒）</td></tr>
+  <tr><td><strong>适用场景</strong></td><td><strong>主流推荐</strong>——家庭日常PM2.5+甲醛净化</td><td>对噪音极敏感/低运行成本需求/愿意频繁维护的用户</td><td><strong>不建议作为主要净化手段</strong></td><td><strong>不建议依赖</strong>——实际净化效果远弱于HEPA</td></tr>
+</table>
+
+<div class="callout good">
+  <strong>技术路线结论：</strong>纯物理过滤（HEPA+活性炭）是<strong>唯一被工程证据充分验证的家用空气净化技术路线</strong>。它的物理原理清晰、效率可量化、无二次污染风险（只要定期更换滤芯）。其他三种技术路线的共同问题是：① 实际净化效率远弱于HEPA（特别是光触媒——反应动力学不支持流动空气中的有效氧化）；② 臭氧生成是真实健康风险（O₃是强氧化剂，对肺部的损害是累积性的）；③ 缺乏可靠的长期性能验证数据。静电集尘的唯一工程优势是<strong>零滤材成本+低噪音</strong>——如果你对噪音极度敏感且愿意每周清洗集尘极板，它可以是补充方案。但<strong>不要相信任何"负离子/光触媒/UV"作为主要净化机制的宣传</strong>——它们最多是辅助（真实贡献<总净化量的5%），最遭是纯营销噱头。
+</div>
+
+<!-- ─── 6. 可靠性工程模型 ─── -->
+<h2 id="sec-5">6. 可靠性工程模型</h2>
+
+<h3>6.1 浴盆曲线（Bathtub Curve）</h3>
+
+<div class="bathtub">
+  <svg viewBox="0 0 600 200" width="100%" height="auto">
+    <defs>
+      <linearGradient id="fade" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#dc3545" stop-opacity="0.12"/>
+        <stop offset="100%" stop-color="#dc3545" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+    <line x1="50" y1="160" x2="560" y2="160" stroke="#aaa" stroke-width="1"/>
+    <line x1="50" y1="20" x2="50" y2="160" stroke="#aaa" stroke-width="1"/>
+    <text x="300" y="190" font-size="10" fill="#888" text-anchor="middle">使用时间</text>
+    <text x="15" y="95" font-size="10" fill="#888" text-anchor="middle" transform="rotate(-90, 15, 95)">失效率</text>
+    <path d="M50,120 C110,130 150,105 200,38 C220,22 260,16 300,20 C340,24 380,22 440,42 C470,58 500,80 525,115 L560,122"
+          fill="none" stroke="#dc3545" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M50,120 C110,130 150,105 200,38 C220,22 260,16 300,20 C340,24 380,22 440,42 C470,58 500,80 525,115 L560,122 L560,160 L50,160 Z"
+          fill="url(#fade)"/>
+    <text x="130" y="80" font-size="10" fill="#dc3545" text-anchor="middle">早期失效期<br/><tspan font-size="8">（电机异响/密封不良/传感器故障）</tspan></text>
+    <text x="310" y="38" font-size="10" fill="#198754" text-anchor="middle">稳定期 · 偶发失效（需定期换滤芯）</text>
+    <text x="498" y="68" font-size="10" fill="#dc3545" text-anchor="middle">损耗失效期<br/><tspan font-size="8">（电机轴承/电容/传感器老化）</tspan></text>
+    <line x1="195" y1="145" x2="195" y2="160" stroke="#888" stroke-width="0.5" stroke-dasharray="4,3"/>
+    <text x="195" y="172" font-size="8" fill="#888" text-anchor="middle">0–6月</text>
+    <line x1="430" y1="145" x2="430" y2="160" stroke="#888" stroke-width="0.5" stroke-dasharray="4,3"/>
+    <text x="430" y="172" font-size="8" fill="#888" text-anchor="middle">5–8年</text>
+  </svg>
+</div>
+
+<h3>6.2 故障模式与影响分析（FMEA）</h3>
+
+<table>
+  <tr><th>故障模式</th><th>发生率</th><th>影响</th><th>可探测性</th><th>修复成本</th><th>RPN</th></tr>
+  <tr>
+    <td>电机轴承磨损/卡死</td>
+    <td><span class="tag tag-warn">中（5–8年）</span></td>
+    <td>风扇停转→净化为零</td>
+    <td>中（噪音先增大→最终停转）</td>
+    <td>高（换电机¥100–300，接近残值）</td>
+    <td><strong>高</strong></td>
+  </tr>
+  <tr>
+    <td>滤芯受潮发霉/发酸</td>
+    <td><span class="tag tag-bad">高（6–18月）</span></td>
+    <td>开机吹出霉味/酸味→二次污染</td>
+    <td>高（嗅觉明显）</td>
+    <td>低（换滤芯¥100–400）</td>
+    <td><strong>高</strong></td>
+  </tr>
+  <tr>
+    <td>PM传感器故障/漂移</td>
+    <td><span class="tag tag-warn">中（2–5年）</span></td>
+    <td>自动模式失效/显示数值错误</td>
+    <td>低（需对照独立PM计确认）</td>
+    <td>低–中（换传感器¥20–100）</td>
+    <td><strong>中</strong></td>
+  </tr>
+  <tr>
+    <td>半导体VOC传感器中毒</td>
+    <td><span class="tag tag-bad">高（1–3年）</span></td>
+    <td>气体检测功能失效——显示"优"但实际甲醛超标</td>
+    <td>极低（传感器完全失效前无征兆）</td>
+    <td>中（换传感器¥10–50，但多数用户不知道传感器已失效）</td>
+    <td><strong>高</strong></td>
+  </tr>
+  <tr>
+    <td>滤芯旁路密封失效</td>
+    <td><span class="tag tag-warn">中（随滤芯更换次数增加）</span></td>
+    <td>部分空气未经过滤直接绕过HEPA→实际净化效率降低</td>
+    <td>极低（肉眼不可见，需要气溶胶测试验证）</td>
+    <td>低（换密封条¥10–30或新滤芯自带）</td>
+    <td><strong>中（隐患大但不可见）</strong></td>
+  </tr>
+  <tr>
+    <td>电源板电容老化</td>
+    <td><span class="tag tag-warn">低（4–8年）</span></td>
+    <td>自动重启/无法开机/电机转速不稳</td>
+    <td>低（症状不稳定）</td>
+    <td>低–中（换电源板¥50–150）</td>
+    <td><strong>中</strong></td>
+  </tr>
+  <tr>
+    <td>WiFi模块失效</td>
+    <td><span class="tag tag-warn">低（3–6年）</span></td>
+    <td>无法APP控制/远程查看</td>
+    <td>高（连接失败提示）</td>
+    <td>低（仍可手动操作面板）</td>
+    <td><strong>低</strong></td>
+  </tr>
+</table>
+
+<div class="callout warn">
+  <strong>可靠性核心洞察：</strong>空气净化器有两个被严重低估的可靠性风险——① <strong>滤芯发酸</strong>是最常见的使用投诉，根源是活性炭（特别是夹炭布）在关机后吸附的水分和污染物在室温下发生微生物分解→产生乙酸/丁酸等酸性气体→开机时吹出。夹炭布（入门级常用）比颗粒炭/柱状炭更容易发酸；② <strong>半导体VOC传感器"静默失效"</strong>——它在1–3年内缓慢中毒，用户完全不知道传感器已经不准确了，继续信任自动模式和显示数值。这是一个可怕的安全隐患——你以为甲醛已经净化了，实际上传感器已经坏了，甲醛浓度可能还在危险水平。
+</div>
+
+<!-- ─── 7. 用户体验建模 ─── -->
+<h2 id="sec-6">7. 用户体验建模</h2>
+
+<h3>7.1 体验维度权重排序</h3>
+
+<table>
+  <tr><th>优先级</th><th>维度</th><th>权重</th><th>工程解释</th></tr>
+  <tr><td>1</td><td><strong>噪音（给定CADR下）</strong></td><td>35%</td><td>净化器通常在卧室/客厅<strong>长时间运行（8–24h/d）</strong>——这意味着噪音是日复一日累积的体验摩擦。30dBA（静音档）=几乎不可闻，40dBA=安静卧室，50dBA=明显可闻（相当于小雨声），60dBA=影响睡眠。<strong>核心工程指标：在睡眠档（通常是最高CADR的30–50%）的噪音值。</strong>一个CADR 500但睡眠档噪音45dBA的机器，长期使用体验远不如CADR 300但睡眠档噪音30dBA的机器。</td></tr>
+  <tr><td>2</td><td><strong>实际净化效率（CADR×使用持续性）</strong></td><td>25%</td><td>CADR是实验室标准工况下的数值——实际家中的净化效率还受气流组织（洁净空气能否到达房间各个角落）、家具阻挡、门窗漏风（室外PM2.5持续渗入）的影响。<strong>房间的密封性和净化器的摆放位置对实际净化效果的影响≥CADR数值本身。</strong></td></tr>
+  <tr><td>3</td><td><strong>滤芯更换便利性+成本</strong></td><td>18%</td><td>更换滤芯的操作复杂度（是否需要工具/是否需要翻转机器/滤芯是否容易对齐密封）、原厂滤芯的售价和供应稳定性。这个体验维度是<strong>"每6–12个月就被唤醒一次的记忆"</strong>——如果每次更换都像是一次工程任务，你会逐渐推迟换芯时间。</td></tr>
+  <tr><td>4</td><td><strong>传感器/自动模式精度</strong></td><td>12%</td><td>自动模式是净化器的"大脑"——精确的传感器+合理的算法让用户"设置后就不用管了"。反之，传感器不准确会导致：① 空气已经干净但机器仍在高速运转（浪费电和滤芯+噪音）；② 空气已变差但机器还在低速（没有在需要的时候净化）。</td></tr>
+  <tr><td>5</td><td><strong>外观/工业设计</strong></td><td>5%</td><td>净化器是一件<strong>摆在明面上的家电</strong>（不像热水器藏在角落），外观会影响购买决策。但在长期使用中，你是听它的声音而非看它的样子。</td></tr>
+  <tr><td>6</td><td><strong>APP/智能功能</strong></td><td>5%</td><td>远程开关/定时/空气质量历史曲线。有用但非核心——自动模式做好了，你根本不需要打开APP。</td></tr>
+</table>
+
+<h3>7.2 睡眠档噪音：决定"长期使用幸福感"的工程指标</h3>
+
+<div class="card">
+  <table>
+    <tr><th>噪音等级</th><th>dBA</th><th>主观感受</th><th>对应睡眠质量</th></tr>
+    <tr><td>极致安静</td><td>20–25</td><td>几乎不可闻，需要贴耳才能确认是否在运行</td><td>无影响</td></tr>
+    <tr><td>优秀</td><td>26–30</td><td>轻微气流声，相当于安静的图书馆背景</td><td>无影响</td></tr>
+    <tr><td>良好</td><td>31–35</td><td>可闻但柔和，相当于轻声耳语</td><td>多数人不受影响</td></tr>
+    <tr><td>可接受</td><td>36–40</td><td>明显可闻，相当于安静的办公室</td><td>敏感人群可能受影响</td></tr>
+    <tr><td>边界</td><td>41–45</td><td>显著可闻，相当于冰箱压缩机运行声</td><td>影响浅睡眠</td></tr>
+    <tr><td>不可接受</td><td>>45</td><td>持续的背景噪音，干扰睡眠和交谈</td><td>显著影响睡眠</td></tr>
+  </table>
+  <p style="font-size:0.85rem;color:var(--color-muted);margin-top:8px">工程事实：从35dBA降到30dBA的5dB差异，在感知上是<strong>安静了约50%</strong>（响度感知与声压级呈对数关系）。这5dB的改善比CADR提升50m³/h更直接影响日常体验。</p>
+</div>
+
+<!-- ─── 8. 营销系统识别 ─── -->
+<h2 id="sec-7">8. 营销系统识别</h2>
+
+<table>
+  <tr><th>类别</th><th>技术/功能</th><th>工程判断</th><th>识别依据</th></tr>
+  <tr>
+    <td><span class="tag tag-a">A·真实技术</span></td>
+    <td>HEPA H13/H14滤纸</td>
+    <td>真实的过滤效率——H13（MPPS穿透<0.05%）和H14（<0.005%）之间有数量级差异。H13是民用净化器的工程甜点（效率足够+风阻可接受），H14需要更大风压→更高噪音</td>
+    <td>有EN1822/ISO 29463国际标准，过滤效率可独立测试验证</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-a">A·真实技术</span></td>
+    <td>BLDC电机+PWM无级调速</td>
+    <td>真实的噪音-风量优化——无极调速允许在CADR和噪音之间找到最佳折衷点。没有BLDC的机器只有3–4个固定档位</td>
+    <td>电机类型和调速方式可以直接从硬件规格确认</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-a">A·真实技术</span></td>
+    <td>激光PM传感器（多通道）</td>
+    <td>真实的粒径分辨能力——激光散射+多通道计数可以区分PM0.3/0.5/1.0/2.5/5.0/10，比红外传感器精确一个数量级</td>
+    <td>激光vs红外的物理原理差异是明确的，精度差异可对照标准仪器验证</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-a">A·真实技术</span></td>
+    <td>电化学甲醛传感器</td>
+    <td>真正的甲醛定量检测——电化学传感器对甲醛有选择性响应，能给出<0.01mg/m³精度的读数。半导体VOC传感器对所有还原性气体都响应（酒精/香水/炒菜油烟都会触发），无法区分甲醛</td>
+    <td>电化学vs半导体的检测原理不同，选择性/精度有本质差异</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-a">A·真实技术</span></td>
+    <td>改性活性炭（浸渍炭）</td>
+    <td>通过化学浸渍（金属氧化物/胺基化合物）增强活性炭对甲醛的化学吸附能力——将物理吸附（范德华力，可逆）升级为化学吸附（化学键合，不可逆）。碳值（碘值/四氯化碳值/苯值）可以量化表征吸附能力</td>
+    <td>化学浸渍是成熟的活性炭改性工艺，碘值有独立标准测试方法（ASTM D4607）</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-b">B·体验增强</span></td>
+    <td>UV-C紫外线杀菌</td>
+    <td>UV-C（254nm）对静止表面的细菌/病毒有杀灭效果——但需要<strong>足够的照射剂量和时间</strong>。在流动空气中（气流通过UV灯区域的时间<0.1s），实际杀菌率远低于宣传的99.9%。<strong>HEPA本身的过滤效率（>99.95%）已经能拦截>99.9%的细菌和病毒</strong>——UV在HEPA下游是画蛇添足</td>
+    <td>UV杀菌在静止表面有效，但在流动空气中剂量不足。HEPA已经捕获了微生物，UV不是必需</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-b">B·体验增强</span></td>
+    <td>离子发生器（负离子/等离子簇）</td>
+    <td>真实的物理效应——放电产生的离子可使超细颗粒荷电凝并。但<strong>对可见的PM2.5/PM10没有显著的实际净化贡献</strong>，且副产物O₃有健康风险。主要价值是<strong>心理感受</strong>（"森林般的清新空气"感——这是负离子的神经生理效应而非净化效果）</td>
+    <td>净化效率无法与HEPA相比，O₃副产物风险真实存在</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-b">B·体验增强</span></td>
+    <td>加湿功能（净化+加湿一体）</td>
+    <td>方便但增加了维护复杂度——加湿滤芯/水箱是细菌霉菌的完美滋生环境。净化+加湿一体的机器需要<strong>更高频率的清洁维护</strong></td>
+    <td>功能整合真实，但引入了新的卫生维护负担</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-c">C·营销功能</span></td>
+    <td>"光触媒分解甲醛/杀菌"</td>
+    <td>光触媒（TiO₂+UV）在<strong>实验室静态条件</strong>下能氧化甲醛，但在流动空气中反应时间<0.1s→实际氧化率极低（<<1%）。<strong>在流通式空气净化器中，光触媒对甲醛的去除贡献可以忽略不计。</strong>它是一个教科书式的"实验室有效、工程无效"技术</td>
+    <td>化学动力学基本限制：气体-固体界面反应需要>秒级停留时间，流动空气提供的是毫秒级</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-c">C·营销功能</span></td>
+    <td>"除甲醛率99.9%"（无标注测试条件）</td>
+    <td>多数是在<strong>1m³实验舱 + 超高初始浓度 + 超量活性炭滤芯</strong>条件下测得的——实际30m²房间的甲醛清除速率（CADR甲醛）可能只有这个数字的十分之一。<strong>要看甲醛CADR值（m³/h），而非"去除率%”。</strong></td>
+    <td>"去除率"无标准化体积和时间条件→不可横向比较。甲醛CADR是标准化的可比指标</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-c">C·营销功能</span></td>
+    <td>"医疗级/医用级净化"</td>
+    <td>医疗级空气净化需要满足医院洁净室标准（如ISO 8级以上），需要经过认证机构的检测。绝大多数"医疗级"宣称无任何医疗器械认证</td>
+    <td>医疗器械认证有严格的监管路径——查看是否有CFDA/FDA/CE医疗器械认证编号</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-c">C·营销功能</span></td>
+    <td>"AI智能净化"</td>
+    <td>实际就是<strong>PID控制器调电机转速</strong>——传感器读数高→加大功率；读数低→降低功率。这是一个工业控制领域超过百年的技术，与"AI"无关</td>
+    <td>"AI"需要使用训练模型进行预测/分类——预测污染物变化趋势才是AI，反馈调节PID不是</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-c">C·营销功能</span></td>
+    <td>"纳米"滤材 / "纳米抗菌"</td>
+    <td>纳米银/纳米TiO₂涂层在滤材上的抗菌效果<strong>从未在大规模、长期的独立研究中被证实对实际空气质量有可测量的改善</strong>。且纳米颗粒本身从滤材上脱落被吸入肺部的安全性尚无长期数据</td>
+    <td>纳米材料的长期吸入安全性是未知数，"防菌"的边际贡献在已有HEPA的>99.95%拦截率之上无意义</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-c">C·营销功能</span></td>
+    <td>超大数显 / 触摸彩屏</td>
+    <td>增加成本和故障点。空气质量数据（PM2.5读数）一个简单的LED点阵/数码管就能胜任。彩屏对净化性能的贡献为零</td>
+    <td>与核心净化功能完全无关的组件</td>
+  </tr>
+</table>
+
+<div class="callout warn">
+  <strong>空气净化器营销识别法则：</strong>① 看<strong>甲醛CADR</strong>而非"除甲醛率%"——前者是标准化的可比指标，后者是可以操纵的实验条件产物；② 任何涉及"分解"甲醛/VOC的技术宣称（光触媒/等离子/冷触媒），要求提供<strong>独立实验室在30m³实验舱（GB/T 18801标准条件）下的甲醛CADR测试报告</strong>——拿不出来的，默认归零；③ "负离子"的净化贡献在HEPA面前可以忽略不计，但它的O₃副产物风险是真实的；④ <strong>最诚实的三个参数是CADR、噪音、CCM</strong>——所有华丽的营销词汇最终都要在这三个数字面前接受检验。
+</div>
+
+<!-- ─── 9. TCO成本模型 ─── -->
+<h2 id="sec-8">9. TCO成本模型</h2>
+
+<h3>9.1 10年TCO计算 — 适用于30m²房间</h3>
+
+<table>
+  <tr><th>成本项</th><th>入门 ¥400</th><th>中端 ¥1200</th><th>高端 ¥4000</th></tr>
+  <tr><td>采购成本</td><td>¥400</td><td>¥1,200</td><td>¥4,000</td></tr>
+  <tr><td>10年电费<br><span style="font-size:0.8rem;color:var(--color-muted)">20W/30W/40W × 12h/d × 365 × 10 × ¥0.6</span></td><td>¥526</td><td>¥788</td><td>¥1,051</td></tr>
+  <tr><td>滤芯更换<br><span style="font-size:0.8rem;color:var(--color-muted)">HEPA 1次/年 + 活性炭 1次/年 (入门)<br>HEPA 1次/1.5年 + 活性炭 1次/年 (中端)<br>HEPA 1次/2年 + 活性炭 2次/年 (高端)</span></td><td>¥4,000<br>（HEPA ¥80×10 + 活性炭 ¥40×10 + 预过滤 ¥20×10）</td><td>¥5,760<br>（HEPA ¥180×7 + 活性炭 ¥100×10 + 预过滤 ¥30×7）</td><td>¥8,000<br>（HEPA ¥350×5 + 活性炭 ¥250×10 + 预过滤 ¥50×5）</td></tr>
+  <tr><td>传感器更换</td><td>¥0（红外无校准，坏了也不换）</td><td>¥60（PM传感器换1次）</td><td>¥200（PM传感器+电化学甲醛各换1次）</td></tr>
+  <tr><td>维修</td><td>¥0（坏了直接扔）</td><td>¥200（电源板/小故障一次）</td><td>¥500（延保后可能的维修）</td></tr>
+  <tr><th>10年TCO</th><th>≈¥4,926</th><th>≈¥8,008</th><th>≈¥13,751</th></tr>
+  <tr><td><strong>滤芯成本占比</strong></td><td><strong>81%</strong></td><td><strong>72%</strong></td><td><strong>58%</strong></td></tr>
+  <tr><td>日均成本</td><td>¥1.35</td><td>¥2.19</td><td>¥3.77</td></tr>
+</table>
+
+<div class="callout good">
+  <strong>TCO核心发现：</strong>空气净化器的10年TCO中，<strong>滤芯费用是绝对主导——占比58–81%</strong>，远超过购机成本。一台¥400的入门机，10年换滤芯要花¥4,000——是购机价的10倍。这个事实颠覆了"买便宜机器省钱"的直觉。更关键的是，滤芯的<strong>年度费用</strong>因品牌而异：原厂滤芯定价是品牌利润的重要来源——有的品牌靠硬件低价吸引你，然后靠滤芯高定价持续收割。评估一台净化器的真实成本，应该是<strong>购机价 + 预期使用年限 × 年滤芯费用</strong>，而不是只看购机价。
+</div>
+
+<h3>9.2 滤芯经济学</h3>
+
+<div class="cols">
+<div class="card">
+  <h4>滤芯成本陷阱</h4>
+  <ul style="padding-left:20px;font-size:0.9rem;line-height:2">
+    <li><strong>原厂滤芯溢价：</strong>¥4000的机器配¥800的滤芯（成本¥200）→ 滤芯毛利率>70%</li>
+    <li><strong>滤芯套包捆绑：</strong>HEPA+活性炭+预过滤打包卖，但活性炭通常比HEPA更快饱和→你被迫提前更换还好的HEPA</li>
+    <li><strong>芯片锁：</strong>部分品牌滤芯带RFID/NFC芯片，阻止使用第三方兼容滤芯——这是纯商业模式锁定，与性能无关</li>
+    <li><strong>停产断供：</strong>型号停产后3年，原厂滤芯不再生产→整机报废</li>
+  </ul>
+</div>
+<div class="card">
+  <h4>滤芯成本优化策略</h4>
+  <ul style="padding-left:20px;font-size:0.9rem;line-height:2">
+    <li>选购前<strong>查看原厂滤芯价格和用户评价</strong>（是否有提前发酸/寿命短于标的投诉）</li>
+    <li>选择<strong>滤芯规格开放</strong>的品牌（不锁芯片，允许使用第三方兼容滤芯）</li>
+    <li>优先选<strong>独立滤芯</strong>（HEPA和活性炭分开）而非一体式（可以按需分别更换）</li>
+    <li>优先选<strong>大容量活性炭</strong>（>1.5kg柱状炭）→ 更换周期更长→年化成本更低</li>
+    <li>第三方品牌的兼容滤芯价格通常只有原厂的1/3–1/2</li>
+  </ul>
+</div>
+</div>
+
+<!-- ─── 10. 供应链与产业结构 ─── -->
+<h2 id="sec-9">10. 供应链与产业结构</h2>
+
+<h3>10.1 产业链层级</h3>
+
+<table>
+  <tr><th>层级</th><th>内容</th><th>核心企业</th><th>产业特征</th></tr>
+  <tr>
+    <td><strong>Tier 1 · 核心材料</strong></td>
+    <td>HEPA滤纸基材、活性炭、BLDC电机、传感器芯片</td>
+    <td><strong>滤纸：</strong>阿波制纸（日本）/ Ahlstrom-Munksjö（芬兰）/ IREMA（爱尔兰）/ 泰达洁净（中国天津）<br><strong>活性炭：</strong>卡尔冈Carbon（美国）/ 诺芮特Norit（荷兰）/ 福建元力/山西新华<br><strong>电机：</strong>Nidec（日本）/ NMB（日本）/ EBM-Papst（德国）/ 威灵/大洋（中国）<br><strong>传感器：</strong>Sensirion（瑞士）/ Plantower/ Cubic（中国）</td>
+    <td>滤纸、活性炭、电机的供应高度集中，头部供应商掌握核心技术。HEPA滤纸的熔喷工艺和静电驻极处理是核心技术壁垒</td>
+  </tr>
+  <tr>
+    <td><strong>Tier 2 · 部件/模组</strong></td>
+    <td>滤芯（折褶+灌胶+组装）、风扇模组、控制板PCBA、传感器模组</td>
+    <td>专业滤芯制造商（给品牌代工滤芯的工厂）、专业PCBA厂、电机驱动器供应商</td>
+    <td>滤芯制造的核心是<strong>折褶工艺</strong>（均匀折高/密度/不打折/不塌陷）和<strong>密封灌胶</strong></td>
+  </tr>
+  <tr>
+    <td><strong>Tier 3 · 整机集成/品牌</strong></td>
+    <td>整机设计+组装+品牌+渠道</td>
+    <td>IQAir（瑞士）/ Blueair（瑞典）/ Dyson（英国）/ 小米/352/华为/海尔/Philips/松下/大金</td>
+    <td>进入门槛极低，但做好极难。品牌的核心差异在：气动设计（风道/风扇）+ 滤芯规格定义 + 传感器选型/校准 + 控制算法</td>
+  </tr>
+</table>
+
+<h3>10.2 产业集群</h3>
+
+<div class="card">
+  <table>
+    <tr><th>区域</th><th>核心能力</th></tr>
+    <tr><td><strong>广东深圳/东莞</strong></td><td>中国最大的净化器ODM/OEM集群。从滤芯制造到整机总装的全产业链。深圳聚集了大量传感器供应商（Plantower/Cubic总部均在深圳）。<strong>小米/352/华为的净化器代工厂集中于此</strong></td></tr>
+    <tr><td><strong>广东佛山/顺德</strong></td><td>美的/海尔的净化器制造基地。依托白色家电供应链优势</td></tr>
+    <tr><td><strong>天津</strong></td><td>泰达洁净——中国最大的熔喷无纺布制造商之一，HEPA滤纸基材核心供应商</td></tr>
+    <tr><td><strong>瑞典/瑞士</strong></td><td>Blueair（斯德哥尔摩）、IQAir（戈尔道）——品牌/研发总部，高端制造保留在欧洲</td></tr>
+    <tr><td><strong>日本</strong></td><td>大金/松下/夏普——空气净化技术积淀深厚，但制造已大部分移至中国和东南亚</td></tr>
+  </table>
+</div>
+
+<div class="callout">
+  <strong>供应链洞察：</strong>空气净化器的供应链高度集中在中国——<strong>从滤纸基材到整机组装的完整产业链</strong>。即使是IQAir（瑞士）、Blueair（瑞典）这样的欧洲品牌，其滤芯和电机也大量依赖亚洲供应链（日本电机+中国滤纸+中国组装）。品牌溢价的大部分来源于<strong>品牌信任+外观设计+认证背书</strong>，而非硬件成本的差异。一台¥1200的小米净化器和一台¥4000的Blueair净化器，两者BOM成本的差异通常<¥300——剩余的¥2500差价是品牌、设计、认证、渠道和利润的总和。<strong>你为Blueair/IQAir付的溢价，主要是为"信任"买单，而非"材料成本"。</strong>
+</div>
+
+<!-- ─── 11. 安装与环境影响 ─── -->
+<h2 id="sec-10">11. 安装与环境影响</h2>
+
+<div class="cols">
+<div class="card">
+  <h3>摆放位置与气流组织</h3>
+  <table>
+    <tr><th>因素</th><th>工程影响</th></tr>
+    <tr><td><strong>靠墙距离</strong></td><td>360°进风的机型需要离墙>20cm保证进风畅通。靠墙摆放→进风面积减少30–50%→CADR下降同等比例</td></tr>
+    <tr><td><strong>家具阻挡</strong></td><td>出风口被柜子/窗帘阻挡→洁净空气无法扩散到房间→房间远端永远得不到净化</td></tr>
+    <tr><td><strong>摆放房间中心vs角落</strong></td><td>摆放在房间中心位置（如床尾/茶几旁）的气流组织效率远高于角落——但实际使用中多数人把净化器塞在角落</td></tr>
+    <tr><td><strong>回风短路</strong></td><td>出风口与进风口距离太近→部分洁净空气被直接"短循环"吸回→CADR虚高但房间远端净化差</td></tr>
+  </table>
+</div>
+<div class="card">
+  <h3>环境与使用因素</h3>
+  <table>
+    <tr><th>因素</th><th>影响</th></tr>
+    <tr><td><strong>房间密封性</strong></td><td>门窗漏风→室外PM2.5持续渗入→净化器一直在与"无限污染源"对抗→永远达不到理想的低浓度。<strong>净化器的净化效果上限由房间密封性决定</strong></td></tr>
+    <tr><td><strong>室外PM2.5浓度</strong></td><td>霾季（室外>150μg/m³）→渗入速率远高于净化器的净化速率→即使净化器全速运转，室内浓度也可能>35μg/m³</td></tr>
+    <tr><td><strong>新风系统叠加</strong></td><td>有新风系统→室外空气经过HEPA过滤后进入→净化器负荷大幅降低→滤芯寿命延长2–3倍</td></tr>
+    <tr><td><strong>湿度</strong></td><td>高湿（RH>70%）→滤芯内水分凝结→霉菌滋生+发酸。湿度每增加10%，滤芯发酸风险增加约50%</td></tr>
+    <tr><td><strong>室内污染源强度</strong></td><td>新装修（甲醛释放峰值期头2年）→净化器的甲醛CADR需要达到房间体积的3–5倍/h才有效。日常烹饪/吸烟→颗粒物瞬时爆发→需要净化器能快速响应（自动模式+高速档）</td></tr>
+  </table>
+</div>
+</div>
+
+<div class="callout warn">
+  <strong>核心结论：</strong>空气净化器的性能发挥<strong>严重依赖安装环境和使用习惯</strong>——CADR只是实验室数据，实际净化效果 = <strong>CADR × 气流组织效率 × 房间密封系数</strong>。一台CADR 500的净化器放在密闭性差的50m²客厅里，效果可能不如CADR 300但放在密封良好的30m²卧室。最常被忽略的因素是：<strong>多人同时在房间→CO₂浓度飙升（>1500ppm）→头晕/犯困</strong>——净化器对CO₂完全无效（CO₂分子太小，无法被HEPA或活性炭拦截/吸附）。如果你开净化器关门窗睡觉感觉闷——那不是净化器的问题，而是<strong>你需要新风，不是净化</strong>。
+</div>
+
+<!-- ─── 12. 品牌工程评级 ─── -->
+<h2 id="sec-11">12. 品牌工程评级</h2>
+
+<table>
+  <tr><th>梯队</th><th>品牌</th><th>技术能力</th><th>制造模式</th><th>核心优势</th><th>短板</th></tr>
+  <tr>
+    <td rowspan="2"><strong>第一梯队<br>技术主导型</strong></td>
+    <td><strong>IQAir</strong>（瑞士）</td>
+    <td>医疗级HEPA技术全球顶尖——HyperHEPA滤纸（可过滤>99.5% @0.052μm超细颗粒，超越H14标准）。活性炭配方（V5-Cell，含浸渍炭+高锰酸钾氧化铝）是行业技术标杆</td>
+    <td>瑞士制造+亚洲供应链</td>
+    <td>滤芯技术无可争议的行业第一；医疗/实验室认证齐全；整机密封和旁路控制极佳</td>
+    <td>价格极高（¥8000–20000）；外观设计停留在工业设备风格；噪音控制不及消费级竞品（风扇设计偏工业）；无智能传感器/APP</td>
+  </tr>
+  <tr>
+    <td><strong>Blueair</strong>（瑞典）</td>
+    <td>HEPASilent技术（静电+机械过滤复合）——利用静电预荷电减少HEPA负荷，在低噪音下实现高CADR。自研气动设计能力强</td>
+    <td>瑞典设计+中国OEM</td>
+    <td>噪音-CADR比业界最佳之一（低噪音下能输出高CADR）；静电+机械复合路线在平衡噪音和效率方面有真实工程优势</td>
+    <td>静电部分有微量O₃产生风险；滤芯成本高（原厂滤芯¥600–1200）；被Unilever收购后品质/创新投入的长期方向有不确定性</td>
+  </tr>
+  <tr>
+    <td rowspan="3"><strong>第二梯队<br>平衡型</strong></td>
+    <td><strong>小米/米家</strong></td>
+    <td>硬件规格扎实（H13 HEPA+BLDC+激光传感器成为¥800+全线标配）。自研风道+自研控制算法。将"可接受的工程品质"推入了<strong>大众可负担的价格区间</strong></td>
+    <td>ODM（深圳智米科技主导设计）+ 自研算法</td>
+    <td>性价比极高——¥800–1500覆盖了中端净化器80%的工程价值；滤芯价格透明且便宜（¥100–200）；传感器标配激光PM2.5</td>
+    <td>高端产品线缺乏（CADR上限和活性炭容量有限）；活性炭量偏少（300–500g）→甲醛CADR不高；系统广告（米家APP）影响体验</td>
+  </tr>
+  <tr>
+    <td><strong>352</strong></td>
+    <td>堆料理念——大CADR+超大活性炭装填量（3kg柱状炭）+H13 HEPA。在<strong>甲醛CADR</strong>和<strong>CCM</strong>上业界领先</td>
+    <td>自研+OEM</td>
+    <td>"堆料流"——用超配的滤芯容量延缓更换周期，降低年化滤芯成本；甲醛净化能力是国产最强</td>
+    <td>体积大/重量大（牺牲了家居美学）；品牌知名度弱于小米；产品线相对单一</td>
+  </tr>
+  <tr>
+    <td><strong>Dyson</strong></td>
+    <td>自研数字马达（高速BLDC）+气流倍增（Air Multiplier）+自研气动设计。工业设计行业顶级</td>
+    <td>自研马达+东南亚制造</td>
+    <td>外观和品牌价值无可匹敌；气流倍增技术使洁净空气能远距离投射（改善气流组织）；不依赖滤材堆量</td>
+    <td><strong>CADR和滤芯容量不及同价位竞品</strong>——¥4000–6000的Dyson在纯净化性能上通常被¥1500的国产机超越；HEPA+活性炭一体滤芯更换成本高；多功能（净化+凉风+加热）增加复杂度</td>
+  </tr>
+  <tr>
+    <td rowspan="2"><strong>第三梯队<br>品牌/渠道型</strong></td>
+    <td><strong>Philips / 松下 / 大金</strong></td>
+    <td>具有日欧家电的技术积累和品质控制，但在空气净化器品类上的<strong>技术领先优势不明显</strong>（与国产品牌相比没有质的差异）。部分日系品牌（大金）的流光能技术实际效果存疑</td>
+    <td>中国/东南亚OEM为主</td>
+    <td>品牌信任度和售后网络完整体；产品安全合规和品控一致性较好</td>
+    <td>价格明显偏高——同配置贵50–100%；技术创新止步于渐进改善；日系品牌的甲醛净化能力普遍弱于专业净化品牌</td>
+  </tr>
+  <tr>
+    <td><strong>各类白牌/小品牌</strong></td>
+    <td>ODM全套方案，无自研能力</td>
+    <td>纯ODM</td>
+    <td>价格极低（¥200–500）</td>
+    <td>滤芯品质/密封/传感器精度/噪音控制均不可控；滤芯供应无保障；安全认证可能存在问题</td>
+  </tr>
+</table>
+
+<div class="callout">
+  <strong>品牌评级方法论：</strong>空气净化器品牌的工程排名判断标准：<strong>① 是否自研风道/气动设计</strong>→ 这是噪音和CADR平衡能力的根基；<strong>② 是否自定滤芯规格（非采购通用滤芯）</strong>→ 滤芯展开面积/碳量/碳类型/密封设计直接决定净化性能；<strong>③ 传感器选型和校准策略</strong>→ 这是"自动模式是否可信"的前提；<strong>④ 滤芯定价策略</strong>——以滤芯为利润中心的品牌（高价锁定滤芯）vs以硬件为利润中心的品牌（滤芯平价化）。第④点在长期TCO中的影响可能超过前三点。
+</div>
+
+<!-- ─── 13. 购买决策系统 ─── -->
+<h2 id="sec-12">13. 购买决策系统</h2>
+
+<div class="card">
+  <h3>Step 1：定义需求——污染·房间·人</h3>
+  <table>
+    <tr><th>参数</th><th>影响</th></tr>
+    <tr><td><strong>主要污染物</strong></td>
+    <td><strong>颗粒物（PM2.5/花粉/尘螨）为主</strong>→ 重点看颗粒物CADR，活性炭配置可以降低优先级。任何H13 HEPA都能胜任。<br><strong>甲醛/VOC（新装修/新家具）为主</strong>→ 必须看<strong>甲醛CADR + 活性炭类型和装填量</strong>（柱状炭>颗粒炭>>夹炭布；>1.5kg是最低门槛）。甲醛CADR>150m³/h才能在30m²房间有效控制甲醛。<br><strong>两者都需要</strong>→ 颗粒物CADR + 甲醛CADR + 活性炭量三者并重</td></tr>
+    <tr><td><strong>房间面积</strong></td><td>CADR(m³/h) × 0.1 ≈ 适用面积(m²)（GB/T 18801标准）。30m²卧室 → 颗粒物CADR≥300m³/h。实用法则：<strong>买大不买小</strong>——CADR超配可以在更低噪音档位（睡眠档）实现同样的净化效果，而CADR刚好够用意味着你需要长时间开中高速档→更高的噪音</td></tr>
+    <tr><td><strong>主要使用时段</strong></td><td><strong>夜间/卧室为主</strong>→ 噪音是第一优先级——睡眠档噪音<35dBA是硬指标。<strong>白天/客厅为主</strong>→ 噪音容忍度更高，CADR和覆盖面积优先</td></tr>
+    <tr><td><strong>过敏/哮喘/敏感人群</strong></td><td>需要HEPA H13及以上 + 对花粉/尘螨过敏原的过滤效果。<strong>避免任何有O₃产生的技术</strong>（静电/负离子/UV-C 185nm）——敏感人群的呼吸道对O₃更脆弱</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <h3>Step 2–6：技术路线→核心规格→风险过滤→TCO→品牌</h3>
+  <table>
+    <tr><th>检查项</th><th>通过标准</th></tr>
+    <tr><td><strong>过滤技术</strong></td><td>纯物理过滤（HEPA+活性炭）。<strong>拒绝</strong>以静电/负离子/光触媒为主要净化机制的产品。HEPA等级≥H13（MPPS穿透≤0.05%）</td></tr>
+    <tr><td><strong>颗粒物CADR</strong></td><td>≥房间面积(m²) ÷ 0.1。卧室30m² →≥300m³/h。如果有条件→<strong>CADR超配50%</strong>（30m²卧室→450m³/h）——超配部分在睡眠档发挥（低噪音+足够风量）</td></tr>
+    <tr><td><strong>甲醛CADR</strong></td><td>如果甲醛是主要关注 →≥150m³/h（30m²房间）。查看独立测试报告（非品牌自测）。注意<strong>甲醛CADR≠颗粒物CADR</strong>——通常甲醛CADR是颗粒物CADR的30–60%</td></tr>
+    <tr><td><strong>噪音（睡眠档）</strong></td><td><strong>≤35dBA是硬指标</strong>（卧室使用）。查看独立评测的实测噪音值（非品牌标称——品牌标称通常比实测低3–5dB）</td></tr>
+    <tr><td><strong>CCM（累积净化量）</strong></td><td>颗粒物CCM≥P4级（≥12000mg），甲醛CCM≥F4级（≥1500mg）。CCM越高→滤芯更换周期越长→年化滤芯成本越低</td></tr>
+    <tr><td><strong>活性炭</strong></td><td>类型：柱状炭 > 颗粒炭 >> 夹炭布（夹炭布=发酸风险+低容量）。装填量≥1.5kg（甲醛场景≥3kg）。如果可以→询问碘值（>1000mg/g为优）</td></tr>
+    <tr><td><strong>传感器</strong></td><td>PM：激光散射≥红外LED（精度差一个数量级）。甲醛：电化学传感器≥半导体VOC（半导体不能区分甲醛和酒精/香水）。双传感器（PM+甲醛独立）是可靠的配置</td></tr>
+    <tr><td><strong>滤芯密封</strong></td><td>滤芯与机身之间有可见的密封结构（橡胶框/密封条）——这是区分"真HEPA效率"和"标称HEPA但实际旁路漏气"的关键细节</td></tr>
+    <tr><td><strong>滤芯成本</strong></td><td>计算年化滤芯成本 = 滤芯价格 ÷ 推荐更换周期。¥300–600/年是中端机器的合理区间。>¥1000/年需要评估是否值得</td></tr>
+    <tr><td><strong>滤芯芯片锁</strong></td><td>查询该型号是否使用RFID/NFC滤芯锁。如果有→拒绝（商业模式锁定，侵害用户长期权益）。除非你愿意终身支付原厂滤芯的高溢价</td></tr>
+  </table>
+</div>
+
+<div class="callout good">
+  <strong>最优购买策略（2026年）：</strong><br>
+  <strong>甜点级（¥800–1500）：</strong>小米/米家空气净化器4 Pro / Ultra——H13 HEPA+激光PM+BLDC，CADR 400–500，睡眠档噪音<32dBA。这是<strong>颗粒物净化的工程甜点</strong>——覆盖了80%的使用场景和90%的工程价值。<br>
+  <strong>品质级（¥2000–4000）：</strong>352 X86C/X88C——超大活性炭（3kg柱状炭）+H13 HEPA+电化学甲醛传感器。甲醛CADR>300m³/h（业界顶级）。适合新装修/对甲醛有真实需求的用户。<br>
+  <strong>旗舰级（¥5000+）：</strong>IQAir HealthPro 250（颗粒物净化巅峰）/ GC MultiGas（甲醛净化巅峰）——如果你需要医疗级洁净、愿意为"最好"付溢价、且不在乎外观和智能功能。<br>
+  <strong>避坑提醒：</strong>① 不要买夹炭布滤芯的机器（发酸率极高）；② 不要买没有激光PM传感器的机器（自动模式不可信）；③ 不要为"除甲醛率99.9%"买单——要看甲醛CADR；④ 先检查你房间的密封性——门窗漏风的房间，再好的净化器也是"竹篮打水"。
+</div>
+
+<!-- ─── 14. 一句话结论 ─── -->
+<h2 id="sec-13">14. 一句话结论</h2>
+
+<div class="conclusion">
+  <h2>一句话结论</h2>
+  <p>
+    <strong>空气净化器的工程本质是"风扇推空气穿过滤纸的固-气分离系统"——CADR决定了净化速度，噪音决定了你是否愿意让它运行，CCM决定了你能承受的长期成本，而传感器决定了自动模式是否值得信任。</strong>¥800–1500的国产纯物理过滤净化器已经覆盖了90%的工程价值——一台H13 HEPA+BLDC+激光PM传感器的机器，放在密封良好的房间里，日复一日安静运行，就是空气净化器能给予的全部真实价值。除此之外的所有技术（光触媒/负离子/UV/等离子/纳米/医疗级/AI）对<strong>实际空气质量</strong>的贡献总和趋近于零。不要为"除甲醛率99.9%"付溢价——要看<strong>甲醛CADR和活性炭装填克数</strong>。不要为品牌和外观支付2–5倍的溢价——除非你清楚地知道你在为信任和设计买单，而非净化性能。
+  </p>
+  <p style="margin-top:16px; font-size:0.85rem; color:#888;">
+    <strong>工程甜点推荐：</strong>小米/352，¥800–2500区间，H13 HEPA+激光PM+BLDC，选择CADR超配房间面积50%的型号。<br>
+    <strong>核心提醒：</strong>净化器滤芯费用是10年TCO的绝对主导（58–81%），购机只是"首付"——买之前先查原厂滤芯价格和是否锁芯片。
+  </p>
+</div>
+
+</main>
+
+<script>
+(function() {
+  var links = document.querySelectorAll('nav a[href^="#sec-"]');
+  var sections = [];
+  links.forEach(function(a) {
+    var el = document.getElementById(a.getAttribute('href').slice(1));
+    if (el) sections.push({el: el, a: a});
+  });
+  function update() {
+    var top = window.scrollY + 120;
+    var cur = sections[0];
+    for (var i = 0; i < sections.length; i++) {
+      if (sections[i].el.offsetTop <= top) cur = sections[i];
+    }
+    links.forEach(function(l) { l.classList.remove('active'); });
+    if (cur) cur.a.classList.add('active');
+  }
+  window.addEventListener('scroll', update, {passive: true});
+  update();
+})();
+</script>
+
+</body>
+</html>

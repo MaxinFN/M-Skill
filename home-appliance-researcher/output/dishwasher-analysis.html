@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>洗碗机工程分析报告 — Home Appliance Researcher</title>
+<style>
+  :root {
+    --nav-width: 260px;
+    --color-bg: #f8f9fa;
+    --color-surface: #ffffff;
+    --color-text: #212529;
+    --color-muted: #6c757d;
+    --color-accent: #0d6efd;
+    --color-warn: #dc3545;
+    --color-good: #198754;
+    --color-border: #dee2e6;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; font-size: 15px; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans SC", sans-serif;
+    background: var(--color-bg);
+    color: var(--color-text);
+    line-height: 1.7; overflow-x: hidden;
+  }
+
+  nav {
+    position: fixed; top: 0; left: 0; width: var(--nav-width); height: 100vh;
+    background: #1a1d23; color: #ccc; overflow-y: auto; z-index: 100;
+    padding: 24px 0;
+  }
+  nav .brand {
+    font-size: 1.1rem; font-weight: 700; color: #fff; padding: 0 20px 20px;
+    border-bottom: 1px solid #333; margin-bottom: 12px;
+    letter-spacing: 0.5px;
+  }
+  nav .brand span { display: block; font-size: 0.7rem; color: #888; font-weight: 400; margin-top: 2px; }
+  nav a {
+    display: block; padding: 7px 20px; color: #aaa; text-decoration: none;
+    font-size: 0.85rem; transition: color 0.15s, background 0.15s;
+    border-left: 3px solid transparent;
+  }
+  nav a:hover, nav a.active { color: #fff; background: rgba(255,255,255,0.05); }
+
+  main {
+    margin-left: var(--nav-width); padding: 48px 60px; width: calc(100vw - var(--nav-width));
+  }
+  h1 { font-size: 2rem; margin-bottom: 8px; }
+  h2 { font-size: 1.4rem; margin: 48px 0 16px; padding-bottom: 8px; border-bottom: 2px solid var(--color-border); }
+  h3 { font-size: 1.15rem; margin: 32px 0 12px; color: #333; }
+  h4 { font-size: 1rem; margin: 20px 0 8px; }
+  p { margin-bottom: 12px; }
+  .subtitle { color: var(--color-muted); font-size: 0.95rem; margin-bottom: 40px; }
+
+  .card {
+    background: var(--color-surface); border: 1px solid var(--color-border);
+    border-radius: 8px; padding: 20px 24px; margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .card h3 { margin-top: 0; }
+
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+  @media (max-width: 768px) { .cols { grid-template-columns: 1fr; } }
+
+  table { width: 100%; border-collapse: collapse; margin: 12px 0 20px; font-size: 0.9rem; }
+  th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--color-border); }
+  th { background: #f1f3f5; font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--color-muted); }
+  tr:hover td { background: #fafbfc; }
+
+  .tag {
+    display: inline-block; padding: 2px 8px; border-radius: 4px;
+    font-size: 0.75rem; font-weight: 600; letter-spacing: 0.3px;
+  }
+  .tag-a { background: #d1fae5; color: #065f46; }
+  .tag-b { background: #fef3c7; color: #92400e; }
+  .tag-c { background: #fee2e2; color: #991b1b; }
+  .tag-good { background: #d1fae5; color: #065f46; }
+  .tag-warn { background: #fef3c7; color: #92400e; }
+  .tag-bad  { background: #fee2e2; color: #991b1b; }
+
+  .callout {
+    border-left: 4px solid var(--color-accent); background: #e7f1ff;
+    padding: 14px 18px; border-radius: 0 6px 6px 0; margin: 16px 0;
+    font-size: 0.9rem;
+  }
+  .callout.warn  { border-left-color: var(--color-warn); background: #fff5f5; }
+  .callout.good  { border-left-color: var(--color-good); background: #f0fdf4; }
+
+  .arch-layer {
+    border: 1px solid var(--color-border); border-radius: 6px; padding: 16px;
+    margin-bottom: 12px; background: #fafbfc;
+  }
+  .arch-layer .label {
+    font-weight: 700; font-size: 0.8rem; color: var(--color-muted);
+    text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;
+  }
+  .arch-layer .parts { font-size: 0.9rem; }
+
+  .flow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 12px 0; font-size: 0.9rem; }
+  .flow .step {
+    background: var(--color-surface); border: 1px solid var(--color-border);
+    border-radius: 6px; padding: 6px 14px;
+  }
+  .flow .arrow { color: var(--color-muted); font-weight: 700; }
+
+  .bathtub {
+    background: #f9fafb; border: 1px dashed var(--color-border); border-radius: 8px;
+    padding: 40px 24px; text-align: center; margin: 16px 0;
+  }
+  .bathtub svg { max-width: 600px; }
+
+  .conclusion {
+    background: linear-gradient(135deg, #1a1d23, #2d3139); color: #e0e0e0;
+    border-radius: 10px; padding: 28px 32px; margin-top: 48px;
+  }
+  .conclusion h2 { color: #fff; border-bottom-color: #444; font-size: 1.2rem; }
+  .conclusion p { font-size: 1.05rem; line-height: 1.8; }
+
+  @media print {
+    nav { display: none; }
+    main { margin-left: 0; padding: 20px; width: auto; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ NAVIGATION ═══════════════ -->
+<nav>
+  <div class="brand">
+    洗碗机工程分析
+    <span>Home Appliance Researcher v3.0</span>
+  </div>
+  <a href="#sec-0">1. 系统本质</a>
+  <a href="#sec-1">2. 系统架构拆解</a>
+  <a href="#sec-2">3. 核心部件工程分析</a>
+  <a href="#sec-3">4. 制造模式分析</a>
+  <a href="#sec-4">5. 技术路线对比</a>
+  <a href="#sec-5">6. 可靠性工程模型</a>
+  <a href="#sec-6">7. 用户体验建模</a>
+  <a href="#sec-7">8. 营销系统识别</a>
+  <a href="#sec-8">9. TCO成本模型</a>
+  <a href="#sec-9">10. 供应链与产业结构</a>
+  <a href="#sec-10">11. 安装与环境影响</a>
+  <a href="#sec-11">12. 品牌工程评级</a>
+  <a href="#sec-12">13. 购买决策系统</a>
+  <a href="#sec-13" style="color: #60a5fa;">14. 一句话结论</a>
+</nav>
+
+<!-- ═══════════════ MAIN CONTENT ═══════════════ -->
+<main>
+
+<h1>洗碗机工程分析报告</h1>
+<p class="subtitle">
+  分析框架：物理原理 &gt; 系统架构 &gt; 核心部件 &gt; 制造质量 &gt; 可靠性 &gt; 使用体验 &gt; 成本结构 &gt; 品牌 &gt; 功能营销<br>
+  分析日期：2026-06-09 &nbsp;|&nbsp; 分析对象：家用洗碗机（台式/嵌入式/独立式，4–16套 主流区间）
+</p>
+
+<!-- ─── 2. 系统架构拆解 ─── -->
+<h2 id="sec-0">1. 系统本质</h2>
+
+<div class="card">
+  <h3>洗碗机是什么？</h3>
+  <table>
+    <tr><th style="width:120px">系统类型</th><td>机械执行系统 + 流体处理系统 + 热管理系统 — 通过高压高温水流、化学洗涤剂和干燥热风协同作用去除餐具表面污渍并杀菌干燥</td></tr>
+    <tr><th>输入</th><td>电能（220V/50Hz AC）、自来水（需软水或设备软化）、洗碗粉/洗碗块、亮碟剂、软化盐、待洗餐具</td></tr>
+    <tr><th>输出</th><td>洁净干燥餐具 + 含污废水（经滤网过滤后排出）</td></tr>
+    <tr><th>能量形式</th><td>电能 → 电机旋转机械能（水泵加压喷淋） + PTC/加热管热能（水温加热至50–75°C + 烘干）</td></tr>
+    <tr><th>核心物理原理</th><td><strong>高压热水喷淋 + 化学去污协同作用：</strong>洗涤泵将水加压至20–40 kPa，经旋转喷淋臂的多个角度喷嘴喷射到餐具表面产生<strong>机械冲刷力</strong>；同时水温50–75°C激活洗涤剂中的酶和碱性成分，<strong>化学分解</strong>油脂和蛋白质。最后通过冷凝烘干（利用内壁温差使水蒸气凝结）或热风烘干去除残留水分。</td></tr>
+  </table>
+</div>
+
+<div class="callout">
+  <strong>工程视角的关键认知：</strong>洗碗机是<strong>洗衣机的高温高压升级版</strong>。它不像手洗那样靠抹布摩擦，而是靠<strong>高压水流的机械冲击 + 高温化学去污</strong>两条腿走路。理解了这一点，你就会明白：<strong>水泵压力、喷淋臂设计、水温控制</strong>决定了90%的洗净能力。烘干方式决定了你能不能用这台机器完全替代沥水架。软水系统决定了3年后内壁是否结满水垢。
+</div>
+
+<!-- ─── 3. 核心部件工程分析 ─── -->
+<h2 id="sec-1">2. 系统架构拆解</h2>
+
+<div class="arch-layer">
+  <div class="label">Layer 1 · 能源层 Energy</div>
+  <div class="parts"><strong>洗涤泵电机</strong>（BLDC/异步电机，驱动主喷淋泵）— 系统核心动力源。频率 50–300Hz，功率 100–200W。&nbsp;<strong>排水泵电机</strong>（永磁同步/罩极电机，30–50W）。&nbsp;<strong>加热器</strong>（PTC加热器/加热管，1500–2000W，集成在主泵腔体内或独立流道）。&nbsp;<strong>热风烘干风机+PTC</strong>（热风烘干机型）。</div>
+</div>
+<div class="arch-layer">
+  <div class="label">Layer 2 · 执行层 Actuation</div>
+  <div class="parts"><strong>洗涤泵</strong>（离心泵，扬程1.5–3m）。&nbsp;<strong>喷淋臂</strong>（上/中/下三层，PP材质，多角度喷嘴）。&nbsp;<strong>进水电磁阀</strong>（控制进水量）。&nbsp;<strong>软水器</strong>（离子交换树脂 + 盐仓 + 再生电磁阀）。&nbsp;<strong>洗涤剂/亮碟剂分配器</strong>（蜡马达/电磁铁驱动弹开）。&nbsp;<strong>排水泵</strong>（排出洗涤废水）。&nbsp;<strong>冷凝/热风通道</strong>（烘干路径）。&nbsp;<strong>呼吸器</strong>（平衡内外气压，防止虹吸倒灌）。</div>
+</div>
+<div class="arch-layer">
+  <div class="label">Layer 3 · 控制层 Control</div>
+  <div class="parts">主控MCU（8/32-bit）、NTC温度传感器（洗涤水温+烘干温度）、水位传感器（机械浮子式/电子压力式）、浊度传感器（检测洗涤水浑浊度以调整程序）、流量计（精确控水）、门开关传感器、漏水检测传感器（底部浮子开关）</div>
+</div>
+<div class="arch-layer">
+  <div class="label">Layer 4 · 结构层 Structural</div>
+  <div class="parts">不锈钢内胆（SUS304/430，高端一体成型 vs 低端拼接）、外壳（镀锌钢板+PCM/不锈钢）、三层碗篮（钢丝+尼龙涂层/不锈钢）、过滤器总成（平面滤网+粗滤+精滤微滤）、门体（含控制面板）、底脚水平调节</div>
+</div>
+
+<h3>能量与物质流路径</h3>
+<div class="flow">
+  <span class="step">电网 AC</span><span class="arrow">→</span>
+  <span class="step">EMI滤波</span><span class="arrow">→</span>
+  <span class="step">主控驱动</span><span class="arrow">→</span>
+  <span class="step">洗涤泵电机</span><span class="arrow">→</span>
+  <span class="step">离心泵加压</span><span class="arrow">→</span>
+  <span class="step">喷淋臂旋转喷射</span><span class="arrow">→</span>
+  <span class="step">高温水柱冲击餐具</span>
+</div>
+<div class="flow">
+  <span class="step">自来水</span><span class="arrow">→</span>
+  <span class="step">软水器(树脂交换Ca²⁺/Mg²⁺→Na⁺)</span><span class="arrow">→</span>
+  <span class="step">进水阀</span><span class="arrow">→</span>
+  <span class="step">加热器升温→洗涤泵→喷淋臂</span><span class="arrow">→</span>
+  <span class="step">回流过滤→循环</span><span class="arrow">→</span>
+  <span class="step">排水泵→下水管</span>
+</div>
+
+<!-- ─── 4. 制造模式分析 ─── -->
+<h2 id="sec-2">3. 核心部件工程分析</h2>
+
+<h3>2.1 Single Point of Failure (SPoF)</h3>
+
+<div class="card">
+  <h4>🔴 洗涤泵总成 — 第一SPoF</h4>
+  <p><strong>为什么是它？</strong>洗涤泵是洗碗机的核心动力源。它将水加压至20–40 kPa，驱动喷淋臂旋转喷射。洗涤泵集成了<strong>电机+泵体+加热器</strong>三大功能，是一个高度集成的模块。一旦泵体密封失效漏水、电机轴承卡死、或加热器烧毁，整机无法完成任何洗涤程序。</p>
+  <table>
+    <tr><th>参数</th><th>低端（异步电机）</th><th>中端（BLDC电机）</th><th>高端（变频BLDC）</th></tr>
+    <tr><td>电机类型</td><td>单相异步电机+启动电容</td><td>无刷直流电机（BLDC）</td><td>变频BLDC（宽转速范围）</td></tr>
+    <tr><td>转速范围</td><td>单速 2800 RPM</td><td>单速/双速</td><td>1000–3500 RPM 无级变速</td></tr>
+    <tr><td>设计寿命</td><td>8–10年</td><td>10–15年</td><td>12–18年</td></tr>
+    <tr><td>噪音</td><td>50–55 dB(A)</td><td>42–48 dB(A)</td><td>38–44 dB(A)</td></tr>
+    <tr><td>水压稳定性</td><td>受负载波动</td><td>较稳定</td><td>极稳定（恒压控制）</td></tr>
+    <tr><td>典型失效</td><td>启动电容干涸、轴承卡死</td><td>驱动板故障、泵体密封</td><td>驱动板故障</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <h4>🟡 软水系统 — 被低估的关键组件</h4>
+  <p>软水器中的<strong>离子交换树脂</strong>负责去除水中的Ca²⁺和Mg²⁺离子（水垢来源）。如果软水系统失效（树脂饱和未再生、盐仓空），高温洗涤（50–75°C）会在加热器、管路和内壁上快速结垢。一旦水垢堵塞喷淋臂喷嘴（孔径仅1–2mm），洗净能力断崖式下降。这是北方硬水地区洗碗机"用了一年洗不干净"的头号原因。</p>
+</div>
+
+<h3>2.2 核心部件性能等级</h3>
+
+<table>
+  <tr><th>部件</th><th>工业级/高端</th><th>消费级</th><th>成本优化型</th></tr>
+  <tr>
+    <td>洗涤泵</td>
+    <td>变频BLDC（博世/西门子iQ700、美诺）；宽转速范围，恒压控制，38–44dB(A)</td>
+    <td>BLDC电机（美的/海尔主流）；双速切换，42–48dB(A)</td>
+    <td>异步电机+启动电容（低端/台式）；单速，50–55dB(A)</td>
+  </tr>
+  <tr>
+    <td>内胆材质</td>
+    <td>SUS304一体拉伸成型（无焊缝）+ 不锈钢喷淋臂</td>
+    <td>SUS304拼接焊接内胆 + PP喷淋臂</td>
+    <td>SUS430/PP塑料拼接内胆（低端台式）</td>
+  </tr>
+  <tr>
+    <td>喷淋臂</td>
+    <td>不锈钢（永不老化）+ 多角度精密喷嘴</td>
+    <td>PP工程塑料 + 标准喷嘴</td>
+    <td>PP普通塑料 + 简易喷嘴</td>
+  </tr>
+  <tr>
+    <td>软水系统</td>
+    <td>大容量树脂仓 + 智能再生（根据水质自适应调节）</td>
+    <td>标准树脂仓 + 定时再生</td>
+    <td>无软水系统（仅靠洗碗块中的软水盐）</td>
+  </tr>
+  <tr>
+    <td>过滤系统</td>
+    <td>四层过滤（平面+粗滤+精滤+微滤不锈钢网）</td>
+    <td>三层过滤（平面+粗滤+精滤）</td>
+    <td>二层过滤（平面+粗滤）</td>
+  </tr>
+</table>
+
+<h3>2.3 BOM拆解 — 关键组件来源识别</h3>
+
+<div class="card">
+  <p>洗涤泵和软水系统是洗碗机BOM中价值最高的两大组件，合计占BOM的 <strong>25%–35%</strong>。</p>
+  <table>
+    <tr><th>组件/供应商</th><th>搭载品牌</th><th>特点</th></tr>
+    <tr><td>Askoll (意大利)</td><td>博世/西门子、美诺</td><td>全球洗碗机泵龙头，BLDC+变频，超低噪音</td></tr>
+    <tr><td>威灵电机 (美的)</td><td>美的/COLMO</td><td>自研BLDC，性价比高，全球第二大洗碗机泵供应商</td></tr>
+    <tr><td>海尔电机</td><td>海尔/卡萨帝</td><td>自研变频泵，部分高端型号搭载</td></tr>
+    <tr><td>EBM-Papst (德国)</td><td>美诺、部分博世</td><td>热风烘干风机顶级供应商</td></tr>
+    <tr><td>软水树脂</td><td>Dupont/Purolite</td><td>工业级离子交换树脂，寿命10年+</td></tr>
+  </table>
+</div>
+
+<!-- ─── 5. 技术路线对比 ─── -->
+<h2 id="sec-3">4. 制造模式分析</h2>
+
+<table>
+  <tr><th>品牌</th><th>制造模式</th><th>洗涤泵来源</th><th>控制系统</th><th>核心竞争力</th></tr>
+  <tr><td>博世/西门子 (BSH)</td><td>自研+自产</td><td>Askoll (意大利进口)</td><td>自研 (BSH)</td><td>德系工程标准，Zeolith沸石烘干专利，全球洗碗机份额第一</td></tr>
+  <tr><td>美诺 (Miele)</td><td>自研自产</td><td>Askoll / 自研</td><td>自研</td><td>20年设计寿命，德国制造，商用级可靠性</td></tr>
+  <tr><td>美的/COLMO</td><td>自研+自产</td><td>威灵电机(自研)</td><td>自研</td><td>全球最大洗碗机ODM，年产600万+台，为众多品牌代工</td></tr>
+  <tr><td>海尔/卡萨帝</td><td>自研+自产</td><td>海尔电机(自研)</td><td>自研</td><td>中国洗碗机品类开创者之一，全产业链整合</td></tr>
+  <tr><td>松下</td><td>自研自产</td><td>松下自研</td><td>自研</td><td>日系精工，抽屉式结构，超薄机身</td></tr>
+  <tr><td>方太/老板</td><td>自研+部分OEM</td><td>第三方(威灵/Askoll)</td><td>自研/第三方</td><td>水槽洗碗机品类开创者，厨房场景创新</td></tr>
+  <tr><td>小米/云米</td><td>ODM全外包</td><td>第三方</td><td>第三方方案</td><td>品牌+渠道+米家IoT，核心制造依赖美的系ODM</td></tr>
+</table>
+
+<div class="callout warn">
+  <strong>ODM真相：</strong>美的是全球最大的洗碗机代工厂。你买到的小米/云米/部分互联网品牌洗碗机，大概率是美的同一产线下来的同一套硬件，换了外壳和Logo。区别在于：美的自有品牌使用威灵自研BLDC泵和自研控制算法，ODM客户用的是标准方案。这就是为什么同样"看起来一样"的洗碗机，洗净能力和噪音表现可以差一个档次。
+</div>
+
+<!-- ─── 6. 可靠性工程模型 ─── -->
+<h2 id="sec-4">5. 技术路线对比</h2>
+
+<h3>4.1 嵌入式 vs 台式 vs 水槽式 vs 独立式</h3>
+
+<table>
+  <tr><th>维度</th><th>嵌入式 (Built-in)</th><th>台式/台上式</th><th>水槽式</th><th>独立式 (Freestanding)</th></tr>
+  <tr><td>容量</td><td>12–16套（大容量）</td><td>4–6套（小容量）</td><td>6–8套（中等）</td><td>12–16套</td></tr>
+  <tr><td>安装</td><td>装修时预留橱柜位，装完无法移动</td><td>放在台面，接水龙头</td><td>替换水槽，改造工程大</td><td>放地上，接水龙头</td></tr>
+  <tr><td>洗锅</td><td><span class="tag tag-good">可以</span>（中式大锅无压力）</td><td><span class="tag tag-bad">不可</span>（空间太小）</td><td><span class="tag tag-warn">小锅</span></td><td><span class="tag tag-good">可以</span></td></tr>
+  <tr><td>洗涤泵</td><td>大功率（100–200W）</td><td>小功率（60–100W）</td><td>中等</td><td>大功率</td></tr>
+  <tr><td>喷淋层数</td><td>3层（上/中/下）</td><td>1–2层</td><td>2层</td><td>3层</td></tr>
+  <tr><td>烘干效果</td><td>多种方式可选</td><td>冷凝/余热为主</td><td>热风为主</td><td>多种方式可选</td></tr>
+  <tr><td>价格</td><td>3000–12000元</td><td>800–2500元</td><td>4000–8000元</td><td>2000–5000元</td></tr>
+  <tr><td>适用场景</td><td>新房装修/厨房改造</td><td>已有厨房无法改造、租房</td><td>厨房紧凑、不想弯腰</td><td>有空间但不便嵌入</td></tr>
+  <tr><td>工程评级</td><td><span class="tag tag-a">首选</span> 最优解</td><td><span class="tag tag-b">妥协方案</span></td><td><span class="tag tag-warn">场景特化</span></td><td><span class="tag tag-b">非嵌入式备选</span></td></tr>
+</table>
+
+<h3>4.2 烘干技术对比 — 洗碗机最重要的差异化维度</h3>
+
+<div class="card">
+  <h4>烘干方式决定了你能不能把洗碗机当"碗柜"使用</h4>
+  <table>
+    <tr><th></th><th>余热冷凝烘干</th><th>热交换烘干</th><th>热风烘干</th><th>沸石(Zeolith)烘干</th><th>自动开门烘干</th></tr>
+    <tr><td>原理</td><td>利用洗涤余温，水汽在内壁冷凝流走</td><td>内胆与冷水箱换热，加速冷凝</td><td>PTC加热+风机吹热风强制烘干</td><td>沸石矿物吸收水蒸气放热（物理吸附）</td><td>程序结束后自动弹开门板，自然通风</td></tr>
+    <tr><td>干燥度</td><td><span class="tag tag-bad">差</span> 餐具和内壁大量残留水珠</td><td><span class="tag tag-warn">中</span> 餐具基本干燥，内壁仍有水</td><td><span class="tag tag-good">好</span> 餐具和内壁充分干燥</td><td><span class="tag tag-good">最佳</span> 连塑料制品都能干透</td><td><span class="tag tag-good">好</span> 零耗能但依赖环境湿度</td></tr>
+    <tr><td>能耗</td><td>0（被动）</td><td>0（被动）</td><td>增加0.2–0.5度/次</td><td>0（沸石吸湿放热是被动的）</td><td>0</td></tr>
+    <tr><td>噪音</td><td>无</td><td>无</td><td>增加风机噪音</td><td>无</td><td>无</td></tr>
+    <tr><td>时间</td><td>最长（数小时）</td><td>中等</td><td>短（30–60分钟）</td><td>短</td><td>中等</td></tr>
+    <tr><td>存储餐具</td><td><span class="tag tag-bad">不可</span> 必须拿出晾干</td><td><span class="tag tag-warn">短时</span></td><td><span class="tag tag-good">可</span> 洗完即存</td><td><span class="tag tag-good">最佳</span> 洗完即存</td><td><span class="tag tag-good">可</span> 洗完即存</td></tr>
+    <tr><td>代表品牌</td><td>低价机型</td><td>博世/西门子入门级</td><td>美的/海尔/卡萨帝主流</td><td>博世/西门子高端(专利)</td><td>美诺、部分AEG/伊莱克斯</td></tr>
+    <tr><td>增量成本</td><td>—</td><td>+200–400元</td><td>+300–600元</td><td>+1500–3000元</td><td>+200–500元</td></tr>
+    <tr><td>工程评级</td><td><span class="tag tag-c">C类</span></td><td><span class="tag tag-b">B类</span></td><td><span class="tag tag-a">A类</span></td><td><span class="tag tag-a">A类(最优)</span></td><td><span class="tag tag-a">A类</span></td></tr>
+  </table>
+</div>
+
+<div class="callout good">
+  <strong>烘干方式的工程结论：</strong>如果预算允许，<strong>热风烘干是最值得投入的升级</strong>。它解决了洗碗机最影响使用体验的问题——洗完还得拿出来晾干。一台有热风烘干的洗碗机可以替代沥水架和碗柜，洗完直接存放。沸石烘干效果最好但溢价过高（博世/西门子高端独占专利），自动开门烘干是性价比很高的替代方案（无额外能耗、效果接近热风）。
+</div>
+
+<h3>4.3 喷淋臂设计对比</h3>
+
+<div class="card">
+  <p>喷淋臂的层数、材质和喷嘴设计直接决定洗净覆盖率和死角：</p>
+  <table>
+    <tr><th>配置</th><th>覆盖率</th><th>特点</th></tr>
+    <tr><td>2层喷淋 (上+下)</td><td>基本覆盖</td><td>低端/台式标准配置，上层底部可能有死角</td></tr>
+    <tr><td>3层喷淋 (上+中+下)</td><td>全覆盖</td><td>主流配置，中层的筷子/餐具托盘单独喷淋</td></tr>
+    <tr><td>3层 + 顶部固定喷头</td><td>全覆盖+顶部</td><td>高端配置，最上层碗篮顶部无死角</td></tr>
+    <tr><td>3层 + 背部固定喷头</td><td>全角度</td><td>美诺等高端独有，真正360°清洗</td></tr>
+  </table>
+</div>
+
+<!-- ─── 7. 用户体验建模 ─── -->
+<h2 id="sec-5">6. 可靠性工程模型</h2>
+
+<h3>5.1 浴盆曲线 (Bathtub Curve)</h3>
+
+<div class="bathtub">
+  <svg viewBox="0 0 600 180" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#fee2e2" stop-opacity="0.5"/>
+        <stop offset="25%" stop-color="#d1fae5" stop-opacity="0.5"/>
+        <stop offset="75%" stop-color="#d1fae5" stop-opacity="0.5"/>
+        <stop offset="100%" stop-color="#fee2e2" stop-opacity="0.5"/>
+      </linearGradient>
+    </defs>
+    <rect x="30" y="10" width="540" height="120" rx="8" fill="url(#bg)" stroke="#ddd" stroke-width="1"/>
+    <path d="M40,100 Q100,100 130,40 Q160,20 300,20 Q440,20 470,40 Q500,100 560,100"
+          fill="none" stroke="#dc3545" stroke-width="2.5" stroke-linecap="round"/>
+    <text x="90" y="140" text-anchor="middle" font-size="11" fill="#991b1b">早期失效期</text>
+    <text x="300" y="140" text-anchor="middle" font-size="11" fill="#065f46">稳定运行期</text>
+    <text x="510" y="140" text-anchor="middle" font-size="11" fill="#991b1b">磨损失效期</text>
+    <line x1="40" y1="155" x2="40" y2="165" stroke="#999" stroke-width="1"/>
+    <line x1="170" y1="155" x2="170" y2="165" stroke="#999" stroke-width="1"/>
+    <line x1="430" y1="155" x2="430" y2="165" stroke="#999" stroke-width="1"/>
+    <line x1="560" y1="155" x2="560" y2="165" stroke="#999" stroke-width="1"/>
+    <text x="40"  y="178" text-anchor="middle" font-size="10" fill="#999">0</text>
+    <text x="170" y="178" text-anchor="middle" font-size="10" fill="#999">1年</text>
+    <text x="430" y="178" text-anchor="middle" font-size="10" fill="#999">8年</text>
+    <text x="560" y="178" text-anchor="middle" font-size="10" fill="#999">12年+</text>
+  </svg>
+</div>
+
+<h3>5.2 故障模式与影响分析 (FMEA)</h3>
+
+<table>
+  <tr><th>故障模式</th><th>发生概率</th><th>影响程度</th><th>修复成本</th><th>风险等级</th></tr>
+  <tr><td>洗涤泵电机失效 (轴承卡死/绕组烧毁)</td><td>中低 (3–5%)</td><td>致命 — 完全无法洗涤，水不循环</td><td>600–2000元 (换整个泵总成)</td><td><span class="tag tag-bad">高</span></td></tr>
+  <tr><td>加热器故障 (PTC开路/短路)</td><td>中低 (3–5%)</td><td>致命 — 冷水洗不净油脂</td><td>300–800元 (加热器集成在泵体内)</td><td><span class="tag tag-bad">高</span></td></tr>
+  <tr><td>泵体密封漏水</td><td>中低 (4–6%)</td><td>致命 — 底部漏水触发防溢开关停机</td><td>400–1000元</td><td><span class="tag tag-bad">高</span></td></tr>
+  <tr><td>控制主板故障</td><td>低 (2–4%)</td><td>严重 — 不开机/不执行程序</td><td>400–800元</td><td><span class="tag tag-warn">中</span></td></tr>
+  <tr><td>排水泵堵塞/故障</td><td>中 (8–12%)</td><td>中等 — 不排水，程序中断</td><td>100–300元</td><td><span class="tag tag-warn">中</span></td></tr>
+  <tr><td>软水器失效 (树脂饱和/电磁阀故障)</td><td>中高 (10–15%)</td><td>中等 — 餐具白斑、内壁结垢、洗净力下降</td><td>200–500元</td><td><span class="tag tag-warn">中</span></td></tr>
+  <tr><td>喷淋臂堵塞</td><td>高 (15–20%)</td><td>中等 — 局部洗不干净</td><td>0元 (可自行清洗喷嘴)</td><td><span class="tag tag-good">低</span></td></tr>
+  <tr><td>门封橡胶圈老化漏水</td><td>中 (5–8%)</td><td>轻微 — 少量渗水</td><td>100–300元</td><td><span class="tag tag-warn">中低</span></td></tr>
+  <tr><td>洗涤剂分配器卡住不弹开</td><td>中 (5–8%)</td><td>轻微 — 洗涤剂未释放，需重洗</td><td>100–250元</td><td><span class="tag tag-good">低</span></td></tr>
+</table>
+
+<h3>5.3 高风险部件总结</h3>
+
+<div class="cols">
+  <div class="card">
+    <h4>🔴 致命级 (系统停机)</h4>
+    <ul>
+      <li>洗涤泵总成（电机+泵体+加热器集成）</li>
+      <li>泵体密封（漏水触发防溢保护）</li>
+      <li>控制主板</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h4>🟡 严重级 (性能下降/中断)</h4>
+    <ul>
+      <li>软水系统（水垢→喷嘴堵塞→洗净力断崖下降）</li>
+      <li>排水泵（堵塞/故障→程序中断）</li>
+      <li>浊度传感器（脏污→误判洗净完成）</li>
+      <li>喷淋臂堵塞（局部洗不净）</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ─── 8. 营销系统识别 ─── -->
+<h2 id="sec-6">7. 用户体验建模</h2>
+
+<div class="card">
+  <h3>体验权重排序 (按工程重要性)</h3>
+  <table>
+    <tr><th>#</th><th>维度</th><th>权重</th><th>洗碗机工程对应项</th></tr>
+    <tr><td>1</td><td>稳定性 (Consistency)</td><td>⭐⭐⭐⭐⭐</td><td>每次洗完无残留、不中途报错、程序完整执行（核心体验）</td></tr>
+    <tr><td>2</td><td>烘干效果</td><td>⭐⭐⭐⭐⭐</td><td>餐具和内壁干燥程度——决定了"洗完还要不要晾"（热风/沸石/自动开门 &gt;&gt; 冷凝）</td></tr>
+    <tr><td>3</td><td>洗净能力</td><td>⭐⭐⭐⭐</td><td>对茶渍、油渍、干结米饭、蛋白渍的清除能力（泵压+水温+喷淋覆盖）</td></tr>
+    <tr><td>4</td><td>噪音控制</td><td>⭐⭐⭐⭐</td><td>洗涤 38–48 dB(A)（BLDC &gt;&gt; 异步电机），开放式厨房更敏感</td></tr>
+    <tr><td>5</td><td>容量与装载灵活性</td><td>⭐⭐⭐</td><td>中式大碗/大锅/长筷能否轻松放入、碗篮是否可调节</td></tr>
+    <tr><td>6</td><td>能耗与水耗</td><td>⭐⭐⭐</td><td>单次8–12L水 + 0.7–1.2度电（水耗远低于手洗）</td></tr>
+    <tr><td>7</td><td>操作便捷性</td><td>⭐⭐</td><td>常用程序是否一键可达、APP必要性</td></tr>
+  </table>
+</div>
+
+<div class="callout">
+  <strong>关键洞察：</strong>洗碗机的体验瓶颈不是"能不能洗干净"，而是<strong>"洗完还有没有水珠"</strong>。洗净能力在2000元以上的机型基本都达标（高温高压水+碱性洗涤剂的化学清洁力远超手洗），但<strong>烘干效果</strong>才是区分体验的核心维度。一台3000元的热风烘干洗碗机可以让你告别沥水架；一台8000元但只有冷凝烘干的洗碗机，每次洗完你还是得打开门把碗拿出来晾。烘干方式决定了洗碗机在你的生活中究竟是"独立闭环"还是"仍需人工接力"。
+</div>
+
+<!-- ─── 9. TCO成本模型 ─── -->
+<h2 id="sec-7">8. 营销系统识别</h2>
+
+<table>
+  <tr><th>功能/卖点</th><th>分类</th><th>工程评价</th></tr>
+  <tr><td>热风烘干</td><td><span class="tag tag-a">A类 — 真实技术提升</span></td><td>强制热风烘干，餐具和内壁全干可存储。彻底解决"洗完还要晾"的核心痛点</td></tr>
+  <tr><td>变频BLDC洗涤泵</td><td><span class="tag tag-a">A类 — 真实技术提升</span></td><td>恒压喷淋+降噪+节能+长寿命，中高端最值得的升级</td></tr>
+  <tr><td>沸石(Zeolith)烘干</td><td><span class="tag tag-a">A类 — 真实技术提升</span></td><td>矿物吸湿放热，物理原理完美，能烘干塑料制品。但博世专利独占，溢价3000+</td></tr>
+  <tr><td>自动开门烘干</td><td><span class="tag tag-a">A类 — 真实技术提升</span></td><td>零耗能、零噪音、效果接近热风。AEG/美诺/部分海尔高端搭载</td></tr>
+  <tr><td>3层喷淋臂+顶部喷头</td><td><span class="tag tag-a">A类 — 真实技术提升</span></td><td>消除顶部死角，覆盖率最优</td></tr>
+  <tr><td>不锈钢一体内胆</td><td><span class="tag tag-a">A类 — 真实技术提升</span></td><td>耐腐蚀、导热好（提升冷凝烘干效率）、寿命长。塑料内胆2–3年变色发黄</td></tr>
+  <tr><td>分区洗/半载洗</td><td><span class="tag tag-b">B类 — 体验增强</span></td><td>只洗上层或下层，节水节电。1–2人家庭实用</td></tr>
+  <tr><td>智能软水（水质自适应）</td><td><span class="tag tag-b">B类 — 体验增强</span></td><td>根据当地水质硬度自动调整再生周期，硬水地区实用</td></tr>
+  <tr><td>存储模式/UV杀菌存储</td><td><span class="tag tag-b">B类 — 体验增强</span></td><td>定时换气+UV灯抑菌，可当碗柜中长期存放。南方潮湿地区有价值</td></tr>
+  <tr><td>自清洁程序</td><td><span class="tag tag-b">B类 — 体验增强</span></td><td>高温自洁内胆，有实际维护价值</td></tr>
+  <tr><td>果蔬洗</td><td><span class="tag tag-c">C类 — 营销功能</span></td><td>冷水喷淋洗果蔬=浪费空间和电。水槽洗菜只需10秒</td></tr>
+  <tr><td>海鲜洗/母婴洗</td><td><span class="tag tag-c">C类 — 营销功能</span></td><td>营销命名差异化，底层程序参数微调。你不需要专门洗海鲜的程序</td></tr>
+  <tr><td>AI智能洗/浊度感应</td><td><span class="tag tag-b">B类(实用) / C类(话术)</span></td><td>浊度传感器有实际价值（判断是否漂洗干净），但叫"AI"是营销话术</td></tr>
+  <tr><td>Wi-Fi/APP远程控制</td><td><span class="tag tag-c">C类 — 营销功能</span></td><td>你得先把碗放进去才能远程启动。预约功能足矣，不需要App</td></tr>
+  <tr><td>大屏/触控彩屏</td><td><span class="tag tag-c">C类 — 营销功能</span></td><td>洗碗机面板高度很低（嵌入橱柜后），你几乎看不见它</td></tr>
+</table>
+
+<div class="callout warn">
+  <strong>洗碗机营销话术的底层逻辑：</strong>几乎所有品牌的"C类功能"都在做同一件事——给同一个物理动作起不同的名字。母婴儿洗 = 程序把水温调高5°C，洗涤时间延长10分钟。海鲜洗 = 程序把水温调低，取消烘干。你完全可以在标准程序里手动设置温度和烘干选项达到同样效果，不需要为这些"专属模式"多付费。
+</div>
+
+<!-- ─── 10. 供应链与产业结构 ─── -->
+<h2 id="sec-8">9. TCO成本模型</h2>
+
+<div class="card">
+  <h3>案例对比：嵌入式 13套洗碗机</h3>
+
+  <table>
+    <tr><th>成本项</th><th>入门嵌入式 (2000元)<br>冷凝烘干+异步电机</th><th>中端嵌入式 (4000元)<br>热风烘干+BLDC</th><th>高端嵌入式 (8000元)<br>变频BLDC+沸石/热风</th></tr>
+    <tr><td>采购成本</td><td>2,000</td><td>4,000</td><td>8,000</td></tr>
+    <tr><td>安装费</td><td>200 (基础安装)</td><td>200 (基础安装)</td><td>300 (含橱柜改造)</td></tr>
+    <tr><td>10年耗材<br><span style="font-size:0.8rem;color:var(--color-muted)">洗碗块0.8元/次+亮碟剂0.15元+盐0.1元<br>365次/年</span></td><td>3,833</td><td>3,833</td><td>3,833</td></tr>
+    <tr><td>10年电费<br><span style="font-size:0.8rem;color:var(--color-muted)">1次/天, 1度/次, 0.6元/度</span></td><td>2,190</td><td>2,007 (BLDC节能)</td><td>1,898 (变频更省)</td></tr>
+    <tr><td>10年水费<br><span style="font-size:0.8rem;color:var(--color-muted)">10L/次, 3元/吨</span></td><td>110</td><td>110</td><td>110</td></tr>
+    <tr><td>维修成本 (10年)</td><td>排水泵×1 + 门封×1 ≈ <strong>400</strong></td><td>排水泵×1 ≈ <strong>200</strong></td><td>≈ <strong>100</strong></td></tr>
+    <tr style="font-weight:700; background:#f0fdf4;">
+      <td><strong>10年TCO合计</strong></td>
+      <td><strong>8,733元</strong></td>
+      <td><strong>10,350元</strong></td>
+      <td><strong>14,241元</strong></td>
+    </tr>
+    <tr>
+      <td>单次使用成本</td><td>2.39元/次</td><td>2.84元/次</td><td>3.90元/次</td>
+    </tr>
+    <tr style="background:#fffaf0;">
+      <td><strong>vs 手洗对照</strong></td>
+      <td colspan="3">手洗每次约耗水30L(约0.09元)+洗涤剂0.1元+热水器燃气0.3元+人工时间≈1.0元（不含时间成本）。若计入时间成本（15分钟×30元/小时），手洗单次成本≈8.5元。</td>
+    </tr>
+  </table>
+</div>
+
+<div class="callout good">
+  <strong>TCO核心结论：</strong>洗碗机单次成本 2–4元，包含了<strong>洗净+烘干+杀菌</strong>的全流程。手洗的"可见成本"只有水费+洗洁精（约0.2元/次），但一旦计入<strong>人工时间</strong>（每次15分钟×每天1次×365天×10年=912小时=38整天），手洗的真实成本远超洗碗机。此外，洗碗机耗材（洗碗块）是TCO最大单项——<strong>比电费还高</strong>。用大包装洗碗粉替代单颗洗碗块可将耗材成本降低30–40%。<br><br>
+  <strong>2000元和4000元机型TCO差距仅约1600元（10年）</strong>，年均多花160元换热风烘干+BLDC+更安静，体验提升显著。这是"值得多花的钱"。
+</div>
+
+<!-- ─── 11. 安装与环境影响 ─── -->
+<h2 id="sec-9">10. 供应链与产业结构</h2>
+
+<h3>产业链三层结构</h3>
+
+<div class="card">
+  <h4>Tier 1 — 核心部件供应商</h4>
+  <table>
+    <tr><th>领域</th><th>全球头部供应商</th><th>中国主力供应商</th></tr>
+    <tr><td>洗涤泵</td><td>Askoll (意大利), EBM-Papst</td><td>威灵 (美的), 海尔电机, 大洋电机</td></tr>
+    <tr><td>变频驱动IPM</td><td>Infineon, ST, TI</td><td>比亚迪半导体, 峰岹科技</td></tr>
+    <tr><td>软水树脂</td><td>Dupont, Purolite, Lanxess</td><td>争光树脂, 蓝晓科技</td></tr>
+    <tr><td>浊度传感器</td><td>TT Electronics, Vishay</td><td>华工高理</td></tr>
+    <tr><td>沸石 (Zeolith)</td><td>博世独家供应商 (未公开)</td><td>—</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <h4>Tier 2 — 系统集成商 / ODM</h4>
+  <p><strong>美的</strong>（全球最大洗碗机ODM，顺德/芜湖基地，年产600万+台，为伊莱克斯/AEG/惠而浦/小米等代工）、<strong>海尔</strong>（自产为主，部分代工）、<strong>博西华</strong>（德国+滁州工厂，自产，全球份额第一）、<strong>美诺</strong>（德国自产，年产量远低于前几家但单价最高）。</p>
+  <p>全球洗碗机产量约60%在中国生产，其中美的+海尔占中国产量约70%。</p>
+</div>
+
+<div class="card">
+  <h4>Tier 3 — 品牌/渠道</h4>
+  <p>小米/云米 — 均由美的系ODM代工。方太/老板 — 自研水槽式（品类创新），核心泵系统来自第三方。松下 — 日本技术+中国杭州工厂自产（抽屉式结构）。</p>
+</div>
+
+<!-- ─── 12. 品牌工程评级 ─── -->
+<h2 id="sec-10">11. 安装与环境影响</h2>
+
+<div class="cols">
+  <div class="card">
+    <h4>安装质量影响</h4>
+    <ul>
+      <li><strong>水平调整：</strong>洗碗机必须水平放置。倾斜会导致水流分布不均，部分区域水覆盖不足，洗净能力下降。同时加速泵体磨损</li>
+      <li><strong>进排水管路：</strong>排水管最高点需高于机器水位线（防虹吸），进水需接独立角阀（不建议与厨房龙头共用）</li>
+      <li><strong>橱柜预留：</strong>嵌入式洗碗机的橱柜开口必须精确（宽600mm×高820mm×深580mm为标准尺寸），台面高度不足820mm的旧厨房无法装入标准嵌入式机型</li>
+      <li><strong>电源预留：</strong>洗碗机需要独立16A插座（1500–2000W加热功率），不能与微波炉/烤箱共用回路</li>
+      <li><strong>台面开孔：</strong>水槽式洗碗机需要替换原有水槽，涉及台面切割和水路改造，安装难度和成本远高于嵌入式</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h4>使用习惯与水质影响</h4>
+    <ul>
+      <li><strong>水质硬度：</strong>这是被最严重低估的影响因素。硬水地区（华北/西北，硬度 &gt; 200ppm）如果不定期加软化盐，3–6个月内加热器和喷淋臂就会结垢，洗净力断崖式下降</li>
+      <li><strong>餐具摆放：</strong>碗口朝下/倾斜，不能嵌套遮挡水流。摆放不当是"洗碗机洗不干净"最常见的使用者原因</li>
+      <li><strong>预冲洗误区：</strong>不需要手洗后再放入洗碗机！洗碗机的洗涤剂含有酶，<strong>需要食物残渣作为酶的"靶子"</strong>。把盘子洗得像新的一样再放进去反而是浪费水和洗涤剂</li>
+      <li><strong>滤网清洁：</strong>底层滤网需定期清理（1–2周一次）。滤网堵塞会导致水循环受阻，洗净力下降，排水泵过载</li>
+      <li><strong>不宜洗的物品：</strong>木质餐具、铸铁锅、铝制品、锋利刀具（会变钝）、不粘锅涂层（高温高压水会加速剥落）</li>
+    </ul>
+  </div>
+</div>
+
+<div class="callout warn">
+  <strong>安装是洗碗机的第一道坎，水质是第二道：</strong>洗碗机的退货/差评中，安装问题和"洗不干净"各占约30%。安装问题（橱柜尺寸不对、水电没留）是选购阶段就要考虑的。"洗不干净"中至少有50%是水质问题和摆放不当，而不是机器本身的问题。买之前先确认：<strong>厨房有位置吗？有独立电路吗？当地水硬度是多少？</strong>
+</div>
+
+<!-- ─── 13. 购买决策系统 ─── -->
+<h2 id="sec-11">12. 品牌工程评级</h2>
+
+<table>
+  <tr><th>梯队</th><th>类型</th><th>品牌</th><th>核心特征</th></tr>
+  <tr>
+    <td><span class="tag tag-a">第一梯队</span></td>
+    <td>技术主导型</td>
+    <td>美诺 (Miele)</td>
+    <td>20年设计寿命，德国制造，商用级泵体+自动开门+背部喷头。8000–30000元，属于"一生买一台"级别</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-a">第一梯队</span></td>
+    <td>技术主导型</td>
+    <td>博世/西门子 (BSH)</td>
+    <td>全球洗碗机份额第一，Zeolith沸石烘干专利，Askoll泵，德系工程。4000–15000元</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-b">第二梯队</span></td>
+    <td>平衡型</td>
+    <td>美的/COLMO</td>
+    <td>全球最大ODM，自研威灵BLDC泵，热风烘干普及者。3000–8000元，全价格段覆盖</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-b">第二梯队</span></td>
+    <td>平衡型</td>
+    <td>海尔/卡萨帝</td>
+    <td>中国洗碗机品类先驱，自研变频泵，双面洗/智能开门烘干等创新。3000–8000元</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-b">第二梯队</span></td>
+    <td>平衡型</td>
+    <td>松下</td>
+    <td>抽屉式结构（不用弯腰）、超薄机身、日系精工。6000–12000元，容量偏小</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-b">第二梯队</span></td>
+    <td>平衡型</td>
+    <td>方太</td>
+    <td>水槽式品类开创者，中式厨房场景创新。4000–8000元，容量和烘干是短板</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-c">第三梯队</span></td>
+    <td>市场驱动型</td>
+    <td>小米/云米</td>
+    <td>美的ODM代工，同质化硬件+米家IoT溢价。2000–4000元，长期可靠性待验证</td>
+  </tr>
+</table>
+
+<!-- ─── 14. 一句话结论 ─── -->
+<h2 id="sec-12">13. 购买决策系统</h2>
+
+<div class="flow" style="flex-direction: column; align-items: flex-start; gap: 16px;">
+  <div class="step" style="width: 100%;">
+    <strong>Step 1 — 定义需求 &amp; 确认可行性</strong><br>
+    <span style="font-size:0.85rem;color:var(--color-muted)">人数：1–2人→8套；3–4人→13套；5+人→16套。装前确认：橱柜预留尺寸（标准嵌入式需600×820×580mm）、独立16A插座、进水角阀。已有厨房无法改造→台式/独立式。想替换水槽→水槽式。先确认能不能装，再看参数。</span>
+  </div>
+  <div class="step" style="width: 100%;">
+    <strong>Step 2 — 确定技术路线</strong><br>
+    <span style="font-size:0.85rem;color:var(--color-muted)">容量首选13套以上（能洗锅）。烘干方式：热风烘干 ≈ 自动开门 &gt; 热交换 &gt;&gt; 余热冷凝。电机：变频BLDC &gt; BLDC &gt;&gt; 异步电机。内胆：不锈钢一体成型 &gt; 不锈钢拼接 &gt;&gt; 塑料。</span>
+  </div>
+  <div class="step" style="width: 100%;">
+    <strong>Step 3 — 筛选核心部件</strong><br>
+    <span style="font-size:0.85rem;color:var(--color-muted)">洗涤泵：变频BLDC（恒压+静音+长寿）。喷淋臂：3层（上+中+下）+顶部喷头最优。软水系统：大容量树脂仓+智能再生。过滤器：多层不锈钢网（至少3层）。</span>
+  </div>
+  <div class="step" style="width: 100%;">
+    <strong>Step 4 — 过滤高风险设计</strong><br>
+    <span style="font-size:0.85rem;color:var(--color-muted)">避开：余热冷凝烘干（洗完必须拿出来晾）、塑料内胆（2年变色发黄）、无软水系统（硬水地区＝1年结垢）、全触控面板（湿手无法操作）。优选：旋钮/LED+少量物理按键。</span>
+  </div>
+  <div class="step" style="width: 100%;">
+    <strong>Step 5 — 计算TCO（10年）</strong><br>
+    <span style="font-size:0.85rem;color:var(--color-muted)">TCO ≈ 采购价 + 耗材(最大单项) + 水电费 + 维修。4000元档热风烘干+BLDC机型是体验/TCO比最优。用大包装洗碗粉替代洗碗块可将耗材成本降低30–40%。</span>
+  </div>
+  <div class="step" style="width: 100%;">
+    <strong>Step 6 — 筛选品牌（最后一步）</strong><br>
+    <span style="font-size:0.85rem;color:var(--color-muted)">4000–6000元：美的/海尔（热风烘干+变频BLDC+13套以上）。6000–10000元：博世/西门子（热交换/沸石烘干+Askoll泵+德系标准）。10000元+：美诺（一生一台）。售后网点：县级城市优先美的/海尔。</span>
+  </div>
+</div>
+
+<!-- ─── 14. 一句话结论 ─── -->
+<h2 id="sec-13">14. 一句话结论</h2>
+
+<div class="conclusion">
+  <h2>最终结论</h2>
+  <p>
+    洗碗机的本质是一台<strong>高压高温喷淋 + 化学去污 + 烘干系统协同运作的餐具清洁站</strong>，核心价值由<strong>洗涤泵（变频BLDC&gt;定速）、烘干方式（热风/沸石/自动开门&gt;&gt;冷凝）、软水系统</strong>三要素决定。
+  </p>
+  <p>
+    <strong>4000–5000元的13套嵌入式热风烘干+变频BLDC机型是体验/TCO比最优解。</strong>低于此价位的冷凝烘干机型会在每次洗完提醒你"还没结束"（还得拿出来晾）。高于此价位的溢价主要流向沸石专利和品牌。洗碗机单次成本2–4元，比起人工手洗的隐性时间成本（15分钟/次），洗碗机是一个<strong>比冰箱和洗衣机更容易被低估的生活质量投资</strong>。
+  </p>
+  <p style="margin-bottom:0;">
+    <strong>记住三个"不要"：</strong>不要买余热冷凝烘干的机型（洗完还得晾=失去核心价值），不要在硬水地区不加软化盐，不要把碗擦干净再放进去（酶需要食物残渣作为靶子）。<strong>记住三个"要"：</strong>要热风烘干（或自动开门/沸石），要13套以上能洗锅，要定期清理滤网和喷淋臂喷嘴。
+  </p>
+</div>
+
+</main>
+
+<script>
+(function() {
+  const links = document.querySelectorAll('nav a[href^="#sec-"]');
+  const sections = [];
+  links.forEach(a => {
+    const el = document.getElementById(a.getAttribute('href').slice(1));
+    if (el) sections.push({el, a});
+  });
+  function update() {
+    const top = window.scrollY + 120;
+    let cur = sections[0];
+    for (const s of sections) {
+      if (s.el.offsetTop <= top) cur = s;
+    }
+    links.forEach(l => l.classList.remove('active'));
+    if (cur) cur.a.classList.add('active');
+  }
+  window.addEventListener('scroll', update, {passive: true});
+  update();
+})();
+</script>
+<script>
+(function() {
+  var links = document.querySelectorAll('nav a[href^="#sec-"]');
+  var sections = [];
+  links.forEach(function(a) {
+    var el = document.getElementById(a.getAttribute('href').slice(1));
+    if (el) sections.push({el: el, a: a});
+  });
+  function update() {
+    var top = window.scrollY + 120;
+    var cur = sections[0];
+    for (var i = 0; i < sections.length; i++) {
+      if (sections[i].el.offsetTop <= top) cur = sections[i];
+    }
+    links.forEach(function(l) { l.classList.remove('active'); });
+    if (cur) cur.a.classList.add('active');
+  }
+  window.addEventListener('scroll', update, {passive: true});
+  update();
+})();
+</script>
+</body>
+</html>

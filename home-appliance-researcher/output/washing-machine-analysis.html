@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>洗衣机工程分析报告 — Home Appliance Researcher</title>
+<style>
+  :root {
+    --nav-width: 260px;
+    --color-bg: #f8f9fa;
+    --color-surface: #ffffff;
+    --color-text: #212529;
+    --color-muted: #6c757d;
+    --color-accent: #0d6efd;
+    --color-warn: #dc3545;
+    --color-good: #198754;
+    --color-border: #dee2e6;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; font-size: 15px; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans SC", sans-serif;
+    background: var(--color-bg);
+    color: var(--color-text);
+    line-height: 1.7; overflow-x: hidden;
+  }
+
+  nav {
+    position: fixed; top: 0; left: 0; width: var(--nav-width); height: 100vh;
+    background: #1a1d23; color: #ccc; overflow-y: auto; z-index: 100;
+    padding: 24px 0;
+  }
+  nav .brand {
+    font-size: 1.1rem; font-weight: 700; color: #fff; padding: 0 20px 20px;
+    border-bottom: 1px solid #333; margin-bottom: 12px;
+    letter-spacing: 0.5px;
+  }
+  nav .brand span { display: block; font-size: 0.7rem; color: #888; font-weight: 400; margin-top: 2px; }
+  nav a {
+    display: block; padding: 7px 20px; color: #aaa; text-decoration: none;
+    font-size: 0.85rem; transition: color 0.15s, background 0.15s;
+    border-left: 3px solid transparent;
+  }
+  nav a:hover, nav a.active { color: #fff; background: rgba(255,255,255,0.05); }
+
+  main {
+    margin-left: var(--nav-width); padding: 48px 60px; width: calc(100vw - var(--nav-width));
+  }
+  h1 { font-size: 2rem; margin-bottom: 8px; }
+  h2 { font-size: 1.4rem; margin: 48px 0 16px; padding-bottom: 8px; border-bottom: 2px solid var(--color-border); }
+  h3 { font-size: 1.15rem; margin: 32px 0 12px; color: #333; }
+  h4 { font-size: 1rem; margin: 20px 0 8px; }
+  p { margin-bottom: 12px; }
+  .subtitle { color: var(--color-muted); font-size: 0.95rem; margin-bottom: 40px; }
+
+  .card {
+    background: var(--color-surface); border: 1px solid var(--color-border);
+    border-radius: 8px; padding: 20px 24px; margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .card h3 { margin-top: 0; }
+
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+  @media (max-width: 768px) { .cols { grid-template-columns: 1fr; } }
+
+  table { width: 100%; border-collapse: collapse; margin: 12px 0 20px; font-size: 0.9rem; }
+  th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--color-border); }
+  th { background: #f1f3f5; font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--color-muted); }
+  tr:hover td { background: #fafbfc; }
+
+  .tag {
+    display: inline-block; padding: 2px 8px; border-radius: 4px;
+    font-size: 0.75rem; font-weight: 600; letter-spacing: 0.3px;
+  }
+  .tag-a { background: #d1fae5; color: #065f46; }
+  .tag-b { background: #fef3c7; color: #92400e; }
+  .tag-c { background: #fee2e2; color: #991b1b; }
+  .tag-good { background: #d1fae5; color: #065f46; }
+  .tag-warn { background: #fef3c7; color: #92400e; }
+  .tag-bad  { background: #fee2e2; color: #991b1b; }
+
+  .callout {
+    border-left: 4px solid var(--color-accent); background: #e7f1ff;
+    padding: 14px 18px; border-radius: 0 6px 6px 0; margin: 16px 0;
+    font-size: 0.9rem;
+  }
+  .callout.warn  { border-left-color: var(--color-warn); background: #fff5f5; }
+  .callout.good  { border-left-color: var(--color-good); background: #f0fdf4; }
+
+  .arch-layer {
+    border: 1px solid var(--color-border); border-radius: 6px; padding: 16px;
+    margin-bottom: 12px; background: #fafbfc;
+  }
+  .arch-layer .label {
+    font-weight: 700; font-size: 0.8rem; color: var(--color-muted);
+    text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;
+  }
+  .arch-layer .parts { font-size: 0.9rem; }
+
+  .flow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 12px 0; font-size: 0.9rem; }
+  .flow .step {
+    background: var(--color-surface); border: 1px solid var(--color-border);
+    border-radius: 6px; padding: 6px 14px;
+  }
+  .flow .arrow { color: var(--color-muted); font-weight: 700; }
+
+  .bathtub {
+    background: #f9fafb; border: 1px dashed var(--color-border); border-radius: 8px;
+    padding: 40px 24px; text-align: center; margin: 16px 0;
+  }
+  .bathtub svg { max-width: 600px; }
+
+  .conclusion {
+    background: linear-gradient(135deg, #1a1d23, #2d3139); color: #e0e0e0;
+    border-radius: 10px; padding: 28px 32px; margin-top: 48px;
+  }
+  .conclusion h2 { color: #fff; border-bottom-color: #444; font-size: 1.2rem; }
+  .conclusion p { font-size: 1.05rem; line-height: 1.8; }
+
+  @media print {
+    nav { display: none; }
+    main { margin-left: 0; padding: 20px; width: auto; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ NAVIGATION ═══════════════ -->
+<nav>
+  <div class="brand">
+    洗衣机工程分析
+    <span>Home Appliance Researcher v3.0</span>
+  </div>
+  <a href="#sec-0">1. 系统本质</a>
+  <a href="#sec-1">2. 系统架构拆解</a>
+  <a href="#sec-2">3. 核心部件工程分析</a>
+  <a href="#sec-3">4. 制造模式分析</a>
+  <a href="#sec-4">5. 技术路线对比</a>
+  <a href="#sec-5">6. 可靠性工程模型</a>
+  <a href="#sec-6">7. 用户体验建模</a>
+  <a href="#sec-7">8. 营销系统识别</a>
+  <a href="#sec-8">9. TCO成本模型</a>
+  <a href="#sec-9">10. 供应链与产业结构</a>
+  <a href="#sec-10">11. 安装与环境影响</a>
+  <a href="#sec-11">12. 品牌工程评级</a>
+  <a href="#sec-12">13. 购买决策系统</a>
+  <a href="#sec-13" style="color: #60a5fa;">14. 一句话结论</a>
+</nav>
+
+<!-- ═══════════════ MAIN CONTENT ═══════════════ -->
+<main>
+
+<h1>洗衣机工程分析报告</h1>
+<p class="subtitle">
+  分析框架：物理原理 &gt; 系统架构 &gt; 核心部件 &gt; 制造质量 &gt; 可靠性 &gt; 使用体验 &gt; 成本结构 &gt; 品牌 &gt; 功能营销<br>
+  分析日期：2026-06-09 &nbsp;|&nbsp; 分析对象：家用洗衣机（滚筒/波轮，6–12kg 主流区间）
+</p>
+
+<!-- ─── 2. 系统架构拆解 ─── -->
+<h2 id="sec-0">1. 系统本质</h2>
+
+<div class="card">
+  <h3>洗衣机是什么？</h3>
+  <table>
+    <tr><th style="width:120px">系统类型</th><td>机械执行系统 + 流体处理系统 — 通过机械力、水流、化学洗涤剂和温度四要素协同作用去除织物污渍</td></tr>
+    <tr><th>输入</th><td>电能（220V/50Hz AC）、自来水（0.03–1.0 MPa）、洗涤剂、待洗织物</td></tr>
+    <tr><th>输出</th><td>清洁织物（含水率 &lt; 50% 滚筒 / &lt; 90% 波轮脱水后）、含污废水</td></tr>
+    <tr><th>能量形式</th><td>电能 → 电机旋转机械能（洗涤/脱水） + 加热器热能（水温提升） + 水泵动能（排水）</td></tr>
+    <tr><th>核心物理原理</th><td><strong>滚筒：</strong>重力摔打 — 提升筋将衣物带到滚筒顶部，重力落下摔打在洗涤液面，模拟棒槌敲打。<br><strong>波轮：</strong>水流涡旋 — 底部波轮高速旋转产生强烈水流，衣物随水流翻滚摩擦，模拟手搓。</td></tr>
+  </table>
+</div>
+
+<div class="callout">
+  <strong>工程视角的关键认知：</strong>洗衣机的核心价值不是"转得猛"，而是<strong>用最小的机械损伤和水量，把织物洗干净并尽可能甩干</strong>。滚筒和波轮是两种完全不同的物理路径实现同一目标 — 理解它们的本质差异比比较参数重要得多。洗净比、磨损率、用水量三者构成不可能三角，没有洗衣机能同时最优。
+</div>
+
+<!-- ─── 3. 核心部件工程分析 ─── -->
+<h2 id="sec-1">2. 系统架构拆解</h2>
+
+<div class="arch-layer">
+  <div class="label">Layer 1 · 能源层 Energy</div>
+  <div class="parts"><strong>主驱动电机</strong>（DD直驱BLDC / 皮带传动BLDC / 串激电机 / 变频异步电机）— 系统核心动力源。<strong>加热器</strong>（PTC/加热管 1500–2000W）— 水温加热。</div>
+</div>
+<div class="arch-layer">
+  <div class="label">Layer 2 · 执行层 Actuation</div>
+  <div class="parts">滚筒/内筒（不锈钢 SUS304/430）、提升筋（3条均布）、波轮盘（波轮机型）、外筒（PP塑料/不锈钢）、排水泵（永磁同步/罩极电机）、进水电磁阀（1–3路）、门锁/门封（橡胶波纹管）</div>
+</div>
+<div class="arch-layer">
+  <div class="label">Layer 3 · 控制层 Control</div>
+  <div class="parts">主控MCU（32-bit ARM Cortex-M）、变频驱动IPM模块、NTC水温传感器、水位传感器（机械气压式/电子频率式）、浊度传感器（高端机型）、3D陀螺仪/加速度计（不平衡检测）、门锁开关、Wi-Fi/BLE模块（智能机型）</div>
+</div>
+<div class="arch-layer">
+  <div class="label">Layer 4 · 结构层 Structural</div>
+  <div class="parts">箱体外壳（镀锌钢板+PCM覆膜/热镀锌）、减震系统（吊簧×2–3 + 减震器×2–4 + 配重块×2）、顶盖/控制面板（PC/ABS注塑）、底座/底脚（可调水平）</div>
+</div>
+
+<h3>能量与物质流路径</h3>
+<div class="flow">
+  <span class="step">电网 AC</span><span class="arrow">→</span>
+  <span class="step">EMI滤波</span><span class="arrow">→</span>
+  <span class="step">变频IPM (AC→DC→PWM)</span><span class="arrow">→</span>
+  <span class="step">电机旋转</span><span class="arrow">→</span>
+  <span class="step">皮带/直驱</span><span class="arrow">→</span>
+  <span class="step">内筒旋转</span><span class="arrow">→</span>
+  <span class="step">机械力作用衣物</span>
+</div>
+<div class="flow">
+  <span class="step">自来水</span><span class="arrow">→</span>
+  <span class="step">进水电磁阀</span><span class="arrow">→</span>
+  <span class="step">洗涤剂盒</span><span class="arrow">→</span>
+  <span class="step">外筒/内筒</span><span class="arrow">→</span>
+  <span class="step">排水泵</span><span class="arrow">→</span>
+  <span class="step">地漏/下水管</span>
+</div>
+
+<!-- ─── 4. 制造模式分析 ─── -->
+<h2 id="sec-2">3. 核心部件工程分析</h2>
+
+<h3>2.1 Single Point of Failure (SPoF)</h3>
+
+<div class="card">
+  <h4>🔴 主驱动电机 — 第一SPoF</h4>
+  <p><strong>为什么是它？</strong>电机是系统中唯一的运动核心。洗涤时低速高扭（40–60 RPM，扭矩 10–20 N·m），脱水时高速旋转（1000–1600 RPM）。一旦电机轴承磨损、绕组短路或霍尔传感器失效，整机无法运转。</p>
+  <table>
+    <tr><th>参数</th><th>串激电机（碳刷）</th><th>BLDC皮带传动</th><th>DD直驱BLDC</th></tr>
+    <tr><td>设计寿命</td><td>8–10年（碳刷需更换）</td><td>12–15年（皮带需更换）</td><td>15–20年</td></tr>
+    <tr><td>运动部件数</td><td>转子+碳刷+换向器</td><td>转子+皮带+皮带轮×2</td><td>转子（唯一运动件）</td></tr>
+    <tr><td>典型失效模式</td><td>碳刷磨尽、换向器烧蚀</td><td>皮带断裂/松弛、轴承磨损</td><td>霍尔传感器故障、轴承磨损</td></tr>
+    <tr><td>修复成本</td><td>碳刷 80–150元 / 换电机 400–700元</td><td>皮带 80–120元 / 换电机 500–900元</td><td>换电机 800–1500元</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <h4>🟡 减震系统 — 第二SPoF（滚筒特有）</h4>
+  <p>吊簧（2–3根）和减震器（2–4支）承受脱水时的不平衡载荷。一旦吊簧金属疲劳或减震器阻尼失效，脱水时整机剧烈跳动/位移，严重时内筒撞击外筒导致物理损坏。减震失效是滚筒洗衣机最常见的严重故障。</p>
+</div>
+
+<h3>2.2 核心部件性能等级</h3>
+
+<table>
+  <tr><th>部件</th><th>工业级</th><th>消费级</th><th>成本优化型</th></tr>
+  <tr>
+    <td>电机</td>
+    <td>DD直驱BLDC（LG AI DD、松下α-DD、海尔FPA直驱）；15–20年设计寿命</td>
+    <td>皮带BLDC（美的、小天鹅主流）；12–15年</td>
+    <td>串激电机（碳刷式）；8–10年，碳刷是消耗品</td>
+  </tr>
+  <tr>
+    <td>轴承</td>
+    <td>NSK/SKF双列深沟球轴承（日本/瑞典）</td>
+    <td>C&U、人本轴承（国产优质）</td>
+    <td>杂牌轴承（5年内异响）</td>
+  </tr>
+  <tr>
+    <td>内筒材质</td>
+    <td>SUS304不锈钢（优质镜面/拉丝）</td>
+    <td>SUS304标准不锈钢</td>
+    <td>SUS430铁素体不锈钢（磁性强、耐腐蚀性稍弱）</td>
+  </tr>
+  <tr>
+    <td>减震器</td>
+    <td>SUSPA/SMC气弹簧+液压阻尼</td>
+    <td>国产液压阻尼</td>
+    <td>摩擦阻尼（简单弹簧）</td>
+  </tr>
+  <tr>
+    <td>控制MCU</td>
+    <td>32-bit ARM + 多重传感器融合</td>
+    <td>8/16-bit MCU + 基础传感</td>
+    <td>机械式定时器（老式波轮）</td>
+  </tr>
+</table>
+
+<h3>2.3 BOM拆解 — 电机来源识别</h3>
+
+<div class="card">
+  <p>电机占洗衣机BOM成本的 <strong>15%–25%</strong>（波轮低、滚筒高）。识别电机类型是判断洗衣机档次的最快方法：</p>
+  <table>
+    <tr><th>电机类型/品牌</th><th>搭载品牌</th><th>特点</th></tr>
+    <tr><td>LG AI DD (直驱BLDC)</td><td>LG</td><td>AI负载感知+6种运动模式，10年包修，行业标杆</td></tr>
+    <tr><td>松下 α-DD (直驱BLDC)</td><td>松下</td><td>稀土永磁，超薄机身，极低噪音</td></tr>
+    <tr><td>海尔 FPA直驱 (斐雪派克)</td><td>海尔/卡萨帝</td><td>收购新西兰FPA技术，扭矩大（洗衣机用电机可驱动赛车）</td></tr>
+    <tr><td>美的/小天鹅 BLDC</td><td>美的/小天鹅</td><td>皮带传动BLDC，美芝/威灵自研，性价比高</td></tr>
+    <tr><td>Nidec (日本电产)</td><td>博世/西门子</td><td>高品质BLDC，iQ系列搭载</td></tr>
+    <tr><td>串激电机</td><td>低端波轮/低端滚筒</td><td>碳刷消耗品，噪音大，能效低</td></tr>
+  </table>
+</div>
+
+<!-- ─── 5. 技术路线对比 ─── -->
+<h2 id="sec-3">4. 制造模式分析</h2>
+
+<table>
+  <tr><th>品牌</th><th>制造模式</th><th>电机来源</th><th>控制系统</th><th>核心竞争力</th></tr>
+  <tr><td>海尔/卡萨帝</td><td>自研+自产</td><td>FPA直驱(自研/收购)、BLDC(自研)</td><td>自研</td><td>收购FPA获得直驱核心技术</td></tr>
+  <tr><td>美的/小天鹅/COLMO</td><td>自研+自产</td><td>威灵电机(自研)</td><td>自研</td><td>小天鹅41年洗衣技术积累+美的规模优势</td></tr>
+  <tr><td>LG</td><td>自研自产</td><td>LG AI DD自研</td><td>自研</td><td>DD直驱发明者，10年电机包修</td></tr>
+  <tr><td>松下</td><td>自研自产</td><td>松下α-DD自研</td><td>自研</td><td>日系精密制造+稀土永磁技术</td></tr>
+  <tr><td>博世/西门子 (BSH)</td><td>自研+自产</td><td>Nidec等第三方优质电机</td><td>自研(BSH)</td><td>德系工程+南京/滁州工厂</td></tr>
+  <tr><td>小米/云米</td><td>ODM全外包</td><td>第三方(威灵/大洋)</td><td>第三方方案</td><td>品牌+渠道+米家IoT</td></tr>
+</table>
+
+<div class="callout warn">
+  <strong>DD直驱 vs 皮带传动 — 产业链信号：</strong>拥有自研DD直驱电机的品牌（LG、松下、海尔/卡萨帝）掌握了洗衣机技术树的顶端。皮带BLDC是成熟技术，威灵电机等国产供应商已经做得很好。如果一个品牌还在用串激电机且试图用"智能大屏"来吸引你 — 快跑。
+</div>
+
+<!-- ─── 6. 可靠性工程模型 ─── -->
+<h2 id="sec-4">5. 技术路线对比</h2>
+
+<h3>4.1 滚筒 vs 波轮 — 根本性技术路线选择</h3>
+
+<table>
+  <tr><th>维度</th><th>波轮 (Impeller/Top Load)</th><th>滚筒 (Drum/Front Load)</th></tr>
+  <tr><td>洗涤原理</td><td>底部波轮旋转 → 水流涡旋 → 衣物相互摩擦</td><td>内筒旋转 → 提升筋举升 → 重力摔打</td></tr>
+  <tr><td>洗净比</td><td>0.7–0.9（摩擦洗净，效率高但损伤大）</td><td>1.03–1.15（摔打洗净，更科学）</td></tr>
+  <tr><td>衣物磨损</td><td><span class="tag tag-bad">高</span> 缠绕+摩擦，衣物寿命缩短</td><td><span class="tag tag-good">低</span> 摔打方式损伤最小</td></tr>
+  <tr><td>用水量</td><td>80–120L/次</td><td>40–60L/次</td></tr>
+  <tr><td>耗电量</td><td><span class="tag tag-good">低</span> 0.08–0.12度/次（常温水洗）</td><td><span class="tag tag-warn">中高</span> 0.5–1.0度/次（加热洗涤）</td></tr>
+  <tr><td>洗涤时间</td><td>40–50分钟</td><td>60–90分钟</td></tr>
+  <tr><td>加热洗涤</td><td>少数有</td><td>标配（温控精度 ±2°C）</td></tr>
+  <tr><td>脱水转速</td><td>600–800 RPM</td><td>1000–1600 RPM</td></tr>
+  <tr><td>脱水后含水率</td><td>~80–90%（晾晒时间长）</td><td>~45–55%（接近手拧）</td></tr>
+  <tr><td>噪音</td><td>55–65 dB(A)</td><td>48–55 dB(A)（DD直驱更低）</td></tr>
+  <tr><td>价格</td><td>500–2000元</td><td>1500–8000元</td></tr>
+  <tr><td>适用场景</td><td>预算有限、出租房、老人、不洗娇贵衣物</td><td>家庭主力、重视衣物护理、需要加热洗</td></tr>
+</table>
+
+<h3>4.2 直驱 (DD) vs 皮带传动</h3>
+
+<div class="card">
+  <h4>这也是洗衣机技术路线中最重要的分水岭</h4>
+  <table>
+    <tr><th></th><th>皮带传动 BLDC</th><th>DD 直驱 BLDC</th></tr>
+    <tr><td>传动路径</td><td>电机 → 小皮带轮 → 皮带 → 大皮带轮 → 内筒</td><td>电机转子 = 内筒轴（无中间件）</td></tr>
+    <tr><td>传动效率</td><td>~85–92% (皮带损耗)</td><td>~98%+</td></tr>
+    <tr><td>噪音</td><td>中 (皮带摩擦+皮带轮轴承)</td><td>低 (仅电机轴承)</td></tr>
+    <tr><td>控制精度</td><td>中 (皮带弹性导致延迟)</td><td>高 (1:1精确控制，可实现6种运动模式)</td></tr>
+    <tr><td>脱水转速上限</td><td>1200–1400 RPM</td><td>1400–1600 RPM</td></tr>
+    <tr><td>皮带消耗</td><td>5–8年需更换</td><td>无</td></tr>
+    <tr><td>机身深度</td><td>较厚 (电机+皮带轮占空间)</td><td>更薄 (电机与内筒一体，省空间)</td></tr>
+    <tr><td>成本</td><td>较低</td><td>较高（+500–1000元）</td></tr>
+    <tr><td>工程评级</td><td><span class="tag tag-b">B类</span> 成熟可靠</td><td><span class="tag tag-a">A类 真实技术提升</span></td></tr>
+  </table>
+</div>
+
+<h3>4.3 洗烘一体 vs 独立烘干机</h3>
+
+<div class="card">
+  <h4>烘干技术路线的工程真相</h4>
+  <table>
+    <tr><th></th><th>洗烘一体机 (冷凝式烘干)</th><th>洗烘一体机 (热泵式烘干)</th><th>洗烘套装 (独立热泵烘干机)</th></tr>
+    <tr><td>烘干原理</td><td>PTC加热空气 → 吹入内筒 → 湿热空气经冷水管冷凝</td><td>热泵压缩机 → 低温高效除湿</td><td>热泵压缩机 → 低温高效除湿 + 大容量</td></tr>
+    <tr><td>烘干温度</td><td>80–100°C（伤衣物）</td><td>50–60°C（衣物友好）</td><td>50–60°C</td></tr>
+    <tr><td>能耗</td><td>高 (1.5–2.5度/次)</td><td>低 (0.6–0.9度/次)</td><td>低 (0.5–0.8度/次)</td></tr>
+    <tr><td>绒毛过滤</td><td><span class="tag tag-bad">无或简陋</span>（绒毛堆积机内）</td><td><span class="tag tag-warn">基础过滤</span></td><td><span class="tag tag-good">多层过滤系统</span></td></tr>
+    <tr><td>烘干容量</td><td>洗涤容量的60–70% (6kg洗→4kg烘)</td><td>洗涤容量的70%</td><td>独立10kg烘干</td></tr>
+    <tr><td>关键缺陷</td><td>绒毛无法彻底清理，2–3年后发霉异味</td><td>价格高(8000+)，故障点多</td><td>占空间+预算高</td></tr>
+  </table>
+</div>
+
+<div class="callout warn">
+  <strong>洗烘一体机的工程警告：</strong>冷凝式洗烘一体机（3000–5000元档）是绒毛问题的重灾区。洗涤残留的绒毛在烘干时被吹入风道和冷凝器，而一体机没有独立烘干机的多层绒毛过滤系统。2–3年后，潮湿的绒毛在风道内发霉变臭，几乎无法彻底清洁。如果你需要烘干功能，<strong>首选独立热泵烘干机（洗烘套装）</strong>，次选热泵式洗烘一体，避开冷凝式洗烘一体。
+</div>
+
+<!-- ─── 7. 用户体验建模 ─── -->
+<h2 id="sec-5">6. 可靠性工程模型</h2>
+
+<h3>5.1 浴盆曲线 (Bathtub Curve)</h3>
+
+<div class="bathtub">
+  <svg viewBox="0 0 600 180" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#fee2e2" stop-opacity="0.5"/>
+        <stop offset="25%" stop-color="#d1fae5" stop-opacity="0.5"/>
+        <stop offset="75%" stop-color="#d1fae5" stop-opacity="0.5"/>
+        <stop offset="100%" stop-color="#fee2e2" stop-opacity="0.5"/>
+      </linearGradient>
+    </defs>
+    <rect x="30" y="10" width="540" height="120" rx="8" fill="url(#bg)" stroke="#ddd" stroke-width="1"/>
+    <path d="M40,100 Q100,100 130,40 Q160,20 300,20 Q440,20 470,40 Q500,100 560,100"
+          fill="none" stroke="#dc3545" stroke-width="2.5" stroke-linecap="round"/>
+    <text x="90" y="140" text-anchor="middle" font-size="11" fill="#991b1b">早期失效期</text>
+    <text x="300" y="140" text-anchor="middle" font-size="11" fill="#065f46">稳定运行期</text>
+    <text x="510" y="140" text-anchor="middle" font-size="11" fill="#991b1b">磨损失效期</text>
+    <line x1="40" y1="155" x2="40" y2="165" stroke="#999" stroke-width="1"/>
+    <line x1="170" y1="155" x2="170" y2="165" stroke="#999" stroke-width="1"/>
+    <line x1="430" y1="155" x2="430" y2="165" stroke="#999" stroke-width="1"/>
+    <line x1="560" y1="155" x2="560" y2="165" stroke="#999" stroke-width="1"/>
+    <text x="40"  y="178" text-anchor="middle" font-size="10" fill="#999">0</text>
+    <text x="170" y="178" text-anchor="middle" font-size="10" fill="#999">1年</text>
+    <text x="430" y="178" text-anchor="middle" font-size="10" fill="#999">8年</text>
+    <text x="560" y="178" text-anchor="middle" font-size="10" fill="#999">12年+</text>
+  </svg>
+</div>
+
+<h3>5.2 故障模式与影响分析 (FMEA)</h3>
+
+<table>
+  <tr><th>故障模式</th><th>波及机型</th><th>发生概率</th><th>影响程度</th><th>修复成本</th><th>风险等级</th></tr>
+  <tr><td>电机失效 (轴承抱死/绕组烧毁)</td><td>全部</td><td>中低 (3–5%)</td><td>致命 — 整机不转</td><td>400–1500元</td><td><span class="tag tag-bad">高</span></td></tr>
+  <tr><td>减震系统失效 (吊簧/减震器)</td><td>滚筒</td><td>中 (5–10%)</td><td>严重 — 脱水剧烈跳动</td><td>200–500元</td><td><span class="tag tag-bad">高</span></td></tr>
+  <tr><td>轴承磨损 (异响/漏水)</td><td>滚筒</td><td>中 (5–8%)</td><td>严重 — 噪音+水封损坏漏水</td><td>300–600元</td><td><span class="tag tag-warn">中高</span></td></tr>
+  <tr><td>门封/橡胶圈发霉破裂</td><td>滚筒</td><td>高 (20–30%)</td><td>中等 — 漏水</td><td>100–250元</td><td><span class="tag tag-warn">中</span></td></tr>
+  <tr><td>排水泵堵塞/故障</td><td>全部</td><td>中 (8–12%)</td><td>中等 — 无法排水</td><td>80–200元</td><td><span class="tag tag-warn">中</span></td></tr>
+  <tr><td>控制主板故障</td><td>全部</td><td>低 (2–4%)</td><td>严重 — 无法操作</td><td>300–800元</td><td><span class="tag tag-warn">中</span></td></tr>
+  <tr><td>进水阀故障</td><td>全部</td><td>低 (3–5%)</td><td>轻微 — 不进水/不止水</td><td>50–100元</td><td><span class="tag tag-good">低</span></td></tr>
+  <tr><td>皮带断裂/松弛 (皮带机型)</td><td>皮带滚筒</td><td>中 (8–12%)</td><td>中等 — 滚筒不转</td><td>80–150元</td><td><span class="tag tag-warn">中</span></td></tr>
+</table>
+
+<h3>5.3 高风险部件总结</h3>
+
+<div class="cols">
+  <div class="card">
+    <h4>🔴 致命级 (系统停机)</h4>
+    <ul>
+      <li>主驱动电机 (串激 > 皮带BLDC > DD直驱)</li>
+      <li>控制主板</li>
+      <li>滚筒轴承总成 (水封破损→轴承锈蚀)</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h4>🟡 严重级 (功能受损)</h4>
+    <ul>
+      <li>减震系统 (吊簧+减震器)</li>
+      <li>排水泵</li>
+      <li>皮带 (皮带机型)</li>
+      <li>门封橡胶圈</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ─── 8. 营销系统识别 ─── -->
+<h2 id="sec-6">7. 用户体验建模</h2>
+
+<div class="card">
+  <h3>体验权重排序 (按工程重要性)</h3>
+  <table>
+    <tr><th>#</th><th>维度</th><th>权重</th><th>洗衣机工程对应项</th></tr>
+    <tr><td>1</td><td>稳定性 (Consistency)</td><td>⭐⭐⭐⭐⭐</td><td>洗净度一致、不中途报错停机、漂洗无残留、程序完整执行</td></tr>
+    <tr><td>2</td><td>可预测性 (Predictability)</td><td>⭐⭐⭐⭐</td><td>程序时间估算准确（不是"剩余1分钟"等5分钟）、洗涤结果可预期</td></tr>
+    <tr><td>3</td><td>噪音控制</td><td>⭐⭐⭐⭐</td><td>洗涤 48–55 dB(A)、脱水 55–65 dB(A)（DD直驱明显安静）</td></tr>
+    <tr><td>4</td><td>洗涤/脱水精度</td><td>⭐⭐⭐</td><td>水温控制 ±2°C、脱水后含水率、漂洗彻底度</td></tr>
+    <tr><td>5</td><td>能耗与水耗</td><td>⭐⭐⭐</td><td>单次水电综合成本、能效等级</td></tr>
+    <tr><td>6</td><td>操作复杂度</td><td>⭐⭐</td><td>常用程序是否一键可达、老人能否独立操作</td></tr>
+    <tr><td>7</td><td>衣物损伤</td><td>⭐⭐⭐</td><td>长期使用后衣物是否起球、变形、褪色</td></tr>
+  </table>
+</div>
+
+<div class="callout">
+  <strong>关键洞察：</strong>洗衣机是每周2–4次的间歇性家电，不像冰箱那样24小时运行。用户对洗衣机的核心体验是<strong>"放进去脏衣服，拿出来干净衣服，中间没有意外"</strong>。最破坏体验的不是洗得不够干净，而是<strong>程序中途报错、脱水时整机跳舞、洗完发现门封发霉、衣服上残留洗衣液</strong>。这也是为什么减震系统和门封设计的重要度被大多数人低估了。
+</div>
+
+<!-- ─── 9. TCO成本模型 ─── -->
+<h2 id="sec-7">8. 营销系统识别</h2>
+
+<table>
+  <tr><th>功能/卖点</th><th>分类</th><th>工程评价</th></tr>
+  <tr><td>DD直驱电机</td><td><span class="tag tag-a">A类 — 真实技术提升</span></td><td>少一个皮带=少一个故障点+更安静+更精确控制。值得为它多付500–1000元</td></tr>
+  <tr><td>热泵烘干 (套装)</td><td><span class="tag tag-a">A类 — 真实技术提升</span></td><td>低温烘干不伤衣物、能效高、有绒毛过滤。南方梅雨季的"第二台冰箱"级刚需</td></tr>
+  <tr><td>自动投放 (Auto Dosing)</td><td><span class="tag tag-b">B类 — 体验增强</span></td><td>根据衣物重量自动投放洗涤剂，避免过量/不足。有实际价值但增加泵系统复杂度</td></tr>
+  <tr><td>喷淋/循环喷淋</td><td><span class="tag tag-b">B类 — 体验增强</span></td><td>加速洗涤剂溶解、提高漂洗效率，物理原理正确</td></tr>
+  <tr><td>蒸汽洗/空气洗</td><td><span class="tag tag-b">B类 — 体验增强</span></td><td>高温蒸汽除皱除味，对不能水洗的衣物有价值，但使用频率低</td></tr>
+  <tr><td>超薄机身 (&lt;500mm)</td><td><span class="tag tag-b">B类 — 体验增强</span></td><td>小户型刚需，但超薄通常牺牲减震空间=高转速噪音更大</td></tr>
+  <tr><td>微塑料过滤</td><td><span class="tag tag-b">B类 — 体验增强</span></td><td>环保价值，对衣物无影响。部分日系品牌推行</td></tr>
+  <tr><td>AI智能洗/浊度检测</td><td><span class="tag tag-b">B类 — 体验增强</span></td><td>根据水质浊度调整漂洗次数，有传感器基础但非必需</td></tr>
+  <tr><td>紫外线UV除菌</td><td><span class="tag tag-c">C类 — 营销功能</span></td><td>照射时间不足+衣物遮挡，除菌效果远不如60°C水温洗涤可靠</td></tr>
+  <tr><td>银离子/纳米除菌</td><td><span class="tag tag-c">C类 — 营销功能</span></td><td>有效期有限，消费者无法验证，营销大于实质</td></tr>
+  <tr><td>大屏/触控彩屏</td><td><span class="tag tag-c">C类 — 营销功能</span></td><td>洗衣机面板你多久按一次？旋钮+LED才是最优人机交互</td></tr>
+  <tr><td>APP/Wi-Fi远程控制</td><td><span class="tag tag-c">C类 — 营销功能</span></td><td>你得先把衣服放进去才能远程启动 — 那为什么不按一下开始键？</td></tr>
+  <tr><td>语音控制/智能音箱联动</td><td><span class="tag tag-c">C类 — 营销功能</span></td><td>C类中的C类。"小X小X，开始洗衣服" — 你需要吗？</td></tr>
+</table>
+
+<div class="callout warn">
+  <strong>洗衣机行业最成功的营销骗局：</strong>"AI智能洗"听起来很酷，但它的核心传感器（浊度传感器）只是一个几块钱的红外对管，检测水的透明度来判断漂洗是否干净。这个技术在20年前的日本洗衣机上就已经普及了。它不是AI，只是一个if-else逻辑："水还浑浊 → 再漂洗一次"。但加上"AI"两个字，溢价500元。
+</div>
+
+<!-- ─── 10. 供应链与产业结构 ─── -->
+<h2 id="sec-8">9. TCO成本模型</h2>
+
+<div class="card">
+  <h3>案例对比：10kg滚筒洗衣机</h3>
+
+  <table>
+    <tr><th>成本项</th><th>低价滚筒 (1500元)<br>串激电机+皮带</th><th>中端滚筒 (3500元)<br>BLDC皮带</th><th>中高端滚筒 (5000元)<br>DD直驱</th><th>高端套装 (9000元)<br>DD直驱+热泵烘干</th></tr>
+    <tr><td>采购成本</td><td>1,500</td><td>3,500</td><td>5,000</td><td>9,000</td></tr>
+    <tr><td>10年电费<br><span style="font-size:0.8rem;color:var(--color-muted)">3次/周, 0.5度/次, 0.6元/度</span></td><td>468</td><td>468</td><td>468</td><td>1,404 (含烘干)</td></tr>
+    <tr><td>10年水费<br><span style="font-size:0.8rem;color:var(--color-muted)">50L/次, 3元/吨</span></td><td>234</td><td>234</td><td>234</td><td>234</td></tr>
+    <tr><td>洗涤剂<br><span style="font-size:0.8rem;color:var(--color-muted)">自动投放更省</span></td><td>1,200</td><td>1,200</td><td>900 (自动投放省)</td><td>900</td></tr>
+    <tr><td>维修成本 (10年)</td><td>皮带×2 + 碳刷×2 + 排水泵×1 ≈ <strong>700</strong></td><td>皮带×1 + 排水泵×1 ≈ <strong>300</strong></td><td>排水泵×1 ≈ <strong>150</strong></td><td>排水泵×1 ≈ <strong>300</strong></td></tr>
+    <tr><td>配件更换</td><td>门封×1 ≈ <strong>150</strong></td><td>门封×1 ≈ <strong>150</strong></td><td>门封×1 ≈ <strong>150</strong></td><td>门封×1 ≈ <strong>300</strong></td></tr>
+    <tr style="font-weight:700; background:#f0fdf4;">
+      <td><strong>10年TCO合计</strong></td>
+      <td><strong>4,252元</strong></td>
+      <td><strong>5,852元</strong></td>
+      <td><strong>6,902元</strong></td>
+      <td><strong>12,138元</strong></td>
+    </tr>
+    <tr>
+      <td>年均成本</td><td>425元/年</td><td>585元/年</td><td>690元/年</td><td>1,214元/年</td>
+    </tr>
+  </table>
+</div>
+
+<div class="callout good">
+  <strong>TCO洞察：</strong>和冰箱不同，洗衣机的低中高端TCO分层明显 — 低价机确实总成本更低（串激电机维修成本低、结构简单）。但TCO不能只看金额：<br><br>
+  1500元串激机型 → 年均425元，但每次洗衣噪音大、衣物磨损高、无加热洗。<br>
+  3500–5000元DD直驱机型 → 年均585–690元，多了安静、护衣、加热洗。<br><br>
+  <strong>结论：3500–5000元的DD直驱机型是"体验/TCO比"最优区间。</strong>1500元机省了钱但牺牲了每次洗涤的体验和衣物寿命。9000元洗烘套装解决的是"能否烘干"的0→1问题，在南方梅雨季有独立价值，不完全是同维度的比较。
+</div>
+
+<!-- ─── 11. 安装与环境影响 ─── -->
+<h2 id="sec-9">10. 供应链与产业结构</h2>
+
+<h3>产业链三层结构</h3>
+
+<div class="card">
+  <h4>Tier 1 — 核心部件供应商</h4>
+  <table>
+    <tr><th>领域</th><th>全球头部供应商</th><th>中国主力供应商</th></tr>
+    <tr><td>DD直驱电机</td><td>LG (自研), 松下 (自研), FPA斐雪派克 (海尔收购)</td><td>海尔FPA, 威灵 (美的)</td></tr>
+    <tr><td>BLDC电机</td><td>Nidec (日本电产), LG</td><td>威灵 (美的), 大洋电机, 卧龙电气</td></tr>
+    <tr><td>变频驱动IPM</td><td>Infineon, ST, TI, Mitsubishi</td><td>比亚迪半导体, 士兰微</td></tr>
+    <tr><td>轴承</td><td>NSK, SKF, NTN</td><td>C&U (人本), 万向, 天马</td></tr>
+    <tr><td>减震器</td><td>SUSPA (德国)</td><td>常州气弹簧产业集群</td></tr>
+    <tr><td>MCU</td><td>Renesas, ST, NXP</td><td>兆易创新 (GD32), 中颖电子</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <h4>Tier 2 — 系统集成商 / ODM</h4>
+  <p>美的/小天鹅（全球最大洗衣机ODM之一，年产3000万+台）、海尔（自产为主）、博西华（南京/滁州工厂）、松下（杭州工厂）、LG（南京/泰国工厂）。中国洗衣机产量占全球约50%。</p>
+</div>
+
+<div class="card">
+  <h4>Tier 3 — 品牌/渠道</h4>
+  <p>小米/云米 — 由美的/小天鹅/TCL等代工，品牌层叠加米家IoT。竞争力来自渠道和智能家居生态，而非洗涤工程技术。</p>
+</div>
+
+<!-- ─── 12. 品牌工程评级 ─── -->
+<h2 id="sec-10">11. 安装与环境影响</h2>
+
+<div class="cols">
+  <div class="card">
+    <h4>安装质量影响（滚筒尤甚）</h4>
+    <ul>
+      <li><strong>水平调整：</strong>这是滚筒洗衣机安装的第一步也是最重要一步。4个底脚必须全部着地且水平仪检测水平。倾斜 &gt; 1° 会导致脱水不平衡、整机跳动、减震系统加速疲劳</li>
+      <li><strong>运输螺栓拆除：</strong>滚筒洗衣机背面有3–4颗运输螺栓固定内筒，忘记拆除直接使用会导致减震系统失效、内筒撞击外筒。这是最常见的安装事故</li>
+      <li><strong>排水管高度：</strong>滚筒洗衣机排水管最高点需在60–100cm（高于内筒水位），否则会产生虹吸效应持续排水</li>
+      <li><strong>地面材质：</strong>木地板/架空层会放大脱水振动。建议在瓷砖/水泥地上使用，或铺设减震垫</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h4>使用习惯影响</h4>
+    <ul>
+      <li><strong>超载：</strong>超过额定容量会导致电机过载、洗净度下降、减震系统过负荷。标称10kg指的是干燥棉织物重量，湿水后重量翻倍</li>
+      <li><strong>洗涤剂过量：</strong>过量洗涤剂不会让衣服更干净，反而残留在衣物和洗衣机内部，滋生细菌产生异味</li>
+      <li><strong>门封不擦干：</strong>滚筒洗衣机门封橡胶圈凹槽是霉菌的温床。每次洗完建议擦干门封并留门通风</li>
+      <li><strong>定期高温自洁：</strong>每月一次90°C槽清洗程序（或使用专用清洁剂），否则内筒外壁和外筒内壁之间会积累污垢</li>
+      <li><strong>硬币/硬物遗留：</strong>口袋中的硬币、钥匙等硬物会卡在内外筒之间，划伤内筒，严重时堵塞排水泵</li>
+    </ul>
+  </div>
+</div>
+
+<div class="callout warn">
+  <strong>很多洗衣机"故障"来自安装和使用，而不是产品本身。</strong>经销商安装工为了省事，经常不调水平、不拆运输螺栓。一台5000元的DD直驱洗衣机如果安装不当，脱水的表现还不如一台1500元的机子。买洗衣机时，<strong>盯住安装过程</strong>比纠结参数更重要。
+</div>
+
+<!-- ─── 13. 购买决策系统 ─── -->
+<h2 id="sec-11">12. 品牌工程评级</h2>
+
+<table>
+  <tr><th>梯队</th><th>类型</th><th>品牌</th><th>核心特征</th></tr>
+  <tr>
+    <td><span class="tag tag-a">第一梯队</span></td>
+    <td>技术主导型</td>
+    <td>LG</td>
+    <td>DD直驱发明者，AI DD第六代，10年电机包修，洗涤技术全球领先</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-a">第一梯队</span></td>
+    <td>技术主导型</td>
+    <td>松下</td>
+    <td>日系精工，α-DD稀土永磁直驱，泡沫净技术，超薄机身</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-a">第一梯队</span></td>
+    <td>技术主导型</td>
+    <td>Miele (美诺)</td>
+    <td>20年设计寿命，德国制造，8000–30000元价位，商用级可靠性</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-b">第二梯队</span></td>
+    <td>平衡型</td>
+    <td>海尔/卡萨帝、美的/小天鹅/COLMO</td>
+    <td>自研DD直驱/BLDC电机，FPA收购获得直驱核心技术，售后网点全国覆盖。3000–8000元主力区间</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-b">第二梯队</span></td>
+    <td>平衡型</td>
+    <td>博世/西门子 (BSH)</td>
+    <td>德系工程标准，Nidec电机，i-DOS自动投放，6000–12000元</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-b">第二梯队</span></td>
+    <td>平衡型</td>
+    <td>日立、东芝</td>
+    <td>日系技术差异化（风熨斗、超微泡），国内份额低，售后弱</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-c">第三梯队</span></td>
+    <td>市场驱动型</td>
+    <td>小米/云米、TCL、创维</td>
+    <td>ODM全外包（美的/小天鹅/TCL代工），同质化严重，功能堆叠，长期可靠性存疑</td>
+  </tr>
+</table>
+
+<!-- ─── 14. 一句话结论 ─── -->
+<h2 id="sec-12">13. 购买决策系统</h2>
+
+<div class="flow" style="flex-direction: column; align-items: flex-start; gap: 16px;">
+  <div class="step" style="width: 100%;">
+    <strong>Step 1 — 定义需求</strong><br>
+    <span style="font-size:0.85rem;color:var(--color-muted)">人数/空间/预算。1–2人：8kg；3–4人：10kg；5+人：12kg+。空间狭窄选超薄（&lt;500mm深度）。预算 &lt;2000元 → 波轮或二手滚筒；2000–5000元 → 主流滚筒；5000+ → DD直驱/洗烘套装。</span>
+  </div>
+  <div class="step" style="width: 100%;">
+    <strong>Step 2 — 确定技术路线</strong><br>
+    <span style="font-size:0.85rem;color:var(--color-muted)">滚筒 &gt; 波轮（除非预算极紧张/老人专用）。DD直驱 &gt; 皮带BLDC &gt; 串激电机。需要烘干？独立热泵烘干机（洗烘套装）&gt;&gt; 热泵式洗烘一体 &gt;&gt; 冷凝式洗烘一体。</span>
+  </div>
+  <div class="step" style="width: 100%;">
+    <strong>Step 3 — 筛选核心部件</strong><br>
+    <span style="font-size:0.85rem;color:var(--color-muted)">电机：DD直驱 &gt; 皮带BLDC &gt;&gt; 串激。识别方法：DD直驱机型会明确标注"直驱"，且脱水噪音 &lt; 55dB。内筒材质：SUS304不锈钢（镜面质感）。减震：气弹簧/液压 &gt; 摩擦弹簧。</span>
+  </div>
+  <div class="step" style="width: 100%;">
+    <strong>Step 4 — 过滤高故障风险设计</strong><br>
+    <span style="font-size:0.85rem;color:var(--color-muted)">避开：冷凝式洗烘一体（绒毛问题无解）、全触控面板（湿手无法操作）、杂牌DD直驱（DD电机+垃圾减震=灾难）。优选：旋钮+LED+少量物理按键的人机交互。</span>
+  </div>
+  <div class="step" style="width: 100%;">
+    <strong>Step 5 — 计算TCO（10年）</strong><br>
+    <span style="font-size:0.85rem;color:var(--color-muted)">TCO ≈ 采购价 + 水电费 + 维修费 + 洗涤剂。3500–5000元的DD直驱机型是体验/TCO比最优区间。</span>
+  </div>
+  <div class="step" style="width: 100%;">
+    <strong>Step 6 — 筛选品牌（最后一步）</strong><br>
+    <span style="font-size:0.85rem;color:var(--color-muted)">在前5步确定的范围内选品牌。LG（DD直驱标杆+10年包修）、海尔/小天鹅（DD直驱+全国售后）、松下（精工DD超薄）。售后网点密度是重要考量：县级城市优先海尔/美的系。</span>
+  </div>
+</div>
+
+<!-- ─── 14. 一句话结论 ─── -->
+<h2 id="sec-13">14. 一句话结论</h2>
+
+<div class="conclusion">
+  <h2>最终结论</h2>
+  <p>
+    洗衣机的本质是一台<strong>通过机械力+水流+温度协同作用的织物清洁系统</strong>，核心价值由<strong>电机类型（DD直驱&gt;皮带BLDC&gt;&gt;串激）、减震系统设计（气弹簧&gt;液压&gt;摩擦）、筒体结构（SUS304不锈钢内筒+提升筋）</strong>三要素决定。
+  </p>
+  <p>
+    <strong>3500–5000元的DD直驱滚筒洗衣机是体验/TCO比最优解</strong> — 低于此价位的串激/皮带机型虽然TCO绝对值更低，但每洗一次都在用噪音和衣物磨损支付隐性成本。高于此价位的溢价主要流向品牌和营销功能。
+  </p>
+  <p style="margin-bottom:0;">
+    <strong>记住三个"不要"：</strong>不要买冷凝式洗烘一体（绒毛发霉无解），不要为大屏和AI付费，不要忽略安装质量（盯住拆运输螺栓+调水平）。<strong>记住三个"要"：</strong>要选DD直驱，要每月高温自洁，要每次洗完擦干门封留门通风。
+  </p>
+</div>
+
+</main>
+
+<script>
+(function() {
+  const links = document.querySelectorAll('nav a[href^="#sec-"]');
+  const sections = [];
+  links.forEach(a => {
+    const el = document.getElementById(a.getAttribute('href').slice(1));
+    if (el) sections.push({el, a});
+  });
+  function update() {
+    const top = window.scrollY + 120;
+    let cur = sections[0];
+    for (const s of sections) {
+      if (s.el.offsetTop <= top) cur = s;
+    }
+    links.forEach(l => l.classList.remove('active'));
+    if (cur) cur.a.classList.add('active');
+  }
+  window.addEventListener('scroll', update, {passive: true});
+  update();
+})();
+</script>
+<script>
+(function() {
+  var links = document.querySelectorAll('nav a[href^="#sec-"]');
+  var sections = [];
+  links.forEach(function(a) {
+    var el = document.getElementById(a.getAttribute('href').slice(1));
+    if (el) sections.push({el: el, a: a});
+  });
+  function update() {
+    var top = window.scrollY + 120;
+    var cur = sections[0];
+    for (var i = 0; i < sections.length; i++) {
+      if (sections[i].el.offsetTop <= top) cur = sections[i];
+    }
+    links.forEach(function(l) { l.classList.remove('active'); });
+    if (cur) cur.a.classList.add('active');
+  }
+  window.addEventListener('scroll', update, {passive: true});
+  update();
+})();
+</script>
+</body>
+</html>

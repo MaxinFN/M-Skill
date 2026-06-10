@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>热水器工程分析报告 — Home Appliance Researcher</title>
+<style>
+  :root {
+    --nav-width: 260px;
+    --color-bg: #f8f9fa;
+    --color-surface: #ffffff;
+    --color-text: #212529;
+    --color-muted: #6c757d;
+    --color-accent: #0d6efd;
+    --color-warn: #dc3545;
+    --color-good: #198754;
+    --color-border: #dee2e6;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; font-size: 15px; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans SC", sans-serif;
+    background: var(--color-bg);
+    color: var(--color-text);
+    line-height: 1.7; overflow-x: hidden;
+  }
+  nav {
+    position: fixed; top: 0; left: 0; width: var(--nav-width); height: 100vh;
+    background: #1a1d23; color: #ccc; overflow-y: auto; z-index: 100;
+    padding: 24px 0;
+  }
+  nav .brand {
+    font-size: 1.1rem; font-weight: 700; color: #fff; padding: 0 20px 20px;
+    border-bottom: 1px solid #333; margin-bottom: 12px;
+    letter-spacing: 0.5px;
+  }
+  nav .brand span { display: block; font-size: 0.7rem; color: #888; font-weight: 400; margin-top: 2px; }
+  nav a {
+    display: block; padding: 7px 20px; color: #aaa; text-decoration: none;
+    font-size: 0.85rem; transition: color 0.15s, background 0.15s;
+    border-left: 3px solid transparent;
+  }
+  nav a:hover, nav a.active { color: #fff; background: rgba(255,255,255,0.05); }
+  main {
+    margin-left: var(--nav-width); padding: 48px 60px; width: calc(100vw - var(--nav-width));
+  }
+  h1 { font-size: 2rem; margin-bottom: 8px; }
+  h2 { font-size: 1.4rem; margin: 48px 0 16px; padding-bottom: 8px; border-bottom: 2px solid var(--color-border); }
+  h3 { font-size: 1.15rem; margin: 32px 0 12px; color: #333; }
+  h4 { font-size: 1rem; margin: 20px 0 8px; }
+  p { margin-bottom: 12px; }
+  .subtitle { color: var(--color-muted); font-size: 0.95rem; margin-bottom: 40px; }
+  .card {
+    background: var(--color-surface); border: 1px solid var(--color-border);
+    border-radius: 8px; padding: 20px 24px; margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .card h3 { margin-top: 0; }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+  @media (max-width: 768px) { .cols { grid-template-columns: 1fr; } }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0 20px; font-size: 0.9rem; }
+  th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--color-border); }
+  th { background: #f1f3f5; font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--color-muted); }
+  tr:hover td { background: #fafbfc; }
+  .tag {
+    display: inline-block; padding: 2px 8px; border-radius: 4px;
+    font-size: 0.75rem; font-weight: 600; letter-spacing: 0.3px;
+  }
+  .tag-a { background: #d1fae5; color: #065f46; }
+  .tag-b { background: #fef3c7; color: #92400e; }
+  .tag-c { background: #fee2e2; color: #991b1b; }
+  .tag-good { background: #d1fae5; color: #065f46; }
+  .tag-warn { background: #fef3c7; color: #92400e; }
+  .tag-bad  { background: #fee2e2; color: #991b1b; }
+  .callout {
+    border-left: 4px solid var(--color-accent); background: #e7f1ff;
+    padding: 14px 18px; border-radius: 0 6px 6px 0; margin: 16px 0;
+    font-size: 0.9rem;
+  }
+  .callout.warn  { border-left-color: var(--color-warn); background: #fff5f5; }
+  .callout.good  { border-left-color: var(--color-good); background: #f0fdf4; }
+  .arch-layer {
+    border: 1px solid var(--color-border); border-radius: 6px; padding: 16px;
+    margin-bottom: 12px; background: #fafbfc;
+  }
+  .arch-layer .label {
+    font-weight: 700; font-size: 0.8rem; color: var(--color-muted);
+    text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;
+  }
+  .arch-layer .parts { font-size: 0.9rem; }
+  .flow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 12px 0; font-size: 0.9rem; }
+  .flow .step {
+    background: var(--color-surface); border: 1px solid var(--color-border);
+    border-radius: 6px; padding: 6px 14px;
+  }
+  .flow .arrow { color: var(--color-muted); font-weight: 700; }
+  .bathtub {
+    background: #f9fafb; border: 1px dashed var(--color-border); border-radius: 8px;
+    padding: 40px 24px; text-align: center; margin: 16px 0;
+  }
+  .bathtub svg { max-width: 600px; }
+  .conclusion {
+    background: linear-gradient(135deg, #1a1d23, #2d3139); color: #e0e0e0;
+    border-radius: 10px; padding: 28px 32px; margin-top: 48px;
+  }
+  .conclusion h2 { color: #fff; border-bottom-color: #444; font-size: 1.2rem; }
+  .conclusion p { font-size: 1.05rem; line-height: 1.8; }
+  @media print {
+    nav { display: none; }
+    main { margin-left: 0; padding: 20px; width: auto; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ NAVIGATION ═══════════════ -->
+<nav>
+  <div class="brand">
+    热水器工程分析
+    <span>Home Appliance Researcher v3.0</span>
+  </div>
+  <a href="#sec-0">1. 系统本质</a>
+  <a href="#sec-1">2. 系统架构拆解</a>
+  <a href="#sec-2">3. 核心部件工程分析</a>
+  <a href="#sec-3">4. 制造模式分析</a>
+  <a href="#sec-4">5. 技术路线对比</a>
+  <a href="#sec-5">6. 可靠性工程模型</a>
+  <a href="#sec-6">7. 用户体验建模</a>
+  <a href="#sec-7">8. 营销系统识别</a>
+  <a href="#sec-8">9. TCO成本模型</a>
+  <a href="#sec-9">10. 供应链与产业结构</a>
+  <a href="#sec-10">11. 安装与安全</a>
+  <a href="#sec-11">12. 品牌工程评级</a>
+  <a href="#sec-12">13. 购买决策系统</a>
+  <a href="#sec-13" style="color: #60a5fa;">14. 一句话结论</a>
+</nav>
+
+<!-- ═══════════════ MAIN CONTENT ═══════════════ -->
+<main>
+
+<h1>热水器工程分析报告</h1>
+<p class="subtitle">
+  分析框架：物理原理 &gt; 系统架构 &gt; 核心部件 &gt; 制造质量 &gt; 可靠性 &gt; 使用体验 &gt; 成本结构 &gt; 品牌 &gt; 功能营销<br>
+  分析日期：2026-06-09 &nbsp;|&nbsp; 分析对象：家用热水器（燃气式/储水式电热/即热式电热/空气能热泵/太阳能）
+</p>
+
+<!-- ─── 2. 系统架构拆解 ─── -->
+<h2 id="sec-0">1. 系统本质</h2>
+
+<div class="card">
+  <h3>热水器是什么？</h3>
+  <table>
+    <tr><th style="width:120px">系统类型</th><td>能量转换系统 — 将化学能（燃气）/电能/环境热能转换为水的热能，提供稳定温度的生活热水</td></tr>
+    <tr><th>输入</th><td>燃气（天然气12T/液化气20Y）+ 电能 + 自来水（0.03–1.0 MPa）</td></tr>
+    <tr><th>输出</th><td>恒温热水（35–75°C可调，流量 2–20L/min）</td></tr>
+    <tr><th>能量形式</th><td><strong>燃气式：</strong>CH₄ + 2O₂ → CO₂ + 2H₂O + 热（35–40 MJ/m³热值）→ 热交换器 → 水温升 ΔT = 25–40°C<br><strong>电热储水式：</strong>电能 → 电阻加热管（热能转换效率≈98%）→ 储水箱缓慢升温<br><strong>空气能热泵：</strong>电能 → 压缩机驱动逆卡诺循环 → 从空气中搬运热量到水中（COP = 3–4，即1度电搬3–4度电的热量）</td></tr>
+    <tr><th>核心物理原理</th><td>热力学第一定律（能量守恒）：Q = m × c × ΔT。将10L/min的水从15°C加热到40°C，需要约17.4kW的热功率。不同技术路线的区别在于<strong>如何高效、安全、稳定地提供这个功率</strong>。</td></tr>
+  </table>
+</div>
+
+<div class="callout">
+  <strong>工程视角的关键认知：</strong>热水器是家电中<strong>功率密度最高</strong>的品类。一台燃气热水器的热功率可达30–40kW（相当于15–20台微波炉同时工作），储水式电热水器的加热管功率也有2–3kW。这带来两个核心工程挑战：<strong>①如何在如此高的功率密度下保证安全和寿命？②如何在进水温度、水压波动的条件下输出恒温热水？</strong>燃气热水器本质是一台微型锅炉，储水式电热水器是一口高压锅——安全是第一准则。
+</div>
+
+<!-- ─── 3. 核心部件工程分析 ─── -->
+<h2 id="sec-1">2. 系统架构拆解</h2>
+
+<h3>1.1 燃气热水器架构</h3>
+
+<div class="arch-layer">
+  <div class="label">Layer 1 · 能源层 Energy</div>
+  <div class="parts"><strong>燃烧器</strong>（大气式预混/全预混燃烧器，热负荷 20–40kW）。&nbsp;<strong>燃气比例阀</strong>（电磁比例阀，精确控制燃气流量）。&nbsp;<strong>点火变压器</strong>（高压脉冲点火 15–20kV）。</div>
+</div>
+<div class="arch-layer">
+  <div class="label">Layer 2 · 执行层 Actuation</div>
+  <div class="parts"><strong>主热交换器</strong>（无氧铜翅片管/不锈钢，燃气 → 水的换热界面，承受1000°C+火焰 vs 冷水）。&nbsp;<strong>冷凝热交换器</strong>（冷凝机型独有，回收烟气潜热，不锈钢/特殊涂层防腐）。&nbsp;<strong>风机</strong>（强排式/强鼓式，直流变频风机，控制燃烧空气量）。&nbsp;<strong>水量伺服阀</strong>（步进电机调节水流量，恒温核心执行器）。&nbsp;<strong>旁通管/三通阀</strong>（解决关水再开的"水温过冲"问题）。</div>
+</div>
+<div class="arch-layer">
+  <div class="label">Layer 3 · 控制层 Control</div>
+  <div class="parts">主控MCU（32-bit ARM）、进水NTC温度传感器、出水NTC温度传感器、水流传感器（霍尔效应/涡轮流量计）、风机转速反馈（霍尔传感器）、燃气比例阀电流反馈、火焰检测（火焰离子探针/热电偶）、风压开关/传感器（防倒灌）、CO/CH₄泄漏传感器</div>
+</div>
+<div class="arch-layer">
+  <div class="label">Layer 4 · 结构层 Structural</div>
+  <div class="parts">外壳（镀锌钢板+粉末涂层）、燃烧室（陶瓷纤维隔热/不锈钢）、排烟管（同轴/双管，不锈钢/镀铝钢）、防冻加热器（北方必备）、泄压阀</div>
+</div>
+
+<h3>1.2 储水式电热水器架构</h3>
+
+<div class="arch-layer">
+  <div class="label">Layer 1 · 能源层 Energy</div>
+  <div class="parts"><strong>加热管</strong>（电阻式，1500–3000W，单管/双管接力加热）。&nbsp;<strong>镁棒/电子阳极</strong>（牺牲阳极保护内胆，防止电化学腐蚀）。</div>
+</div>
+<div class="arch-layer">
+  <div class="label">Layer 2 · 执行层 Actuation</div>
+  <div class="parts">加热管总成（含法兰盘+密封圈）、冷热水管路、泄压/安全阀、混水阀。</div>
+</div>
+<div class="arch-layer">
+  <div class="label">Layer 3 · 控制层 Control</div>
+  <div class="parts">温控器（机械式双金属片/电子NTC+MCU）、漏电保护器（防电墙/漏保插头+防电闸）、温度限制器（95°C机械式过热保护，最后一道防线）、干烧保护</div>
+</div>
+<div class="arch-layer">
+  <div class="label">Layer 4 · 结构层 Structural</div>
+  <div class="parts"><strong>内胆</strong>（搪瓷钢板/不锈钢/镀锌钢板，承受0.8MPa静压，GB要求12万次脉冲压力疲劳测试）。&nbsp;保温层（聚氨酯发泡 25–50mm厚，环戊烷/245fa）。&nbsp;外壳（镀锌钢板+PCM/VCM覆膜/ABS塑料）。</div>
+</div>
+
+<h3>能量流路径对比</h3>
+<div class="flow">
+  <span class="step">燃气 → 比例阀 → 燃烧器(火焰1000°C+)</span><span class="arrow">→</span>
+  <span class="step">主热交换器(铜翅片)</span><span class="arrow">→</span>
+  <span class="step">冷水→热水 ΔT=25–40°C</span><span class="arrow">→</span>
+  <span class="step">冷凝器(冷凝机型，回收潜热)</span><span class="arrow">→</span>
+  <span class="step">烟气排出</span>
+</div>
+<div class="flow" style="margin-top:8px;">
+  <span class="step">电网 AC → 漏保 → 加热管(2–3kW)</span><span class="arrow">→</span>
+  <span class="step">储水箱60L 升温 15→65°C (约2–3小时)</span><span class="arrow">→</span>
+  <span class="step">混水阀 → 恒温出水</span>
+</div>
+<div class="flow" style="margin-top:8px;">
+  <span class="step">电网 AC → 压缩机(热泵)</span><span class="arrow">→</span>
+  <span class="step">冷媒←→环境空气换热(蒸发器)</span><span class="arrow">→</span>
+  <span class="step">冷媒←→水箱换热(冷凝器/微通道)</span><span class="arrow">→</span>
+  <span class="step">储水箱升温 COP=3–4</span>
+</div>
+
+<!-- ─── 4. 制造模式分析 ─── -->
+<h2 id="sec-2">3. 核心部件工程分析</h2>
+
+<h3>2.1 Single Point of Failure (SPoF)</h3>
+
+<div class="card">
+  <h4>🔴 燃气热水器 — 热交换器 (第一SPoF)</h4>
+  <p><strong>为什么是它？</strong>热交换器是火焰和冷水之间的唯一换热界面。它同时承受火焰侧1000°C+的高温和水侧的压力腐蚀。翅片管焊接点是最薄弱的环节——一旦焊点穿孔漏水，水滴直接落到燃烧器上，可能导致熄火、燃气泄漏甚至爆燃。漏水也意味着整机报废（热交换器更换成本接近整机价格）。</p>
+  <table>
+    <tr><th>材质</th><th>无氧铜 (TU1/T2)</th><th>脱氧铜 (DHP)</th><th>不锈钢</th></tr>
+    <tr><td>导热系数</td><td>380 W/(m·K) — 最优</td><td>340 W/(m·K)</td><td>16 W/(m·K) — 差</td></tr>
+    <tr><td>耐腐蚀</td><td>中等 (酸性冷凝水腐蚀)</td><td>中等</td><td>优秀 (冷凝机型首选)</td></tr>
+    <tr><td>焊接工艺</td><td>无氧钎焊 / 浸焊</td><td>浸焊</td><td>激光焊接</td></tr>
+    <tr><td>设计寿命</td><td>8–12年</td><td>8–12年</td><td>12–15年</td></tr>
+    <tr><td>成本</td><td>较高 (铜价敏感)</td><td>中等</td><td>较高 (焊接成本高)</td></tr>
+    <tr><td>典型失效</td><td>焊缝穿孔渗漏、翅片氧化剥落</td><td>同左</td><td>焊接应力腐蚀开裂</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <h4>🔴 储水式电热水器 — 内胆 (第一SPoF)</h4>
+  <p><strong>为什么是它？</strong>内胆是承压容器，长期承受0.5–0.8MPa水压+65°C水温+电化学腐蚀三重应力。一旦内胆穿孔漏水，整机报废（无法修复）。内胆寿命=热水器寿命。搪瓷内胆的致命缺陷是搪瓷层的针孔/微裂纹——只要有一处露出钢板基体，该点就变成腐蚀的起点。</p>
+  <table>
+    <tr><th>内胆类型</th><th>搪瓷内胆 (金圭/蓝钻/钛金)</th><th>不锈钢内胆</th><th>镀锌内胆</th></tr>
+    <tr><td>材质</td><td>低碳钢板+搪瓷涂层(800–850°C烧结)</td><td>SUS304/316不锈钢板焊接</td><td>镀锌钢板</td></tr>
+    <tr><td>耐腐蚀</td><td>优秀(搪瓷完整时)，致命缺陷=针孔</td><td>良好(焊缝易腐蚀)</td><td>差(已淘汰)</td></tr>
+    <tr><td>附着力</td><td>关键工艺指标，脱瓷=内胆报废</td><td>无涂层问题</td><td>—</td></tr>
+    <tr><td>设计寿命</td><td>8–15年(依赖搪瓷质量+镁棒维护)</td><td>10–15年(依赖焊缝质量)</td><td>3–5年</td></tr>
+    <tr><td>典型失效</td><td>搪瓷针孔→点蚀穿孔→漏水</td><td>焊缝应力腐蚀→漏水</td><td>均匀腐蚀穿孔</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <h4>🟡 镁棒 — 消耗型保护件（储水式）</h4>
+  <p>镁棒是牺牲阳极，利用镁比铁更活泼的电化学特性，代替内胆钢板被腐蚀。镁棒是<strong>消耗品</strong>，寿命1–3年（取决于水质和用水量）。<strong>镁棒耗尽后，内胆钢板直接暴露在电化学腐蚀环境中，内胆寿命进入倒计时。</strong>这是储水式电热水器最被忽视的维护项。电子阳极棒（钛电极+外加电流）可以替代镁棒，不需要更换但增加了电子组件的故障点。</p>
+</div>
+
+<h3>2.2 核心部件性能等级</h3>
+
+<table>
+  <tr><th>部件</th><th>工业级/高端</th><th>消费级</th><th>成本优化型</th></tr>
+  <tr>
+    <td>燃气热交换器</td>
+    <td>无氧铜TU1（99.97% Cu）+ 浸焊工艺 + 防腐涂层（林内/能率旗舰）</td>
+    <td>脱氧铜DHP + 浸焊（主流国产品牌）</td>
+    <td>薄壁铜管（0.3mm以下），翅片密度低</td>
+  </tr>
+  <tr>
+    <td>电热水器内胆</td>
+    <td>优质钢板(宝钢/浦项) + 进口搪瓷粉(Ferro/Pemco) + 机器人自动涂搪 + 850°C精确烧结（A.O.史密斯金圭/海尔金刚）</td>
+    <td>国产钢板 + 国产搪瓷粉 + 机械臂涂搪</td>
+    <td>薄钢板 + 简易涂搪，针孔率高</td>
+  </tr>
+  <tr>
+    <td>燃气比例阀</td>
+    <td>SIT(意大利), Dungs(德国) — 闭环电流反馈, 精度±1%</td>
+    <td>国产优质比例阀（恒洁等），精度±3%</td>
+    <td>分段阀（只分大/中/小火，非真正比例）</td>
+  </tr>
+  <tr>
+    <td>风机 (燃气)</td>
+    <td>直流变频风机（无级调速，恒风量控制，低噪音）</td>
+    <td>直流风机（有限调速挡位）</td>
+    <td>交流定速风机（单速/双速）</td>
+  </tr>
+  <tr>
+    <td>加热管 (电热)</td>
+    <td>Incoloy 800/840合金（镍基合金，超长寿命）</td>
+    <td>Incoloy 800 + 搪瓷涂层</td>
+    <td>普通不锈钢（3年结垢烧毁）</td>
+  </tr>
+</table>
+
+<h3>2.3 BOM拆解 — 关键组件来源识别</h3>
+
+<div class="card">
+  <table>
+    <tr><th>组件</th><th>顶级供应商</th><th>搭载品牌</th></tr>
+    <tr><td>燃气热交换器</td><td>自研（林内、能率、A.O.史密斯）</td><td>林内、能率、A.O.史密斯</td></tr>
+    <tr><td>燃气比例阀</td><td>SIT (意大利), Dungs (德国)</td><td>林内、能率、博世、威能</td></tr>
+    <tr><td>直流变频风机</td><td>EBM-Papst (德国), Nidec (日本)</td><td>林内、能率高端系列</td></tr>
+    <tr><td>搪瓷内胆材料</td><td>Ferro (美国), Pemco (美国)</td><td>A.O.史密斯、海尔、美的</td></tr>
+    <tr><td>加热管</td><td>自研 (A.O.史密斯金圭加热棒)</td><td>A.O.史密斯、海尔、美的</td></tr>
+    <tr><td>热泵压缩机</td><td>美芝GMCC, 海立, 松下</td><td>海尔、美的、格力（空气能）</td></tr>
+  </table>
+</div>
+
+<!-- ─── 5. 技术路线对比 ─── -->
+<h2 id="sec-3">4. 制造模式分析</h2>
+
+<table>
+  <tr><th>品牌</th><th>制造模式</th><th>核心部件来源</th><th>控制系统</th><th>核心竞争力</th></tr>
+  <tr><td>林内 (Rinnai)</td><td>自研自产</td><td>自研热交换器+SIT比例阀+Nidec风机</td><td>自研</td><td>燃气具百年企业，热交换器浸焊工艺行业顶尖</td></tr>
+  <tr><td>能率 (Noritz)</td><td>自研自产</td><td>自研热交换器+SIT比例阀</td><td>自研</td><td>日本燃气具双雄之一，水量伺服器发明者</td></tr>
+  <tr><td>A.O.史密斯</td><td>自研自产</td><td>自研金圭内胆/热交换器</td><td>自研</td><td>内胆搪瓷技术全球领先，商用级设计下放家用</td></tr>
+  <tr><td>海尔/卡萨帝</td><td>自研+自产</td><td>自研内胆+自研热交换器+国产优质部件</td><td>自研</td><td>全品类覆盖，售后网络全国县级覆盖</td></tr>
+  <tr><td>美的/COLMO</td><td>自研+自产</td><td>美芝压缩机(空气能)+自研内胆</td><td>自研</td><td>空气能热泵技术领先（美芝压缩机）</td></tr>
+  <tr><td>万和/万家乐</td><td>自研+自产</td><td>自研热交换器+国产比例阀</td><td>自研</td><td>燃气具起家，性价比高，燃气产品线强于电热</td></tr>
+  <tr><td>小米/云米</td><td>ODM全外包</td><td>第三方</td><td>第三方方案</td><td>品牌+渠道+米家IoT</td></tr>
+</table>
+
+<div class="callout warn">
+  <strong>热水器选购的特殊性——安全优先级远超其他家电：</strong>冰箱坏了食物坏掉，洗衣机坏了衣服手洗，洗碗机坏了碗手洗。但<strong>燃气热水器的燃烧安全问题</strong>和<strong>电热水器的漏电问题</strong>是会出人命的。这就是为什么热水器行业存在强制性CCC认证和GB标准，也是为什么不能贪便宜买杂牌——便宜的不仅仅是材料和工艺，便宜的可能是安全冗余。ODM代工的热水器在安全测试上的投入和品控标准通常低于自研品牌。
+</div>
+
+<!-- ─── 6. 可靠性工程模型 ─── -->
+<h2 id="sec-4">5. 技术路线对比</h2>
+
+<h3>4.1 燃气式 vs 储水式电热 vs 即热式电热 vs 空气能热泵</h3>
+
+<table>
+  <tr><th>维度</th><th>燃气热水器</th><th>储水式电热水器</th><th>即热式电热水器</th><th>空气能热泵</th></tr>
+  <tr><td>原理</td><td>燃气燃烧→即时换热</td><td>电热管加热储水箱</td><td>大功率电热管→即时加热</td><td>逆卡诺循环→从空气搬热</td></tr>
+  <tr><td>功率/热负荷</td><td>20–40kW</td><td>1.5–3kW</td><td>6–12kW</td><td>压缩机0.8–1.5kW (等效3–6kW供热)</td></tr>
+  <tr><td>COP (能效比)</td><td>0.88–1.05 (冷凝机型)</td><td>0.98 (几乎是纯电阻热)</td><td>0.98</td><td>3.0–4.5 (碾压级优势)</td></tr>
+  <tr><td>热水供应</td><td><span class="tag tag-good">无限</span> 即开即热+持续出热</td><td><span class="tag tag-warn">有限</span> 60–80L水箱用完后需等待加热(1–3h)</td><td><span class="tag tag-good">无限</span> 但流量受限</td><td><span class="tag tag-good">大水箱</span> 200–300L</td></tr>
+  <tr><td>出水流量</td><td>10–20L/min (ΔT=25°C)</td><td>取决于水压，一般5–10L/min</td><td>2–6L/min (受入户电表限制)</td><td>5–10L/min (水箱出水)</td></tr>
+  <tr><td>水温稳定性</td><td><span class="tag tag-good">优</span> (水量伺服器+比例阀)</td><td><span class="tag tag-warn">中</span> (出水温度随水箱降温而变)</td><td><span class="tag tag-warn">中</span> (进水温度波动影响大)</td><td><span class="tag tag-good">优</span> (大水箱缓冲)</td></tr>
+  <tr><td>安装条件</td><td>需燃气管道+排烟管道(强排)</td><td>承重墙+16A插座+地线</td><td>6–10mm²专线+40–63A空开</td><td>室外机位+大水箱(200–300L)</td></tr>
+  <tr><td>空间占用</td><td>小 (厨房/阳台壁挂)</td><td>中 (浴室/厨房壁挂)</td><td>小</td><td>大 (室外机+室内水箱)</td></tr>
+  <tr><td>初装成本</td><td>1500–5000元</td><td>600–3000元</td><td>800–3000元 (+电改费)</td><td>4000–12000元</td></tr>
+  <tr><td>运行成本<br>(200L/天, ΔT=30°C)</td><td>约1.5–2.0元/天(天然气)</td><td>约2.5–3.5元/天(电)</td><td>约2.5–3.5元/天</td><td>约0.7–1.2元/天 (COP=3.5)</td></tr>
+  <tr><td>寿命</td><td>8–12年</td><td>8–15年(需换镁棒)</td><td>5–8年</td><td>10–15年</td></tr>
+  <tr><td>适用场景</td><td><span class="tag tag-a">首选</span> 有燃气管道的家庭</td><td>无燃气/燃气改造困难</td><td>厨房洗手等小流量场景</td><td>别墅/大户型/南方地区</td></tr>
+</table>
+
+<div class="callout good">
+  <strong>技术路线选择的核心逻辑：</strong>如果你家有天然气管道 → <strong>燃气热水器是综合最优解</strong>（无限热水+运行成本低+占地小）。无燃气 → 储水式电热水器（主流选择，便宜但需等待加热）。南方别墅/大户型 → 空气能热泵（COP碾压，但初装费高+占地大）。即热式电热水器 → 仅限小流量场景，中国家庭入户电表容量（40–63A）无法支撑全屋即热式热水。
+</div>
+
+<h3>4.2 燃气热水器 — 强排式 vs 平衡式 vs 冷凝式</h3>
+
+<div class="card">
+  <table>
+    <tr><th></th><th>强排式 (Forced Exhaust)</th><th>平衡式 (Balanced/Balanced Flue)</th><th>冷凝式 (Condensing)</th></tr>
+    <tr><td>燃烧空气来源</td><td>室内</td><td>室外 (同轴管吸入+排出)</td><td>室内 (同强排)</td></tr>
+    <tr><td>安装位置</td><td>厨房/阳台 (通风处)</td><td>浴室/密闭空间 (无需室内空气)</td><td>厨房/阳台 (通风处)</td></tr>
+    <tr><td>能效</td><td>88–92% (二级能效)</td><td>88–92%</td><td>96–105% (一级能效,利用烟气潜热)</td></tr>
+    <tr><td>冷凝水</td><td>无</td><td>无</td><td>有 (酸性，需排水管)</td></tr>
+    <tr><td>成本增量</td><td>—</td><td>+300–500元</td><td>+500–1500元</td></tr>
+    <tr><td>工程评级</td><td><span class="tag tag-a">主力</span> 大部分家庭首选</td><td><span class="tag tag-b">特需</span> 装在浴室时必备</td><td><span class="tag tag-a">节能首选</span> 长期使用回本</td></tr>
+  </table>
+</div>
+
+<h3>4.3 燃气热水器恒温技术 — 行业核心差异</h3>
+
+<div class="card">
+  <h4>恒温能力=燃气热水器的核心性能指标</h4>
+  <table>
+    <tr><th>恒温级别</th><th>技术方案</th><th>控温精度</th><th>多点用水稳定性</th><th>关水再开过冲</th></tr>
+    <tr><td>基础恒温</td><td>燃气比例阀 (燃气侧调节)，无水量伺服</td><td>±3–5°C</td><td><span class="tag tag-bad">差</span> 波动明显</td><td><span class="tag tag-bad">明显</span></td></tr>
+    <tr><td>水量伺服恒温</td><td>比例阀 + 水量伺服器 (水气双调)</td><td>±1–2°C</td><td><span class="tag tag-good">好</span> 能感知水流波动</td><td><span class="tag tag-good">较好</span></td></tr>
+    <tr><td>零冷水+恒温</td><td>比例阀 + 水量伺服 + 循环泵 + 旁通管</td><td>±0.5–1°C</td><td><span class="tag tag-good">最优</span> + 零秒出热水</td><td><span class="tag tag-good">微</span> (旁通管消除)</td></tr>
+    <tr><td>全预混+自适应</td><td>全预混燃烧 + 变频风机 + 燃气自适应(根据气源热值自动调参)</td><td>±0.5°C</td><td><span class="tag tag-good">最优</span></td><td><span class="tag tag-good">微</span></td></tr>
+  </table>
+</div>
+
+<div class="callout good">
+  <strong>水量伺服器是燃气热水器恒温的分水岭：</strong>只有燃气比例阀（只调燃气）的机型在多点用水时水温波动大，因为水流量变化后燃气调节跟不上。水量伺服器（水气双调）能同时感知和调节水流量+燃气量，是恒温性能的关键硬件。简单判断：<strong>标注"水量伺服器"的机型恒温性能一定比没标的强一个档次。</strong>
+</div>
+
+<!-- ─── 7. 用户体验建模 ─── -->
+<h2 id="sec-5">6. 可靠性工程模型</h2>
+
+<h3>5.1 浴盆曲线 (Bathtub Curve)</h3>
+
+<div class="bathtub">
+  <svg viewBox="0 0 600 180" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#fee2e2" stop-opacity="0.5"/>
+        <stop offset="25%" stop-color="#d1fae5" stop-opacity="0.5"/>
+        <stop offset="75%" stop-color="#d1fae5" stop-opacity="0.5"/>
+        <stop offset="100%" stop-color="#fee2e2" stop-opacity="0.5"/>
+      </linearGradient>
+    </defs>
+    <rect x="30" y="10" width="540" height="120" rx="8" fill="url(#bg)" stroke="#ddd" stroke-width="1"/>
+    <path d="M40,100 Q100,100 130,40 Q160,20 300,20 Q440,20 470,40 Q500,100 560,100"
+          fill="none" stroke="#dc3545" stroke-width="2.5" stroke-linecap="round"/>
+    <text x="90" y="140" text-anchor="middle" font-size="11" fill="#991b1b">早期失效期</text>
+    <text x="300" y="140" text-anchor="middle" font-size="11" fill="#065f46">稳定运行期</text>
+    <text x="510" y="140" text-anchor="middle" font-size="11" fill="#991b1b">磨损失效期</text>
+    <line x1="40" y1="155" x2="40" y2="165" stroke="#999" stroke-width="1"/>
+    <line x1="170" y1="155" x2="170" y2="165" stroke="#999" stroke-width="1"/>
+    <line x1="430" y1="155" x2="430" y2="165" stroke="#999" stroke-width="1"/>
+    <line x1="560" y1="155" x2="560" y2="165" stroke="#999" stroke-width="1"/>
+    <text x="40"  y="178" text-anchor="middle" font-size="10" fill="#999">0</text>
+    <text x="170" y="178" text-anchor="middle" font-size="10" fill="#999">1年</text>
+    <text x="430" y="178" text-anchor="middle" font-size="10" fill="#999">8年</text>
+    <text x="560" y="178" text-anchor="middle" font-size="10" fill="#999">12年+</text>
+  </svg>
+</div>
+
+<h3>5.2 故障模式与影响分析 (FMEA) — 燃气热水器</h3>
+
+<table>
+  <tr><th>故障模式</th><th>发生概率</th><th>影响程度</th><th>修复成本</th><th>风险等级</th></tr>
+  <tr><td>热交换器穿孔漏水</td><td>中 (5–10%)</td><td>致命 — 水滴落燃烧器，安全隐患+整机报废</td><td>800–2000元</td><td><span class="tag tag-bad">高</span></td></tr>
+  <tr><td>燃气比例阀故障 (卡滞/泄漏)</td><td>中低 (3–5%)</td><td>致命 — 不打火/燃气泄漏</td><td>500–1200元</td><td><span class="tag tag-bad">高</span></td></tr>
+  <tr><td>风机故障 (轴承/霍尔传感器)</td><td>中 (5–8%)</td><td>严重 — 排烟不畅→CO倒灌风险</td><td>300–800元</td><td><span class="tag tag-bad">高</span></td></tr>
+  <tr><td>点火器故障 (不打火)</td><td>中 (5–8%)</td><td>中等 — 无法点火使用</td><td>100–300元</td><td><span class="tag tag-warn">中</span></td></tr>
+  <tr><td>火焰检测探针故障</td><td>中 (5–10%)</td><td>中等 — 点火后熄火保护，无法持续燃烧</td><td>80–200元</td><td><span class="tag tag-warn">中</span></td></tr>
+  <tr><td>水流传感器故障</td><td>中低 (3–5%)</td><td>轻微 — 不启动/水温不准</td><td>80–200元</td><td><span class="tag tag-good">低</span></td></tr>
+</table>
+
+<h3>5.3 故障模式与影响分析 (FMEA) — 储水式电热水器</h3>
+
+<table>
+  <tr><th>故障模式</th><th>发生概率</th><th>影响程度</th><th>修复成本</th><th>风险等级</th></tr>
+  <tr><td>内胆穿孔漏水</td><td>中低 (3–5%)</td><td>致命 — 整机报废，无法修复</td><td>整机更换 600–3000元</td><td><span class="tag tag-bad">高</span></td></tr>
+  <tr><td>加热管烧毁/结垢</td><td>中高 (8–15%)</td><td>严重 — 不加热或加热极慢</td><td>200–500元</td><td><span class="tag tag-warn">中</span></td></tr>
+  <tr><td>镁棒耗尽</td><td>必然 (100%，1–3年寿命)</td><td>中等 — 耗尽后内胆加速腐蚀</td><td>50–150元(更换)</td><td><span class="tag tag-warn">中</span></td></tr>
+  <tr><td>漏电保护器故障</td><td>低 (1–2%)</td><td>致命 — 漏电后无保护</td><td>100–200元</td><td><span class="tag tag-bad">高</span></td></tr>
+  <tr><td>温控器/限温器故障</td><td>低 (2–4%)</td><td>严重 — 持续加热→超温→泄压阀动作</td><td>80–200元</td><td><span class="tag tag-warn">中</span></td></tr>
+</table>
+
+<h3>5.4 高风险部件总结</h3>
+
+<div class="cols">
+  <div class="card">
+    <h4>🔴 燃气热水器致命点</h4>
+    <ul>
+      <li>热交换器穿孔（漏水→安全隐患）</li>
+      <li>燃气比例阀失效（泄漏风险）</li>
+      <li>风机故障（CO倒灌风险）</li>
+      <li>排烟管安装不当（CO中毒头号原因）</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h4>🔴 电热水器致命点</h4>
+    <ul>
+      <li>内胆穿孔（整机报废）</li>
+      <li>漏电保护失效（触电风险）</li>
+      <li>接地不良（触电风险）</li>
+      <li>镁棒耗尽未更换（内胆加速腐蚀）</li>
+    </ul>
+  </div>
+</div>
+
+<div class="callout warn">
+  <strong>安全警告——这不是家电，这是特种设备：</strong>燃气热水器的CO中毒风险和电热水器的漏电风险是真实存在的生命安全隐患。GB标准规定了多项强制安全措施，但这些措施的前提是<strong>正确安装和专业维护</strong>。燃气热水器必须由持证人员安装，排烟管必须通向室外。电热水器必须可靠接地，必须使用漏电保护器。中国每年因热水器引发的事故中，90%以上与安装不当和使用超龄设备有关，而非产品本身。
+</div>
+
+<!-- ─── 8. 营销系统识别 ─── -->
+<h2 id="sec-6">7. 用户体验建模</h2>
+
+<div class="card">
+  <h3>体验权重排序 (按工程重要性)</h3>
+  <table>
+    <tr><th>#</th><th>维度</th><th>权重</th><th>热水器工程对应项</th></tr>
+    <tr><td>1</td><td>安全性</td><td>⭐⭐⭐⭐⭐</td><td>CO防泄漏/防倒灌、漏电保护、超温保护、火焰检测、接地可靠性——这是底线</td></tr>
+    <tr><td>2</td><td>水温稳定性</td><td>⭐⭐⭐⭐⭐</td><td>开关水无过冲、多点用水不波动、设定温度与实际出水一致（水量伺服器是核心硬件）</td></tr>
+    <tr><td>3</td><td>出水速度</td><td>⭐⭐⭐⭐</td><td>打开龙头到出热水的时间（零冷水/非零冷水差异极大，冬天放冷水=30秒焦虑）</td></tr>
+    <tr><td>4</td><td>热水供应持续性</td><td>⭐⭐⭐⭐</td><td>多人连续洗澡不会中途变冷水（燃气无限/电热有限）</td></tr>
+    <tr><td>5</td><td>噪音控制</td><td>⭐⭐⭐</td><td>燃烧噪音（全预混<强排）、风机噪音、机械共振</td></tr>
+    <tr><td>6</td><td>最小启动流量</td><td>⭐⭐⭐</td><td>老小区/高楼层水压偏低时能否正常启动（低水压启动能力）</td></tr>
+    <tr><td>7</td><td>能耗/费用</td><td>⭐⭐⭐</td><td>燃气费/电费，冷凝式/空气能热泵长期优势明显</td></tr>
+  </table>
+</div>
+
+<div class="callout">
+  <strong>关键洞察：</strong>热水器的核心体验只有两件事——<strong>安全和恒温</strong>。安全是底线（无需多言），恒温是用户体验的全部。用户说"这个热水器好用"翻译成工程语言就是：打开龙头水温稳定、关水再开不烫不凉、厨房洗碗时浴室洗澡水温不波动。这三个场景背后是一个完整的传感-控制-执行闭环系统，需要燃气比例阀+水量伺服器+MCU算法协同工作。便宜的机型省掉的不是壳子，是这个闭环里的关键传感器和执行器。
+</div>
+
+<!-- ─── 9. TCO成本模型 ─── -->
+<h2 id="sec-7">8. 营销系统识别</h2>
+
+<table>
+  <tr><th>功能/卖点</th><th>分类</th><th>工程评价</th></tr>
+  <tr><td>水量伺服器 (水气双调)</td><td><span class="tag tag-a">A类 — 真实技术提升</span></td><td>恒温核心硬件，解决多点用水和关水再开的水温波动。值得多付500–1000元</td></tr>
+  <tr><td>零冷水 (循环泵+回水管/H阀)</td><td><span class="tag tag-a">A类 — 真实技术提升</span></td><td>解决"冬天放冷水等30秒"的真实痛点。但需要预埋回水管或后期装H阀</td></tr>
+  <tr><td>全预混燃烧+自适应</td><td><span class="tag tag-a">A类 — 真实技术提升</span></td><td>燃烧效率+恒温性能双提升。林内旗舰技术</td></tr>
+  <tr><td>冷凝式 (一级能效)</td><td><span class="tag tag-a">A类 — 真实技术提升</span></td><td>回收烟气潜热，能效96–105%。差价在3–5年内从燃气费中收回</td></tr>
+  <tr><td>直流变频风机</td><td><span class="tag tag-a">A类 — 真实技术提升</span></td><td>降噪+恒风量控制+抗风压(高楼层防风倒灌)，比交流风机寿命长</td></tr>
+  <tr><td>电子镁棒/阳极</td><td><span class="tag tag-b">B类 — 体验增强</span></td><td>免更换（传统镁棒1–3年一换），但增加了电子故障点。每年记得换镁棒的用户很少，所以有价值</td></tr>
+  <tr><td>搪瓷内胆 (金圭/蓝钻/钛金)</td><td><span class="tag tag-a">A类(工艺) / B类(命名)</span></td><td>搪瓷工艺本身是刚需，但各家"金圭/金刚/钛金/蓝钻"等命名是营销差异化</td></tr>
+  <tr><td>APP/Wi-Fi远程控制</td><td><span class="tag tag-c">C类 — 营销功能</span></td><td>你多久需要远程调一次热水器温度？预约功能面板就可以做到</td></tr>
+  <tr><td>语音控制</td><td><span class="tag tag-c">C类 — 营销功能</span></td><td>"小X小X，把热水器调到42度"——你不如直接走到面板前按一下</td></tr>
+  <tr><td>大屏/彩屏</td><td><span class="tag tag-c">C类 — 营销功能</span></td><td>热水器装在阳台/厨房吊顶旁，你一年看几次屏幕？</td></tr>
+  <tr><td>磁化水/小分子水</td><td><span class="tag tag-c">C类 — 伪科学</span></td><td>没有任何工程依据。"磁化水护肤美容"纯属伪科学营销</td></tr>
+  <tr><td>AI记忆/智能学习</td><td><span class="tag tag-c">C类 — 营销功能</span></td><td>记住你上几次的用水温度=一个变量存储，不是AI。溢价200–500元</td></tr>
+</table>
+
+<div class="callout warn">
+  <strong>热水器行业最大的营销误区：</strong>各品牌的搪瓷内胆命名——"金圭内胆""金刚三层胆""蓝钻内胆""钛金内胆"——听起来像不同的技术，实则都是搪瓷内胆（低碳钢板+搪瓷涂层800°C+烧结）。核心差异在于<strong>钢板的来源和厚度、搪瓷粉的品牌和配方、涂搪工艺（机器人还是人工）、烧结温度控制</strong>——这些才真正决定内胆寿命。但这些信息品牌不会写在参数表上，只会用一个好听的名字包装。
+</div>
+
+<!-- ─── 10. 供应链与产业结构 ─── -->
+<h2 id="sec-8">9. TCO成本模型</h2>
+
+<div class="card">
+  <h3>案例对比：家庭日均用热水200L，ΔT=30°C</h3>
+
+  <table>
+    <tr><th>成本项</th><th>燃气热水器<br>强排式 3000元</th><th>燃气热水器<br>冷凝式 4500元</th><th>储水式电热水器<br>60L 1500元</th><th>空气能热泵<br>200L 8000元</th></tr>
+    <tr><td>采购成本</td><td>3,000</td><td>4,500</td><td>1,500</td><td>8,000</td></tr>
+    <tr><td>安装费</td><td>300 (含排烟管)</td><td>400 (含冷凝排水管)</td><td>200</td><td>800 (含管路连接)</td></tr>
+    <tr><td>10年能源费<br><span style="font-size:0.8rem">燃气 3.0元/m³ / 电 0.6元/度</span></td><td>热效率88% → 每天约0.92m³<br><strong>10年≈10,074元</strong></td><td>热效率100% → 每天约0.81m³<br><strong>10年≈8,870元</strong></td><td>COP 0.98 → 每天约5.8度<br><strong>10年≈12,702元</strong></td><td>COP 3.5 → 每天约1.6度<br><strong>10年≈3,504元</strong></td></tr>
+    <tr><td>维护成本</td><td>风机×1 + 水流传感器×1<br>≈ <strong>500</strong></td><td>风机×1<br>≈ <strong>300</strong></td><td>镁棒×5 + 加热管×1<br>≈ <strong>800</strong></td><td>10年几乎0维护<br>≈ <strong>200</strong></td></tr>
+    <tr style="font-weight:700; background:#f0fdf4;">
+      <td><strong>10年TCO</strong></td>
+      <td><strong>13,874元</strong></td>
+      <td><strong>14,070元</strong></td>
+      <td><strong>15,202元</strong></td>
+      <td><strong>12,504元</strong></td>
+    </tr>
+    <tr>
+      <td>年均</td><td>1,387元/年</td><td>1,407元/年</td><td>1,520元/年</td><td>1,250元/年</td>
+    </tr>
+  </table>
+</div>
+
+<div class="callout good">
+  <strong>TCO颠覆性结论：</strong><br><br>
+  <strong>①燃气 > 电热（长期）：</strong>储水式电热水器的采购成本最低（1500元），但10年能源费高达1.27万元，TCO反而比3000元的燃气热水器还高。这就是为什么"便宜的电器"实际上不便宜。<br><br>
+  <strong>②冷凝式燃气热水器的差价2–4年回本：</strong>冷凝式比强排式贵1500元，但每年省燃气费约120元，12–15年才回本——回本周期太长。冷凝式的价值更多在环保而非省钱。<br><br>
+  <strong>③空气能热泵是TCO王者：</strong>虽然初装费8000元，但10年能源费仅3504元（COP=3.5的碾压优势），10年TCO反而最低！但需要大水箱(200–300L)+室外机位，对安装条件要求最高。
+</div>
+
+<!-- ─── 11. 安装与安全 ─── -->
+<h2 id="sec-9">10. 供应链与产业结构</h2>
+
+<div class="card">
+  <h4>Tier 1 — 核心部件供应商</h4>
+  <table>
+    <tr><th>领域</th><th>全球头部</th><th>国内主力</th></tr>
+    <tr><td>燃气比例阀</td><td>SIT (意大利), Dungs (德国)</td><td>恒洁, 前锋</td></tr>
+    <tr><td>热交换器</td><td>林内/能率/A.O.史密斯 自研</td><td>万和/万家乐 自研</td></tr>
+    <tr><td>直流风机</td><td>EBM-Papst, Nidec</td><td>大洋电机, 卧龙</td></tr>
+    <tr><td>搪瓷粉 (内胆)</td><td>Ferro (美), Pemco (美)</td><td>国产搪瓷粉企业</td></tr>
+    <tr><td>加热管</td><td>Incoloy合金 (美Special Metals)</td><td>国产合金管</td></tr>
+    <tr><td>热泵压缩机</td><td>美芝GMCC, 海立, 松下, 丹佛斯</td><td>美芝, 海立 (国产领导者)</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <h4>Tier 2 — 系统集成商</h4>
+  <p>林内（日本+上海工厂）、能率（日本+上海工厂）、A.O.史密斯（美国技术+南京工厂）、海尔（青岛+全国多个基地）、美的（顺德+芜湖，全球最大热水器ODM之一）、万和/万家乐（顺德，燃气具之乡，全球燃气具ODM重镇）。</p>
+</div>
+
+<div class="card">
+  <h4>Tier 3 — 品牌/渠道</h4>
+  <p>小米/云米 — 燃气热水器由万和/万家乐系ODM代工，电热水器由美的/海尔系代工。品牌层叠加米家IoT。热水器作为安全敏感型设备，ODM品控的可靠性是一个需要持续关注的变量。</p>
+</div>
+
+<!-- ─── 12. 品牌工程评级 ─── -->
+<h2 id="sec-10">11. 安装与安全</h2>
+
+<div class="cols">
+  <div class="card">
+    <h4>燃气热水器 — 安装&安全要点</h4>
+    <ul>
+      <li><strong>排烟管必须通向室外：</strong>这是CO中毒的头号防线。禁止排入公共烟道（油烟机烟道），必须独立通向室外。穿墙处需密封处理</li>
+      <li><strong>不可安装在浴室：</strong>强排式燃气热水器不可装在浴室（消耗室内氧气）——必须装在厨房或阳台。平衡式（同轴进排气）可装在浴室</li>
+      <li><strong>燃气管道：</strong>必须使用不锈钢波纹管或镀锌钢管，橡胶管已禁用于燃气热水器。接口需气密性检测（肥皂水检漏）</li>
+      <li><strong>电源：</strong>需要220V插座（给风机和控制系统供电），不能与空调、微波炉共用回路</li>
+      <li><strong>通风：</strong>安装空间必须有足够的通风面积（≥0.06m²），保证燃烧空气充足</li>
+      <li><strong>高楼层：</strong>10层以上需选用带抗风压功能的高层专用机型（防止大风倒灌导致熄火）</li>
+      <li><strong>防冻：</strong>北方阳台安装需带防冻功能（气温<0°C时自动排水/加热）</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h4>储水式电热水器 — 安装&安全要点</h4>
+    <ul>
+      <li><strong>可靠接地：</strong>这是防触电的第一道防线。老旧小区无地线或地线接地不良=绝对禁止安装电热水器</li>
+      <li><strong>漏电保护器：</strong>必须使用漏电保护插头（≤10mA动作电流，≤0.1s动作时间）。这是防触电的第二道防线。每月按一次测试按钮验证有效性</li>
+      <li><strong>防电墙/防电闸：</strong>在水路进出水口增加绝缘段，即使漏电也通过水的电阻将漏电流限制在安全范围内（<5mA）。"防电墙"不是品牌营销，是有实际保护价值的工程设计</li>
+      <li><strong>承重墙安装：</strong>60L注水后重约80–90kg，必须使用膨胀螺栓固定在实心承重墙上</li>
+      <li><strong>泄压阀：</strong>进水口必须安装泄压安全阀（0.8MPa），水管加热膨胀时自动泄压</li>
+      <li><strong>镁棒更换：</strong>每1–2年更换一次镁棒（水质硬的地区缩短至8–12个月）。这是最低成本延长内胆寿命的方法</li>
+      <li><strong>超龄更换：</strong>国标建议8年更换，内胆搪瓷层老化+电器绝缘老化=风险累积</li>
+    </ul>
+  </div>
+</div>
+
+<div class="cols">
+  <div class="card">
+    <h4>零冷水 — 安装条件</h4>
+    <ul>
+      <li><strong>预埋回水管（最佳方案）：</strong>装修时预埋热水回水管形成循环回路，循环泵直接推动热水循环保温。这是零冷水的"正规"方案</li>
+      <li><strong>H阀方案（已装修补救）：</strong>在热水管最远端（如最远的洗手盆下）安装单向阀（H阀），借用冷水管做回水通路。缺点：冷水管可能出温水+影响净水器等不建议接温水的设备</li>
+      <li><strong>循环泵耗能：</strong>零冷水的循环泵需定时运行以保持管道内水温，日均多耗燃气0.1–0.2m³（约0.3–0.6元/天）</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h4>使用安全行为</h4>
+    <ul>
+      <li><strong>洗澡时不要完全依赖混水阀：</strong>设定热水器出水温度42°C直接淋浴，不要设70°C再混冷水——一旦冷水端失压，70°C热水瞬间烫伤</li>
+      <li><strong>燃气报警器：</strong>厨房安装CO+CH₄双气体报警器，花费100–300元，是生命安全的最后一道防线</li>
+      <li><strong>8年强制报废：</strong>GB 17905《家用燃气燃烧器具安全管理规则》规定燃气热水器判废年限为8年。超龄使用=热交换器腐蚀+阀门密封老化+电器绝缘退化=安全风险指数增长</li>
+    </ul>
+  </div>
+</div>
+
+<div class="callout warn">
+  <strong>热水器行业的核心秘密：安装质量比产品本身更重要。</strong>燃气热水器的CO事故中，约70%与排烟管安装不当有关（未通向室外、密封不严、排烟管被堵）。电热水器的触电事故中，绝大多数源于地线缺失或接地不良。一台3000元的热水器正确安装，比一台8000元的热水器安装不当安全得多。<strong>安装人员资质、排烟管路走向、电气接地可靠性——这些是选购热水器时就应该考虑的问题，而不是装完再想。</strong>
+</div>
+
+<!-- ─── 13. 购买决策系统 ─── -->
+<h2 id="sec-11">12. 品牌工程评级</h2>
+
+<table>
+  <tr><th>梯队</th><th>类型</th><th>品牌</th><th>核心特征</th></tr>
+  <tr>
+    <td><span class="tag tag-a">第一梯队</span></td>
+    <td>技术主导型</td>
+    <td>林内 (Rinnai)</td>
+    <td>燃气具百年企业，热交换器浸焊工艺行业顶尖，全预混燃烧，日系恒温标杆。3000–8000元</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-a">第一梯队</span></td>
+    <td>技术主导型</td>
+    <td>能率 (Noritz)</td>
+    <td>水量伺服器发明者，日本燃气双雄，控温精度领先。2500–6000元</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-a">第一梯队</span></td>
+    <td>技术主导型</td>
+    <td>A.O.史密斯</td>
+    <td>搪瓷内胆技术全球领先，商用级设计下放家用，电热水器标杆。2000–8000元</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-b">第二梯队</span></td>
+    <td>平衡型</td>
+    <td>海尔/卡萨帝</td>
+    <td>全品类（燃+电+空气能），自研核心部件，全国售后网络最强。1000–6000元</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-b">第二梯队</span></td>
+    <td>平衡型</td>
+    <td>美的/COLMO</td>
+    <td>空气能热泵技术领先（美芝压缩机），燃气+电热全品类。1000–8000元</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-b">第二梯队</span></td>
+    <td>平衡型</td>
+    <td>万和/万家乐</td>
+    <td>燃气具起家，燃气产品性价比高，自研热交换器。800–3500元</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-b">第二梯队</span></td>
+    <td>平衡型</td>
+    <td>威能 (Vaillant)、博世</td>
+    <td>德系技术，壁挂炉（采暖+热水两用）领域强势。5000–15000元</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-c">第三梯队</span></td>
+    <td>市场驱动型</td>
+    <td>小米/云米</td>
+    <td>ODM全外包（万和系/美的系），安全冗余和品控是核心关注点</td>
+  </tr>
+</table>
+
+<!-- ─── 14. 一句话结论 ─── -->
+<h2 id="sec-12">13. 购买决策系统</h2>
+
+<div class="flow" style="flex-direction: column; align-items: flex-start; gap: 16px;">
+  <div class="step" style="width: 100%;">
+    <strong>Step 1 — 确定能源类型 &amp; 安装条件</strong><br>
+    <span style="font-size:0.85rem;color:var(--color-muted)"><strong>有天然气管道→燃气热水器（首选）。</strong>无燃气但用电容量大→储水式电热水器。别墅/大户型+有室外机位→空气能热泵（TCO最低）。检查：燃气表容量（G2.5→最大20kW，G4→32kW）、电表容量（40A/63A）、排烟管出口、有无可靠地线。</span>
+  </div>
+  <div class="step" style="width: 100%;">
+    <strong>Step 2 — 确定容量 / 升数</strong><br>
+    <span style="font-size:0.85rem;color:var(--color-muted)">燃气热水器：13L(1卫) / 16L(2卫) / 20L+(大户型+浴缸)。储水式电热：40L(1人) / 60L(2–3人) / 80L(3–4人)。空气能：150L(2–3人) / 200L(3–5人) / 300L(5人+)。</span>
+  </div>
+  <div class="step" style="width: 100%;">
+    <strong>Step 3 — 确定关键技术配置</strong><br>
+    <span style="font-size:0.85rem;color:var(--color-muted)">燃气：水量伺服器(必备) &gt; 直流变频风机 &gt; 零冷水(有回水管首选) &gt; 冷凝式(长期回本)。电热：搪瓷内胆 &gt; 电子镁棒 &gt; 防电墙/防电闸 &gt; 双管加热(加热更快)。</span>
+  </div>
+  <div class="step" style="width: 100%;">
+    <strong>Step 4 — 过滤安全风险</strong><br>
+    <span style="font-size:0.85rem;color:var(--color-muted)">绝对避开：杂牌燃气热水器（比例阀/风机/热交换器的品控和材质不透明）、无3C认证产品。必须确认：排烟管安装方案、接地可靠性、漏电保护器（每月自检按钮）。</span>
+  </div>
+  <div class="step" style="width: 100%;">
+    <strong>Step 5 — 计算TCO（10年）</strong><br>
+    <span style="font-size:0.85rem;color:var(--color-muted)">燃气：采购价+10年燃气费≈大头。冷凝式差价大约需要12–15年回本（非经济决策）。电热：能源费是燃气的1.3倍，低价机TCO反而更高。空气能：初装最贵但10年TCO最低。</span>
+  </div>
+  <div class="step" style="width: 100%;">
+    <strong>Step 6 — 筛选品牌（最后一步）</strong><br>
+    <span style="font-size:0.85rem;color:var(--color-muted)">燃气首选：林内/能率（日系恒温标杆）。电热首选：A.O.史密斯（内胆技术领先）。全品类+售后：海尔/美的（全国县级覆盖）。性价比燃气：万和/万家乐（自研热交换器）。需要采暖+热水：威能/博世（壁挂炉）。</span>
+  </div>
+</div>
+
+<!-- ─── 14. 一句话结论 ─── -->
+<h2 id="sec-13">14. 一句话结论</h2>
+
+<div class="conclusion">
+  <h2>最终结论</h2>
+  <p>
+    热水器的本质是一台<strong>高功率密度的能量转换设备</strong>——燃气热水器是微型锅炉，电热水器是高压锅，空气能热泵是反向空调。核心价值由<strong>热交换器/内胆的材质与工艺、恒温控制系统（比例阀+水量伺服器+MCU算法）、安全保护系统（排烟/漏电/接地/CO检测）</strong>三要素决定。
+  </p>
+  <p>
+    <strong>有天然气首选燃气热水器（16L+水量伺服器+直流变频风机，3000–5000元），无限热水+低运行成本。</strong>无燃气选储水式电热水器（60L+搪瓷内胆+防电墙，1500–2500元）。空气能热泵是TCO王者但安装门槛最高。即热式电热水器仅适合小流量场景。
+  </p>
+  <p style="margin-bottom:0;">
+    <strong>记住三个"绝对不要"：</strong>绝对不要让非持证人员安装燃气热水器（排烟管是生命线），绝对不要在地线缺失的房屋安装电热水器，绝对不要继续使用超过8年的老旧热水器（安全冗余已耗尽）。<strong>记住三个"一定要"：</strong>一定要选水量伺服器（燃气机恒温的灵魂），一定要每年更换镁棒（电热水器内胆的守护神），一定要安装CO/CH₄报警器（100块钱买一条命）。
+  </p>
+</div>
+
+</main>
+
+<script>
+(function() {
+  const links = document.querySelectorAll('nav a[href^="#sec-"]');
+  const sections = [];
+  links.forEach(a => {
+    const el = document.getElementById(a.getAttribute('href').slice(1));
+    if (el) sections.push({el, a});
+  });
+  function update() {
+    const top = window.scrollY + 120;
+    let cur = sections[0];
+    for (const s of sections) {
+      if (s.el.offsetTop <= top) cur = s;
+    }
+    links.forEach(l => l.classList.remove('active'));
+    if (cur) cur.a.classList.add('active');
+  }
+  window.addEventListener('scroll', update, {passive: true});
+  update();
+})();
+</script>
+<script>
+(function() {
+  var links = document.querySelectorAll('nav a[href^="#sec-"]');
+  var sections = [];
+  links.forEach(function(a) {
+    var el = document.getElementById(a.getAttribute('href').slice(1));
+    if (el) sections.push({el: el, a: a});
+  });
+  function update() {
+    var top = window.scrollY + 120;
+    var cur = sections[0];
+    for (var i = 0; i < sections.length; i++) {
+      if (sections[i].el.offsetTop <= top) cur = sections[i];
+    }
+    links.forEach(function(l) { l.classList.remove('active'); });
+    if (cur) cur.a.classList.add('active');
+  }
+  window.addEventListener('scroll', update, {passive: true});
+  update();
+})();
+</script>
+</body>
+</html>

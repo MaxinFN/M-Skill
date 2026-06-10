@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>多用吸尘器工程分析报告 — Home Appliance Researcher</title>
+<style>
+  :root {
+    --nav-width: 260px;
+    --color-bg: #f8f9fa; --color-surface: #ffffff; --color-text: #212529;
+    --color-muted: #6c757d; --color-accent: #0d6efd; --color-warn: #dc3545;
+    --color-good: #198754; --color-border: #dee2e6;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; font-size: 15px; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans SC", sans-serif;
+    background: var(--color-bg); color: var(--color-text); line-height: 1.7; overflow-x: hidden;
+  }
+  nav {
+    position: fixed; top: 0; left: 0; width: var(--nav-width); height: 100vh;
+    background: #1a1d23; color: #ccc; overflow-y: auto; z-index: 100; padding: 24px 0;
+  }
+  nav .brand {
+    font-size: 1.1rem; font-weight: 700; color: #fff; padding: 0 20px 20px;
+    border-bottom: 1px solid #333; margin-bottom: 12px; letter-spacing: 0.5px;
+  }
+  nav .brand span { display: block; font-size: 0.7rem; color: #888; font-weight: 400; margin-top: 2px; }
+  nav a {
+    display: block; padding: 7px 20px; color: #aaa; text-decoration: none;
+    font-size: 0.85rem; transition: color 0.15s, background 0.15s;
+    border-left: 3px solid transparent;
+  }
+  nav a:hover, nav a.active { color: #fff; background: rgba(255,255,255,0.05); }
+  main { margin-left: var(--nav-width); padding: 48px 60px; width: calc(100vw - var(--nav-width)); }
+  h1 { font-size: 2rem; margin-bottom: 8px; }
+  h2 { font-size: 1.4rem; margin: 48px 0 16px; padding-bottom: 8px; border-bottom: 2px solid var(--color-border); }
+  h3 { font-size: 1.15rem; margin: 32px 0 12px; color: #333; }
+  h4 { font-size: 1rem; margin: 20px 0 8px; }
+  p { margin-bottom: 12px; }
+  .subtitle { color: var(--color-muted); font-size: 0.95rem; margin-bottom: 40px; }
+  .card {
+    background: var(--color-surface); border: 1px solid var(--color-border);
+    border-radius: 8px; padding: 20px 24px; margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .card h3 { margin-top: 0; }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+  @media (max-width: 768px) { .cols { grid-template-columns: 1fr; } }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0 20px; font-size: 0.9rem; }
+  th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--color-border); }
+  th { background: #f1f3f5; font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--color-muted); }
+  tr:hover td { background: #fafbfc; }
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.3px; }
+  .tag-a{background:#d1fae5;color:#065f46}.tag-b{background:#fef3c7;color:#92400e}.tag-c{background:#fee2e2;color:#991b1b}
+  .tag-good{background:#d1fae5;color:#065f46}.tag-warn{background:#fef3c7;color:#92400e}.tag-bad{background:#fee2e2;color:#991b1b}
+  .callout {
+    border-left: 4px solid var(--color-accent); background: #e7f1ff;
+    padding: 14px 18px; border-radius: 0 6px 6px 0; margin: 16px 0; font-size: 0.9rem;
+  }
+  .callout.warn{border-left-color:var(--color-warn);background:#fff5f5}
+  .callout.good{border-left-color:var(--color-good);background:#f0fdf4}
+  .arch-layer {
+    border: 1px solid var(--color-border); border-radius: 6px; padding: 16px;
+    margin-bottom: 12px; background: #fafbfc;
+  }
+  .arch-layer .label {
+    font-weight: 700; font-size: 0.8rem; color: var(--color-muted);
+    text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;
+  }
+  .arch-layer .parts { font-size: 0.9rem; }
+  .flow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 12px 0; font-size: 0.9rem; }
+  .flow .step {
+    background: var(--color-surface); border: 1px solid var(--color-border);
+    border-radius: 6px; padding: 6px 14px;
+  }
+  .flow .arrow { color: var(--color-muted); font-weight: 700; }
+  .bathtub {
+    background: #f9fafb; border: 1px dashed var(--color-border); border-radius: 8px;
+    padding: 40px 24px; text-align: center; margin: 16px 0;
+  }
+  .bathtub svg { max-width: 600px; }
+  .conclusion {
+    background: linear-gradient(135deg, #1a1d23, #2d3139); color: #e0e0e0;
+    border-radius: 10px; padding: 28px 32px; margin-top: 48px;
+  }
+  .conclusion h2 { color: #fff; border-bottom-color: #444; font-size: 1.2rem; }
+  .conclusion p { font-size: 1.05rem; line-height: 1.8; }
+  @media print { nav { display: none; } main { margin-left: 0; padding: 20px; width: auto; } }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="brand">
+    吸尘器工程分析
+    <span>Home Appliance Researcher v3.0</span>
+  </div>
+  <a href="#sec-0">1. 系统本质</a>
+  <a href="#sec-1">2. 系统架构拆解</a>
+  <a href="#sec-2">3. 核心部件工程分析</a>
+  <a href="#sec-3">4. 制造模式分析</a>
+  <a href="#sec-4">5. 技术路线对比</a>
+  <a href="#sec-5">6. 可靠性工程模型</a>
+  <a href="#sec-6">7. 用户体验建模</a>
+  <a href="#sec-7">8. 营销系统识别</a>
+  <a href="#sec-8">9. TCO成本模型</a>
+  <a href="#sec-9">10. 供应链与产业结构</a>
+  <a href="#sec-10">11. 使用与维护影响</a>
+  <a href="#sec-11">12. 品牌工程评级</a>
+  <a href="#sec-12">13. 购买决策系统</a>
+  <a href="#sec-13" style="color: #60a5fa;">14. 一句话结论</a>
+</nav>
+
+<main>
+
+<h1>多用吸尘器工程分析报告</h1>
+<p class="subtitle">
+  分析框架：物理原理 &gt; 系统架构 &gt; 核心部件 &gt; 制造质量 &gt; 可靠性 &gt; 使用体验 &gt; 成本结构 &gt; 品牌 &gt; 功能营销<br>
+  分析日期：2026-06-09 &nbsp;|&nbsp; 分析对象：家用多用吸尘器（卧式/立式/手持/杆式；有绳/无线；尘袋式/旋风式/水过滤式）
+</p>
+
+<!-- ─── 1. 系统本质 ─── -->
+<h2 id="sec-0">1. 系统本质</h2>
+
+<div class="card">
+  <h3>吸尘器是什么？</h3>
+  <table>
+    <tr><th style="width:120px">系统类型</th><td>气力输送与颗粒分离系统（Pneumatic Conveying &amp; Particle Separation System）——通过电机驱动离心风扇在封闭流道中产生负压，将含尘空气从吸入口高速吸入，经管道输送至分离腔，利用离心力（旋风分离）、惯性碰撞（挡板）、过滤拦截（滤网/尘袋/HEPA）等多级机制将固体颗粒从气流中分离并收集，最后将洁净空气排出。本质上是一个<strong>"高速气流生成→颗粒夹带输送→气固分离→洁净排气"</strong>的连续流系统。</td></tr>
+    <tr><th>输入</th><td>电能（220V AC 600–2200W（有绳）/ 18–36V DC 100–500W（无绳），锂电池 2000–5000mAh）+ 含尘空气（灰尘/毛发/纤维/螨虫/细砂/液态污渍（干湿两用））+ 耗材（尘袋/滤网/HEPA）</td></tr>
+    <tr><th>输出</th><td>洁净排气（经HEPA过滤后PM0.3 <0.05%穿透）+ 收集在尘杯/尘袋中的固体垃圾 + 噪音（65–85dBA）+ 热量（电机铜损铁损+气流摩擦热+电池内阻热）+ 废气（有刷电机碳刷磨损产生的碳粉微粒）</td></tr>
+    <tr><th>能量形式</th><td>电能 → 电机轴功率（串激电机效率 45–55%，BLDC电机效率 75–90%）→ 离心风扇动能 → 气流静压（吸尘器在堵塞/满尘袋工况下需要高静压维持气流，典型静压 15–25kPa）和气流动能（气流速度 20–40m/s，风量 20–60L/s）→ 气流夹带颗粒（颗粒在气流中受曳力加速）→ 分离腔中颗粒与气流分离（旋风分离/过滤）→ 洁净气流经电机冷却绕组后排出（有绳串激电机需要气流散热）。整个系统的能量最终全部耗散为：① 流道摩擦损失（沿程+局部阻力）；② 分离过程的不可逆损失；③ 电机内部损耗；④ 排出气流的动能损失。</td></tr>
+    <tr><th>核心物理原理</th><td><strong>1. 离心风扇与吸力生成：</strong>电机驱动离心叶轮高速旋转（30,000–125,000 RPM）→ 叶片对空气做功→ 空气获得动能和压力能→ 在叶轮入口形成低压区（负压）→ 外界大气压将含尘空气推入吸入口。吸尘器的"吸力"本质上是<strong>大气压与叶轮入口静压的压差</strong>——这是一个被动的物理过程（不是吸尘器"主动吸"，而是<strong>大气压"推"空气进入真空区</strong>）。AW（Air Watts，空气瓦特）= 风量(CFM或L/s) × 静压(inH₂O或kPa) ÷ 8.5，是衡量吸尘器实际清洁能力的综合指标。<br><strong>2. 旋风分离（Cyclone）：</strong>含尘空气以切线方向高速进入圆锥形旋风腔→ 气流在锥体内形成高速旋转（外旋涡下行+内旋涡上行）→ 颗粒受到离心力F=mv²/r作用被甩向壁面→ 颗粒沿壁面滑落至集尘杯底部→ 洁净空气从中心上升管排出。离心加速度可达1000–3000g。分离效率取决于：<strong>旋风锥几何参数（锥角/直径/入口截面积）、气流入口速度、颗粒粒径和密度</strong>。多锥旋风（Multi-Cyclone）将气流分入多个小型旋风锥——小直径锥体产生更高的离心力→对细颗粒（<5μm）的分离效率显著高于单一大锥体。<br><strong>3. 过滤分离（尘袋/滤网）：</strong>含尘气流穿过纤维层→颗粒通过拦截/碰撞/扩散机制被捕获在纤维上→洁净气流通过。尘袋的过滤效率随使用逐渐<strong>提高</strong>（表层形成粉尘滤饼→更细的颗粒也能被拦截），但<strong>气流阻力也同步增大</strong>→吸力随尘袋填满而衰减。这是尘袋式吸尘器的核心矛盾——过滤效率和气流阻力是共生的。<br><strong>4. 电机冷却气流：</strong>串激电机（有绳吸尘器）的设计利用<strong>排出气流冷却电机绕组</strong>——经过分离/过滤后的"洁净"空气流经电机内部带走铜损和铁损产生的热量。这意味着如果过滤失效（细颗粒穿透），<strong>颗粒会进入电机内部磨损换向器和轴承</strong>，加速电机报废。</td></tr>
+  </table>
+</div>
+
+<div class="callout">
+  <strong>工程视角的关键认知：</strong>吸尘器是所有家电中<strong>"使用行为对性能和寿命影响最大"</strong>的品类——因为它的核心功能（颗粒分离）与使用行为（吸入什么、尘杯/尘袋多满、滤网多脏、清理频率）存在强耦合。一台¥5000的Dyson如果从不清理滤网和旋风锥→3个月后吸力可能不如一台刚清理过的¥500吸尘器。吸尘器的"吸力衰减"不是故障——它是<strong>分离系统逐渐被堵塞</strong>的过程。理解吸尘器的核心就是理解：<strong>如何让气流持续通过一个不断积累脏物的系统而不被堵塞</strong>。
+</div>
+
+<!-- ─── 2. 系统架构拆解 ─── -->
+<h2 id="sec-1">2. 系统架构拆解</h2>
+
+<h3>2.1 无绳杆式旋风吸尘器（当前主流）</h3>
+
+<div class="arch-layer">
+  <div class="label">Layer 1 · 能源层 Energy</div>
+  <div class="parts"><strong>BLDC电机</strong>（直流无刷电机，转速80,000–125,000RPM，功率100–500W，转子+定子+Hall传感器/FOC驱动。电机功率密度极高——Dyson DDM数字马达体积<200cm³却可输出>500W轴功率。电机需要轴承支撑：高端用陶瓷球轴承，耐高温+高转速+可承受轴向推力载荷，寿命更长）<br>
+  <strong>锂电池组</strong>（多节18650/21700锂离子电芯串联，标称电压18–36V，容量2000–5000mAh（≈40–180Wh），放电倍率5–10C。典型7×18650（25.2V/2500mAh=63Wh）可支持强力模式6–10分钟或标准模式20–40分钟）<br>
+  <strong>充电器/电源管理</strong>（外置AC-DC适配器 + 内置BMS电池管理（过充/过放/过温/短路保护 + 电芯均衡） + 充电管理IC）</div>
+</div>
+<div class="arch-layer">
+  <div class="label">Layer 2 · 执行层 Actuation（气流生成 + 吸头搅动 + 分离）</div>
+  <div class="parts"><strong>电机-风扇总成：</strong>BLDC转子直接驱动<strong>离心叶轮</strong>（铝合金/塑料，双面/单面叶片，直径40–70mm）→ 叶轮在涡壳中以80,000+RPM旋转→ 在吸入端生成15–25kPa负压→ 大气压推动气流进入。电机+叶轮+涡壳+导流罩构成一个完整的气动单元——<strong>电机-风扇总成</strong>。总成的气动效率（电→气动功率转化率）是决定吸尘器吸力和续航的核心。<br>
+  <strong>吸头（地板刷）：</strong>电动滚刷（BLDC微型电机独立驱动滚刷旋转 2000–4000RPM）→ 滚刷上的刷毛/刮条搅动地毯纤维和硬地板→ 将嵌入的灰尘/毛发松动→ 气流将其吸入。滚刷需要处理<strong>毛发缠绕</strong>——这是吸尘器使用中第一痛点。反缠绕设计（锥形滚刷/锯齿刮条/V形刷毛排列）是真工程技术。<br>
+  <strong>多锥旋风分离系统：</strong>吸尘器的<strong>核心工程部件</strong>——含尘气流→ 一级旋风（大直径，分离>100μm粗颗粒/毛发）→ 气流经进气歧管分配进入 <strong>8–15个并联的小型旋风锥</strong>（Φ15–25mm，离心力可达2000–3000g）→ 细颗粒（PM2.5–100μm）被分离→ 微尘穿过旋风锥中心管继续→ <strong>前置电机滤网</strong>（金属网/海绵/无纺布，拦截剩余<1%的微尘，<strong>保护电机</strong>）→ 洁净气流穿过电机内部→ <strong>后置HEPA排气滤网</strong>（H11/H13，确保排出空气的洁净度）→ 排出。<br>
+  <strong>尘杯总成：</strong>透明塑料尘杯（0.3–1.0L）+ 底部释放门（一键倒灰——设计质量直接影响倒灰是否扬尘二次污染）。</div>
+</div>
+<div class="arch-layer">
+  <div class="label">Layer 3 · 控制层 Control</div>
+  <div class="parts"><strong>FOC电机驱动板</strong>（MCU运行磁场定向控制算法→6个MOSFET控制三相PWM→精确控制BLDC转子位置和转矩。无传感器FOC通过反电动势检测转子位置）<br>
+  <strong>系统MCU</strong>→ 功率模式选择（节能/标准/强力/自动）+ 电池电量管理 + 过流/过温保护。<br>
+  <strong>传感器组：</strong>① <strong>压差传感器/尘满检测</strong>（检测气流通道的静压变化→判断尘杯满/滤网堵→提示清理。高端型号如Dyson V15使用<strong>压电式颗粒传感器</strong>——检测颗粒撞击产生的压电脉冲→计算颗粒数量和粒径分布→LCD实时显示吸入颗粒的尺寸分布）；② 滚刷堵转检测（滚刷电机电流异常→毛发缠绕堵塞→停机保护并提示）；③ NTC温度传感器×2（电池温度+电机温度）；④ 电池电量计（库仑计）<br>
+  <strong>显示屏</strong>（LCD/OLED——显示电池剩余时间（分钟级精度）、当前模式、滤网寿命、堵塞提醒）</div>
+</div>
+<div class="arch-layer">
+  <div class="label">Layer 4 · 结构层 Structural</div>
+  <div class="parts"><strong>主体结构</strong>（工程塑料——ABS/PC/PP，需要承受跌落冲击（>1m跌落）和日常磕碰）。<strong>杆体</strong>（铝合金伸缩杆，内藏导线连接吸头和主机）。<strong>密封系统</strong>（尘杯密封圈、滤网密封圈、各连接处的硅胶/TPE密封——任何一个密封失效→气流旁路→吸力直接下降）。<strong>充电壁挂架</strong>（兼具收纳+充电功能——吸尘器回位即充电）。<strong>附件系统</strong>（缝隙吸嘴/除螨刷/软毛刷/弯折转接头——多用的"多"主要来自附件而非主机本身）。</div>
+</div>
+
+<h3>2.2 有绳卧式尘袋吸尘器（传统方案）</h3>
+
+<div class="arch-layer">
+  <div class="label">关键架构差异</div>
+  <div class="parts"><strong>电机：</strong>串激电机（有刷交流电机，1000–2200W，30,000–40,000RPM）——通过碳刷+换向器实现转子电流切换。与BLDC相比：功率更大（可达到2kW+→吸力上限更高）、但效率低（<55%）、寿命受碳刷磨损限制（500–1000h=3–8年典型家庭使用）、碳刷产生的碳粉颗粒部分排放到空气中。<strong>分离方式：</strong>尘袋（纸袋/无纺布袋/多层复合袋）替代旋风系统。尘袋本身就是<strong>过滤介质+垃圾容器</strong>——含尘空气穿过尘袋，颗粒被截留。尘袋的过滤效率随使用逐渐提高（尘饼效应），但气流阻力也同步增大——吸力随尘袋填满而逐渐衰减。满尘袋更换（扔掉旧袋→装新袋），无倒灰扬尘问题。<strong>电源：</strong>220V交流市电直接供电——无限续航，但受电线长度限制（5–12m）和移动范围受限。</div>
+</div>
+
+<h3>2.3 能量-气流路径</h3>
+
+<div class="flow">
+  <span class="step">吸头（滚刷搅动+空气进入）</span><span class="arrow">→</span>
+  <span class="step">杆体/软管（输送）</span><span class="arrow">→</span>
+  <span class="step">一级旋风（粗分离>100μm）</span><span class="arrow">→</span>
+  <span class="step">多锥旋风组（细分离>5μm）</span><span class="arrow">→</span>
+  <span class="step">前置滤网（保护电机，拦截<1%残余）</span><span class="arrow">→</span>
+  <span class="step">电机内部（冷却绕组）</span><span class="arrow">→</span>
+  <span class="step">后置HEPA（终端净化排气）</span><span class="arrow">→</span>
+  <span class="step">洁净空气排出</span>
+</div>
+
+<!-- ─── 3. 核心部件工程分析 ─── -->
+<h2 id="sec-2">3. 核心部件工程分析</h2>
+
+<h3>3.1 Single Point of Failure（SPoF）</h3>
+
+<table>
+  <tr><th>部件</th><th>为何是SPoF</th><th>失效模式</th><th>寿命区间</th><th>修复可行性</th></tr>
+  <tr>
+    <td><strong>电机-风扇总成</strong></td>
+    <td>电机停转=无气流=吸力为零=整机失效。电机-风扇是吸尘器唯一的能量转换器（电→气动功率），且是系统中转速最高（>80,000RPM）、受力最大的部件</td>
+    <td><strong>轴承失效</strong>（高速+轴向推力→轴承滚道疲劳剥落/保持架碎裂→噪音剧增→卡死）；<strong>转子永磁体退磁</strong>（高温>150°C+时间→钕铁硼磁体退磁→电机转矩下降）；<strong>Hall传感器故障</strong>→FOC失去转子位置→电机堵转；<strong>碳刷磨尽</strong>（有刷电机独有→换向器烧毁）</td>
+    <td>优质BLDC（Dyson/日本Nidec）：8–12年<br>国产BLDC：3–6年<br>串激有刷：3–8年（碳刷寿命主导）</td>
+    <td>可更换电机-风扇总成（¥400–1500），但高端品牌（Dyson）的电机总成通常不外售→需要返厂或报废</td>
+  </tr>
+  <tr>
+    <td><strong>锂电池组</strong></td>
+    <td>电池完全失效→无绳机变砖（无法开机）。电池容量严重衰减→续航从30分钟降至5分钟→用户无法忍受→换电池或换整机</td>
+    <td><strong>容量衰减</strong>（锂离子电池的日历老化+循环老化——500次充放循环后容量下降到70–80%，3–5年日历老化约15–25%）；<strong>单节电芯失效</strong>（1节18650内短路/断路→整组电压异常→BMS锁死保护→整组报废）；<strong>BMS故障</strong></td>
+    <td>3–5年（容量衰减至70%）<br>5–8年（容量衰减至50%）</td>
+    <td>可更换电池组（¥200–600），但原厂电池组价格高。第三方兼容电池质量参差不齐（电芯等级/保护电路可靠性）</td>
+  </tr>
+  <tr>
+    <td><strong>旋风分离系统（密封）</strong></td>
+    <td>尘杯/旋风锥密封圈失效→气流旁路→空气绕过旋风锥直接进入电机→①分离效率大幅下降→细颗粒直接冲击前置滤网→滤网快速堵塞→吸力衰减；②颗粒进入电机→电机磨损加速</td>
+    <td>硅胶密封圈老化（弹性丧失→永久变形→密封失效）；尘杯卡扣/铰链磨损→关闭不严</td>
+    <td>密封圈：3–6年<br>尘杯结构：5–10年</td>
+    <td>可更换密封圈（¥20–50），但部分型号密封圈集成在尘杯上不可单独更换→需换整个尘杯总成（¥200–500）</td>
+  </tr>
+  <tr>
+    <td><strong>滤网（前置+后置HEPA）</strong></td>
+    <td>滤网堵塞→气流阻力剧增→风量下降→吸力下降→清洁效果降低。后置HEPA破损→PM2.5/PM0.3直接排出到室内→二次污染</td>
+    <td>不可逆堵塞（细颗粒嵌入纤维层，水洗或拍打无法完全恢复→气流阻力永久增大）；物理破损（水洗揉搓/硬物刮伤→纤维撕裂→小孔→颗粒穿透）</td>
+    <td>前置滤网：6–12月（需定期清洗/拍打/更换）<br>后置HEPA：1–2年（不可水洗，只能更换）</td>
+    <td>可更换滤网（前置¥30–80，后置HEPA ¥60–150），消耗品</td>
+  </tr>
+  <tr>
+    <td><strong>滚刷电机+传动</strong></td>
+    <td>滚刷停转→纯靠吸力清洁硬地板（效果大打折扣，特别是地毯）</td>
+    <td>毛发缠绕→滚刷轴承/电机轴缠绕→阻力增大→电机过流保护停机或烧毁；传动皮带断裂（皮带驱动式滚刷）</td>
+    <td>滚刷电机：3–8年<br>皮带：1–3年</td>
+    <td>可更换滚刷总成（¥100–300）或单独更换皮带（¥10–30）</td>
+  </tr>
+</table>
+
+<div class="callout warn">
+  <strong>SPoF结论：</strong>无绳吸尘器有两个<strong>确定的、不可逆的</strong>寿命瓶颈——① <strong>锂电池容量衰减</strong>（3–5年后续航降至无法忍受的水平）；② <strong>电机高速轴承磨损</strong>（8–12年后噪音和振动不可接受）。这两个瓶颈决定了无绳吸尘器的<strong>有效寿命通常为5–8年</strong>（与手机/笔记本类似，属于"消费电子级"寿命周期），远短于有绳吸尘器（10–20年，因为无电池、电机功率更大工作温度更宽松）。买无绳=接受更短的产品寿命换取使用的便利性。这就是为什么无绳吸尘器的<strong>电池可更换设计</strong>是决定长期使用价值的关键工程特征。
+</div>
+
+<h3>3.2 核心部件性能等级</h3>
+
+<table>
+  <tr><th>部件</th><th>高端/专业级</th><th>中端</th><th>入门/低成本</th></tr>
+  <tr>
+    <td><strong>电机</strong></td>
+    <td>Dyson DDM / Nidec高速BLDC，>125,000RPM，陶瓷球轴承，FOC正弦驱动，>90%效率</td>
+    <td>国产高速BLDC，80,000–100,000RPM，混合轴承，FOC方波驱动</td>
+    <td>国产标准BLDC，<60,000RPM，含油轴承，方波驱动</td>
+  </tr>
+  <tr>
+    <td><strong>电池</strong></td>
+    <td>Samsung/LG/Panasonic 21700原厂A品电芯，可拆卸更换，BMS带精确库仑计+主动均衡</td>
+    <td>国产亿纬/力神 18650/21700 A品电芯，可拆卸，BMS标准保护</td>
+    <td>国产B品/拆机电芯，不可拆卸（内置式），被动均衡或无均衡</td>
+  </tr>
+  <tr>
+    <td><strong>旋风系统</strong></td>
+    <td>12–15锥并联，锥体空气动力学优化（CFD设计），离心力>2500g，PM2.5分离效率>99%</td>
+    <td>8–10锥，锥体标准化设计，分离效率>95%</td>
+    <td>4–6锥或大单锥，分离效率<90%（大量细颗粒冲击前置滤网→频繁清洗/更换滤网）</td>
+  </tr>
+  <tr>
+    <td><strong>滚刷</strong></td>
+    <td>独立BLDC电机直驱滚刷，反缠绕锥形刷体+V形刷毛+锯齿刮条</td>
+    <td>独立电机（有刷/无刷），标准圆柱滚刷</td>
+    <td>无独立电机（纯吸力驱动涡轮滚刷），缠绕严重</td>
+  </tr>
+  <tr>
+    <td><strong>密封</strong></td>
+    <td>全流程硅胶/TPE密封圈+卡扣过盈配合，旁路泄漏<0.5%</td>
+    <td>关键节点密封圈，旁路泄漏<2%</td>
+    <td>简单海绵密封/无密封，旁路泄漏>5%</td>
+  </tr>
+  <tr>
+    <td><strong>HEPA</strong></td>
+    <td>H13级，PTFE覆膜（防粘灰+可水洗），≥0.3μm穿透<0.05%</td>
+    <td>H11/H12级，PP+PET复合，不可水洗</td>
+    <td>H10/E11级或无HEPA（仅海绵出口滤网）</td>
+  </tr>
+</table>
+
+<h3>3.3 BOM（Bill of Materials）拆解 — 无绳杆式吸尘器</h3>
+
+<table>
+  <tr><th>子系统</th><th>入门无绳 ¥800</th><th>中端无绳 ¥2500</th><th>高端无绳 ¥5000</th></tr>
+  <tr><td>电机-风扇总成</td><td>国产BLDC 60kRPM ¥80</td><td>国产高速BLDC 100kRPM ¥180</td><td>Dyson DDM/Nidec 125kRPM ¥450</td></tr>
+  <tr><td>电池组（含BMS）</td><td>6×18650 2000mAh B品 ¥80</td><td>7×21700 3000mAh A品 ¥180</td><td>7×21700 4000mAh LG/Samsung ¥300</td></tr>
+  <tr><td>旋风分离总成</td><td>6锥+简易密封 ¥50</td><td>10锥+硅胶密封 ¥120</td><td>15锥+CFD优化+全密封 ¥250</td></tr>
+  <tr><td>前置+HEPA滤网</td><td>海绵+H10 ¥15</td><td>无纺布+H12 ¥35</td><td>PTFE覆膜+H13 ¥70</td></tr>
+  <tr><td>电动滚刷+电机</td><td>有刷电机涡轮滚刷 ¥40</td><td>独立BLDC滚刷 ¥80</td><td>独立BLDC+反缠绕设计 ¥150</td></tr>
+  <tr><td>控制板(FOC+MCU)</td><td>方波驱动+LED ¥30</td><td>FOC驱动+LCD ¥60</td><td>FOC+传感器+OLED ¥120</td></tr>
+  <tr><td>杆体+主体结构</td><td>铁管+ABS ¥60</td><td>铝杆+ABS/PC ¥100</td><td>铝杆+增强PC+橡胶包覆 ¥180</td></tr>
+  <tr><td>充电座/附件</td><td>简易挂架+2吸头 ¥30</td><td>壁挂充电架+4吸头 ¥60</td><td>立式充电座+6吸头 ¥120</td></tr>
+  <tr><td>包装/电源适配器</td><td>¥20</td><td>¥35</td><td>¥50</td></tr>
+  <tr><th>BOM合计</th><th>≈¥405</th><th>≈¥850</th><th>≈¥1,690</th></tr>
+  <tr><th>零售价</th><th>¥600–1000</th><th>¥2000–3000</th><th>¥4000–6000</th></tr>
+  <tr><th>电机+电池占BOM%</th><th>40%</th><th>42%</th><th>44%</th></tr>
+</table>
+
+<div class="callout">
+  <strong>BOM关键发现：</strong>电机+电池组是无绳吸尘器BOM的第一大支出（40–44%），且两者的成本占比随产品升级而上升（高端机的电机和电池成本更高）。旋风锥系统的成本差异主要来自<strong>锥体数量+密封质量</strong>。入门与中端之间旋风系统成本差2.4倍，中端与高端之间差2.1倍——旋风系统的设计和制造精度是区分"吸力持久性"的核心硬件差异。但BOM占比（约28%）不支持"¥5000的Dyson比¥2500的国产好一倍"的说法——后者的BOM约¥850，前者¥1690，<strong>差值¥840中相当部分是品牌溢价+设计+认证+渠道利润</strong>。
+</div>
+
+<!-- ─── 4. 制造模式分析 ─── -->
+<h2 id="sec-3">4. 制造模式分析</h2>
+
+<div class="cols">
+<div class="card">
+  <h3>制造模式概览</h3>
+  <table>
+    <tr><th>模式</th><th>代表品牌</th><th>特征</th></tr>
+    <tr><td><strong>自研核心+自产</strong></td><td>Dyson（英国/新加坡/马来西亚/菲律宾）</td><td>自研数字马达(DDM)+自研旋风系统+自研气动设计+自产。电机和旋风锥的专利壁垒极高</td></tr>
+    <tr><td><strong>自研整机+外购电机/电池</strong></td><td>Miele（德国）、Shark（美国）、Tineco添可（中国）</td><td>自研整机设计/气动/旋风系统，电机和电池外购精选供应商</td></tr>
+    <tr><td><strong>ODM+品牌</strong></td><td>小米/米家、追觅Dreame（已转向自研）、小狗</td><td>苏州/深圳吸尘器ODM厂提供全套方案，品牌方提供外观/软件/渠道</td></tr>
+    <tr><td><strong>白牌/低价</strong></td><td>各电商杂牌</td><td>公模外壳+通用电机+标准电池组，无气动优化</td></tr>
+  </table>
+</div>
+<div class="card">
+  <h3>核心能力自主度判断</h3>
+  <table>
+    <tr><th>能力</th><th>自研可控</th><th>外购依赖</th></tr>
+    <tr><td>电机</td><td>Dyson（DDM自研自产）</td><td>绝大多数品牌外购Nidec/国产电机</td></tr>
+    <tr><td>旋风系统</td><td>Dyson/Miele/Shark/Tineco（自研气动设计+专利）</td><td>ODM品牌使用公模旋风</td></tr>
+    <tr><td>电池</td><td>无——100%外购电芯（Samsung/LG/Panasonic/国产）</td><td>所有品牌自行Pack组装或外购成品电池组</td></tr>
+    <tr><td>控制/FOC</td><td>Dyson/Tineco（自研FOC算法）</td><td>ODM品牌使用通用FOC驱动方案</td></tr>
+    <tr><td>滚刷</td><td>Dyson/Shark（自研反缠绕设计+独立电机）</td><td>低端品牌使用通用滚刷</td></tr>
+  </table>
+</div>
+</div>
+
+<div class="callout">
+  <strong>产业真相：</strong>全球吸尘器产业分为两个世界——<strong>Dyson的世界和其他所有人的世界</strong>。Dyson在数字马达和旋风分离技术上拥有超过20年的专利积累，其DDM数字马达的功率密度（>2.5kW/kg）和转速（>125,000RPM）长期领先竞品。但近年来国产高速BLDC电机（追觅/添可/小狗）进步极快——100,000RPM级别已经达到Dyson 3–5年前的水平。<strong>在¥2000–3000价位的国产无绳吸尘器，电机和旋风分离系统的工程水平已经与同价位Dyson（V8/V10级别）相当</strong>。Dyson当前的竞争优势主要在：① 125,000RPM+的数字马达（性能天花板更高）；② 压电式颗粒传感器和LCD显示（用户体验创新）；③ 品牌光环。
+</div>
+
+<!-- ─── 5. 技术路线对比 ─── -->
+<h2 id="sec-4">5. 技术路线对比</h2>
+
+<table>
+  <tr><th>维度</th><th>无绳杆式<br>（BLDC+锂电池+旋风）</th><th>有绳卧式<br>（串激电机+尘袋）</th><th>有绳卧式<br>（串激电机+旋风）</th><th>干湿两用<br>（水过滤式）</th></tr>
+  <tr><td><strong>核心原理</strong></td><td>电池供电BLDC高速电机+多锥旋风分离+HEPA</td><td>220V AC串激电机+尘袋过滤（纸袋/无纺布袋）</td><td>220V AC串激电机+多锥旋风分离</td><td>220V AC串激电机+水作为过滤介质（含尘空气穿过水层→颗粒被水捕获）</td></tr>
+  <tr><td><strong>吸力(AW)</strong></td><td>100–280 AW<br>（受电池放电能力限制）</td><td><strong>300–800 AW</strong><br>（无功率限制）</td><td>300–600 AW</td><td>200–400 AW</td></tr>
+  <tr><td><strong>续航</strong></td><td>6–60分钟（取决于模式和电池容量）。<strong>电池是最大限制</strong></td><td>无限（有线）</td><td>无限（有线）</td><td>无限（有线）</td></tr>
+  <tr><td><strong>吸力持久性</strong></td><td><strong>优秀</strong>——旋风分离使>99%颗粒不接触滤网→滤网堵塞慢→吸力衰减慢</td><td><strong>衰减</strong>——尘袋越满→气流阻力越大→吸力逐渐下降</td><td><strong>优秀</strong>——同无绳旋风原理，但电机的绝对吸力更大</td><td><strong>较稳定</strong>——水过滤的阻力较稳定，但水脏后需要更换</td></tr>
+  <tr><td><strong>便利性</strong></td><td><strong>极高</strong>——拿起即用，无绳自由，轻松清理高处/车内。轻便(1.5–3.5kg)</td><td>低——拖着机身走，换房间需要换插座，软管+长杆操作笨重。重(5–10kg)</td><td>低——同左</td><td>极低——机身最重(8–12kg)，水桶需要加清水+倒污水，最麻烦</td></tr>
+  <tr><td><strong>垃圾处理</strong></td><td>一键倒灰（可能有扬尘），尘杯可水洗</td><td><strong>最干净</strong>——满袋直接扔（密封丢弃），手不接触灰尘。适合过敏人群</td><td>一键倒灰（同无绳），尘杯可水洗</td><td>倒污水桶（最脏——水和灰尘混合成泥浆）</td></tr>
+  <tr><td><strong>噪音</strong></td><td>70–80dBA（BLDC高频噪音+高速气流噪音）</td><td>75–85dBA（串激电机噪音大）</td><td>75–85dBA</td><td>75–85dBA</td></tr>
+  <tr><td><strong>重量</strong></td><td>1.5–3.5kg（手持操作）</td><td>5–10kg（机身在拖行，手持部分1–2kg）</td><td>5–10kg</td><td>8–12kg（加水后更重）</td></tr>
+  <tr><td><strong>维护</strong></td><td>定期清洗滤网+清理滚刷毛发+倒灰。电池3–5年衰退</td><td>换尘袋（1–3月/次）+ 换电机碳刷（5–8年/次）</td><td>同无绳，但无电池衰退问题</td><td>每用后倒污水+清洗水桶+晾干（防霉）</td></tr>
+  <tr><td><strong>滤芯耗材</strong></td><td>前置滤网 ¥30–80/0.5–1年<br>HEPA ¥60–150/1–2年</td><td>尘袋 ¥10–30/个×4–12个/年<br>HEPA ¥60–120/1–2年</td><td>同无绳</td><td>无滤芯（水本身就是过滤介质），但水桶密封圈老化需更换</td></tr>
+  <tr><td><strong>寿命预期</strong></td><td>5–8年（电池衰退+电机轴承）</td><td><strong>10–20年</strong>（结构简单+电机功率充裕+无电池）</td><td>10–15年</td><td>8–12年</td></tr>
+  <tr><td><strong>适用场景</strong></td><td>日常快速清洁全屋,硬地板+地毯通用，轻便至上</td><td>深层清洁，大面积地毯，宠物家庭，需要最强吸力+最干净垃圾处理</td><td>深层清洁，不需要买尘袋的用户</td><td>干湿混合清洁，地下室/车库/花园等有液体的场景</td></tr>
+  <tr><td><strong>价格区间</strong></td><td>¥800–6000</td><td>¥600–4000</td><td>¥800–5000</td><td>¥500–2500</td></tr>
+</table>
+
+<div class="callout good">
+  <strong>技术路线结论：</strong>① <strong>无绳杆式</strong>是90%家庭的<strong>最佳主吸尘器</strong>——它用1/3的吸力换取了10倍的便利性，而"愿意随时拿起就用"的便利性=更高的清洁频率=更干净的居住环境。便利性驱动使用频率，使用频率>单次清洁效率；② <strong>有绳卧式尘袋</strong>是<strong>追求极致清洁效果+最低垃圾处理扬尘</strong>的用户的终极选择——特别适合大面积地毯、宠物掉毛严重、对灰尘过敏的家庭。它笨重，但在需要它的场景中无可替代；③ <strong>水过滤</strong>是利基方案——仅在需要干湿两用的特定场景有价值。日常家庭使用太麻烦（每次用后倒污水+清洗+晾干）；④ <strong>不推荐有绳卧式+旋风组合</strong>——它同时失去了无绳的便利性和尘袋的干净垃圾处理。
+</div>
+
+<!-- ─── 6. 可靠性工程模型 ─── -->
+<h2 id="sec-5">6. 可靠性工程模型</h2>
+
+<h3>6.1 浴盆曲线（Bathtub Curve）</h3>
+
+<div class="bathtub">
+  <svg viewBox="0 0 600 200" width="100%" height="auto">
+    <defs>
+      <linearGradient id="fade" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#dc3545" stop-opacity="0.12"/>
+        <stop offset="100%" stop-color="#dc3545" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+    <line x1="50" y1="160" x2="560" y2="160" stroke="#aaa" stroke-width="1"/>
+    <line x1="50" y1="20" x2="50" y2="160" stroke="#aaa" stroke-width="1"/>
+    <text x="300" y="190" font-size="10" fill="#888" text-anchor="middle">使用时间</text>
+    <text x="15" y="95" font-size="10" fill="#888" text-anchor="middle" transform="rotate(-90, 15, 95)">失效率</text>
+    <path d="M50,118 C108,132 148,108 200,42 C220,28 260,18 300,22 C340,26 380,32 420,52 C460,72 500,100 525,122 L560,128"
+          fill="none" stroke="#dc3545" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M50,118 C108,132 148,108 200,42 C220,28 260,18 300,22 C340,26 380,32 420,52 C460,72 500,100 525,122 L560,128 L560,160 L50,160 Z"
+          fill="url(#fade)"/>
+    <text x="130" y="82" font-size="10" fill="#dc3545" text-anchor="middle">早期失效期<br/><tspan font-size="8">（DOA/密封不良/电池故障/异响）</tspan></text>
+    <text x="310" y="38" font-size="10" fill="#198754" text-anchor="middle">稳定期 · 偶发失效（需定期维护滤网/滚刷）</text>
+    <text x="490" y="72" font-size="10" fill="#dc3545" text-anchor="middle">损耗失效期<br/><tspan font-size="8">（电池衰退/电机轴承/密封老化/碳刷耗尽）</tspan></text>
+    <line x1="195" y1="145" x2="195" y2="160" stroke="#888" stroke-width="0.5" stroke-dasharray="4,3"/>
+    <text x="195" y="172" font-size="8" fill="#888" text-anchor="middle">0–6月</text>
+    <line x1="420" y1="145" x2="420" y2="160" stroke="#888" stroke-width="0.5" stroke-dasharray="4,3"/>
+    <text x="420" y="172" font-size="8" fill="#888" text-anchor="middle">3–5年(无绳)<br>8–12年(有绳)</text>
+  </svg>
+</div>
+
+<h3>6.2 故障模式与影响分析（FMEA）</h3>
+
+<table>
+  <tr><th>故障模式</th><th>发生率</th><th>影响</th><th>可探测性</th><th>修复成本</th><th>RPN</th></tr>
+  <tr>
+    <td>电池容量严重衰减</td>
+    <td><span class="tag tag-bad">确定发生（3–5年）</span></td>
+    <td>续航从30分钟→5–10分钟→无法完成全屋清洁</td>
+    <td>高（续航明显缩短）</td>
+    <td>中（换原厂电池¥300–600，第三方¥150–300）</td>
+    <td><strong>高</strong></td>
+  </tr>
+  <tr>
+    <td>电机轴承噪音/卡死</td>
+    <td><span class="tag tag-warn">中（5–10年）</span></td>
+    <td>噪音从80dBA飙升到90dBA+→不可忍受→停转</td>
+    <td>高（噪音逐步增大）</td>
+    <td>高（换电机总成¥400–1500→接近残值）</td>
+    <td><strong>高</strong></td>
+  </tr>
+  <tr>
+    <td>滤网堵塞/不更换</td>
+    <td><span class="tag tag-bad">极高（6–18月）</span></td>
+    <td>吸力显著下降→清洁效果变差→电机散热变差→过热→加速电机老化</td>
+    <td>中（吸力衰减是渐进的→用户可能习惯"越来越没劲"的吸尘器而不自知）</td>
+    <td>低（换滤网¥30–150→但多数用户<strong>拖延更换</strong>直至吸力无法忍受）</td>
+    <td><strong>高</strong></td>
+  </tr>
+  <tr>
+    <td>密封圈老化漏气</td>
+    <td><span class="tag tag-warn">中（3–6年）</span></td>
+    <td>分离效率下降→细颗粒逃逸→滤网快速堵塞+电机进灰</td>
+    <td>极低（密封圈在内部不可见，漏气也无直接信号）</td>
+    <td>中（换密封圈或尘杯总成¥50–300）</td>
+    <td><strong>中</strong></td>
+  </tr>
+  <tr>
+    <td>滚刷缠绕堵转</td>
+    <td><span class="tag tag-bad">极高（每次使用都可能发生——取决于头发/宠物毛发量）</span></td>
+    <td>滚刷停转→清洁效果下降</td>
+    <td>高（滚刷不转直接可见）</td>
+    <td>极低（用剪刀/刀片清理缠绕毛发即可恢复——5分钟DIY）</td>
+    <td><strong>低</strong></td>
+  </tr>
+  <tr>
+    <td>碳刷耗尽（有刷电机）</td>
+    <td><span class="tag tag-warn">确定发生（500–1000h→3–8年）</span></td>
+    <td>电机抖动→火花→换向器烧毁→停转</td>
+    <td>中（电机运转声音变化+碳刷磨损指示器）</td>
+    <td>低（换碳刷¥20–50+30分钟DIY）</td>
+    <td><strong>低</strong></td>
+  </tr>
+  <tr>
+    <td>充电触点/接口氧化</td>
+    <td><span class="tag tag-warn">低（3–6年）</span></td>
+    <td>接触不良→无法充电→电池耗尽</td>
+    <td>高（充电失败提示）</td>
+    <td>极低（清洁触点+酒精擦拭→恢复）</td>
+    <td><strong>低</strong></td>
+  </tr>
+</table>
+
+<div class="callout warn">
+  <strong>可靠性核心洞察：</strong>无绳吸尘器的可靠性模型与<strong>智能手机高度相似</strong>——① <strong>电池衰减是确定的、可预测的</strong>（3–5年），这是所有锂离子电池的物理规律；② <strong>维护行为对"吸力下降低于感知阈值"的影响极大</strong>——多数用户不是在吸尘器"坏了"的时候换新，而是在"吸力弱到懒得用"的时候换新。而"吸力弱到懒得用"往往不是电机或电池的问题，而是<strong>滤网堵塞+密封漏气+旋风锥积灰</strong>这些维护可解决的问题；③ 有绳吸尘器的可靠性远超无绳——无电池+低转速电机+更宽松的散热条件=10–20年的可用寿命。在可靠性上，<strong>有绳 >> 无绳</strong>。
+</div>
+
+<!-- ─── 7. 用户体验建模 ─── -->
+<h2 id="sec-6">7. 用户体验建模</h2>
+
+<h3>7.1 体验维度权重排序</h3>
+
+<table>
+  <tr><th>优先级</th><th>维度</th><th>权重</th><th>工程解释</th></tr>
+  <tr><td>1</td><td><strong>便利性（拿起即用的能力）</strong></td><td>30%</td><td>这是<strong>决定吸尘器使用频率</strong>的第一因素——如果每次使用需要从储藏室拖出卧式机身→解开缠绕的电线→找到附近插座→插电→使用→拔电→缠线→推回储藏室，这个7步操作链条会让你把"吸尘"推迟到"肉眼可见的脏"才做。而无绳杆式=从充电架上取下→按键→使用→挂回——3步。<strong>便利性驱动使用频率，使用频率决定清洁效果。</strong>这就是为什么无绳吸尘器能占领市场——不是因为吸力更强，而是因为它<strong>让"每天随手吸一下"成为可能</strong>。</td></tr>
+  <tr><td>2</td><td><strong>吸力持久性（使用中吸力的保持能力）</strong></td><td>20%</td><td>吸尘器的"标称吸力"是<strong>新机、空尘杯、干净滤网</strong>条件下的数据——你永远不会在这个状态下使用超过5分钟。真正重要的是<strong>在使用10分钟后、尘杯半满、滤网已有薄灰覆盖的状态下，吸力还剩多少</strong>。多锥旋风分离的工程价值就在于此——它让>99%的颗粒不接触滤网→吸力衰减极慢。而尘袋式/无旋风系统的吸尘器在使用10分钟后吸力可能已经下降了20–30%。</td></tr>
+  <tr><td>3</td><td><strong>倒灰体验</strong></td><td>15%</td><td>这是吸尘器使用链条中<strong>最令人不快的环节</strong>——打开尘杯→灰尘和碎屑可能洒落/扬尘→吸入肺里或落在刚清洁干净的地面上。尘袋式的"密封丢弃"是倒灰体验的黄金标准。一键倒灰+防扬尘设计（Dyson的point-and-shoot机制）是旋风式的优化方向。水过滤的倒污水是最差的倒灰体验。</td></tr>
+  <tr><td>4</td><td><strong>滚刷毛发缠绕处理</strong></td><td>12%</td><td>如果你有长发家庭成员或宠物——这是你与吸尘器<strong>互动最频繁的维护动作</strong>。每次使用后花3分钟用剪刀清理滚刷上的毛发是持续的体验摩擦。反缠绕滚刷设计的价值被严重低估——它节省的不是"一次性的5分钟"，而是<strong>每次使用后的3分钟×365次/年=18小时/年</strong>。</td></tr>
+  <tr><td>5</td><td><strong>续航（无绳）</strong></td><td>10%</td><td>强力模式续航<10分钟=无法完成全屋清洁=需要规划清洁顺序（"先卧室后客厅，如果电池撑得到的话"）——这种"续航焦虑"是真实的使用体验摩擦。标准模式≥30分钟是80–120m²住宅的及格线。</td></tr>
+  <tr><td>6</td><td><strong>噪音</strong></td><td>8%</td><td>70–85dBA——吸尘器是短时间使用的高噪音设备（每次10–30分钟），相对于新风/净化器那种24h持续低噪音，噪音容忍度更高。但80dBA+持续20分钟仍然是不舒服的体验。</td></tr>
+  <tr><td>7</td><td><strong>重量/操控性</strong></td><td>5%</td><td>杆式吸尘器的重心位置（电池位置/电机位置/尘杯位置）决定了手腕的负担。机身>3kg+重心偏前（尘杯在顶部前侧）→手腕扭矩大→举高清理高处时更累。</td></tr>
+</table>
+
+<h3>7.2 使用频率与便利性的正向反馈循环</h3>
+
+<div class="card">
+  <p style="text-align:center;font-size:1rem;line-height:2.2">
+    <strong>高便利性（无绳杆式）</strong><br>
+    → 愿意随手拿起使用（每天/每两天一次）<br>
+    → 地面保持更干净（灰尘不累积）<br>
+    → 每次清洁所需时间更短（5–10分钟 vs 20–30分钟）<br>
+    → 使用吸尘器不再是"任务"而是"习惯"<br>
+    → <strong>正向反馈：干净的家→心情好→更愿意保持</strong>
+  </p>
+  <p style="text-align:center;font-size:0.85rem;color:var(--color-muted);margin-top:4px">这是无绳吸尘器征服市场的<strong>根本原因</strong>——不是技术的绝对优势，而是<strong>行为改变的杠杆效应</strong>。</p>
+</div>
+
+<!-- ─── 8. 营销系统识别 ─── -->
+<h2 id="sec-7">8. 营销系统识别</h2>
+
+<table>
+  <tr><th>类别</th><th>技术/功能</th><th>工程判断</th><th>识别依据</th></tr>
+  <tr>
+    <td><span class="tag tag-a">A·真实技术</span></td>
+    <td>多锥旋风分离</td>
+    <td>真实的颗粒分离技术——多锥旋风利用离心力原理实现>99%的颗粒（>0.3μm）在进入滤网前被分离→吸力持久性革命性提升。Dyson的专利多锥旋风阵列和国产的多锥系统都基于同样的物理原理</td>
+    <td>离心力分离是成熟物理原理，分离效率可通过气溶胶测试标准验证</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-a">A·真实技术</span></td>
+    <td>高速BLDC数字马达</td>
+    <td>真实的技术——125,000RPM+、>500W轴功率、<200cm³体积的电机是精密机电工程的成果。电机功率密度（kW/kg和kW/L）是真实的技术竞争指标</td>
+    <td>电机转速/功率/效率可独立测试验证</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-a">A·真实技术</span></td>
+    <td>压电式颗粒传感器+计数</td>
+    <td>真实的传感技术——Dyson V15的压电传感器能检测颗粒撞击并分类计数。这提供了<strong>清洁效果的实时反馈</strong>——让用户看到"吸了多少灰尘"，从而知道"什么时候地板已经干净了"。这是体验增强的真实技术</td>
+    <td>压电效应是物理事实，颗粒计数的准确性可对照标准气溶胶验证</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-a">A·真实技术</span></td>
+    <td>反缠绕滚刷设计</td>
+    <td>真实的机械设计——锥形刷体+V形刷毛+锯齿刮条的组合确实能显著减少毛发缠绕（降低70–90%的缠绕量）。这不是营销噱头，是真实的用户体验改善</td>
+    <td>可通过标准毛发测试（一定数量的标准毛发吸入后滚刷上的缠绕量）量化验证</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-a">A·真实技术</span></td>
+    <td>FOC矢量控制</td>
+    <td>真实的电机驱动技术——磁场定向控制比传统方波驱动更高效（>90% vs 80–85%）、更安静（正弦波电流=无换向转矩脉动）、更平稳</td>
+    <td>FOC是成熟的电机控制算法，效率/噪音优势可测量</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-b">B·体验增强</span></td>
+    <td>LCD/OLED实时显示（颗粒计数/剩余时间）</td>
+    <td>真实的体验增强——显示剩余续航分钟数（vs简单的3格电量）让用户能更好地规划清洁节奏。显示颗粒计数让清洁有"成就感"（看到数字下降=地板已干净）</td>
+    <td>显示信息真实存在且对用户行为有影响</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-b">B·体验增强</span></td>
+    <td>可拆卸/可更换电池</td>
+    <td>真实的长期使用价值——3–5年电池衰减后，可更换电池=吸尘器可以继续使用第二个5年。不可拆卸电池=整机在电池衰减后报废（或需要返厂更换）。<strong>这是一个长期用户利益vs品牌利润的设计选择</strong></td>
+    <td>可拆卸设计是机械结构事实，直接影响产品的有效寿命</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-b">B·体验增强</span></td>
+    <td>折叠/弯折杆</td>
+    <td>清理床底/沙发底不需要弯腰——对腰不好的用户是真实的改善</td>
+    <td>机械结构真实，对特定用户群体有明确体验价值</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-c">C·营销功能</span></td>
+    <td>"AW"和"Pa"的数字游戏</td>
+    <td><strong>吸力数字大战是吸尘器营销的核心战场</strong>——各品牌用AW（空气瓦特）、Pa（吸入口负压）、W（电机功率）等不同单位在不同测试条件下宣传"吸力"。问题是：① AW在吸尘器全寿命中使用条件下并非常数（滤网脏=AW下降）；② 不同品牌的AW测试方法不统一→不可严格横向对比；③ 吸力超过某个阈值后对实际清洁效果的提升曲线进入<strong>平坦区</strong>——150AW vs 200AW的日常使用差异远小于营销暗示</td>
+    <td>AW不是一个标准化的行业统一测试标准（各品牌测试条件不同），且AW不能替代实际地板清洁测试</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-c">C·营销功能</span></td>
+    <td>"全屋净化系统""整屋HEPA过滤"</td>
+    <td>吸尘器的排气HEPA只能过滤<strong>已经通过吸尘器的空气</strong>——它的"净化"范围是吸尘器正在清理的那一小块区域。把它包装成"全屋净化"暗示它可以替代空气净化器——这是虚假关联。吸尘器搅动地面时会扬起已经沉降的微尘→这些扬起的灰尘中的一部分会<strong>离开吸尘器的吸入气流范围</strong>→悬浮在室内空气中→需要通过空气净化器或通风来清除</td>
+    <td>吸尘器排气HEPA≠室内空气净化器。两者气流覆盖范围差3–4个数量级</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-c">C·营销功能</span></td>
+    <td>"除螨99.9%"</td>
+    <td>吸尘器+除螨吸头确实能从床褥/沙发中吸出螨虫和螨虫排泄物（这是真实效果）。但"99.9%"的数字通常是在<strong>实验室一小块测试布料</strong>上反复吸除10–20次后的结果——与实际使用中一次性推过的除螨效率差异巨大。更重要的是：<strong>吸出的螨虫是通过HEPA过滤的，但螨虫排泄物（过敏原蛋白）可能足够小到穿透HEPA后排回空气中</strong></td>
+    <td>"除螨率"无标准化家用测试条件，"99.9%"是实验室条件下的极值而非典型值</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-c">C·营销功能</span></td>
+    <td>"永不衰减的吸力"</td>
+    <td>这是Dyson的核心营销口号——其工程基础是多锥旋风分离使>99%颗粒不接触滤网→滤网堵塞缓慢→吸力衰减远慢于无旋风系统的吸尘器。这是真实的技术优势，但<strong>"永不"是营销修辞——滤网终会堵塞（微尘积累是不可逆的）、密封圈会老化漏气、电池会衰减导致功率下降</strong>。"永不衰减"应准确理解为"在使用条件下吸力衰减速度远慢于竞品"</td>
+    <td>物理事实是：任何滤网都会随使用逐步堵塞。"永不"是具有误导性的绝对化表述</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-c">C·营销功能</span></td>
+    <td>"智能感应自动调节吸力"</td>
+    <td>压电传感器检测颗粒量→MCU调节电机功率。这确实是一个真实的反馈控制回路。但它的边际价值取决于<strong>自动调节是否比你手动选择的模式更好</strong>——多数用户本来就习惯在强力/标准模式之间切换，自动调节省去了按键操作，但这不是革命性体验</td>
+    <td>功能真实但边际体验增益有限</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-c">C·营销功能</span></td>
+    <td>"XX锥旋风"（数字游戏）</td>
+    <td>锥体数量从8→10→12→15，品牌以此为营销竞赛。但锥体数量的增加带来的分离效率提升是<strong>边际递减</strong>的——从6锥→10锥提升显著（>5%），从12锥→15锥提升<1%。锥体的<strong>空气动力学设计质量</strong>（入口角度/锥角/中心管直径比）比锥体数量更重要——一个设计精良的8锥系统可以优于设计粗糙的15锥系统</td>
+    <td>锥体效率取决于气动设计质量而非数量。但"数量"是消费者能理解的简单数字→营销首选</td>
+  </tr>
+</table>
+
+<div class="callout warn">
+  <strong>吸尘器营销识别法则：</strong>① <strong>AW和Pa的数字不可跨品牌横向对比</strong>——测试条件不统一。真实清洁效果（地板吸净率/地毯深层清洁率）比AW数字更有参考价值；② "99.9%"的任何数字<strong>默认以实验室条件下的极值对待</strong>，而非日常使用典型值；③ 旋风锥的数量>10以后<strong>边际收益极小</strong>，气动设计质量（品牌的技术积累）比锥体数量更关键；④ 判断滤网设计是否"用户友好"——<strong>滤网可水洗吗？更换周期多长？原厂滤网多少钱？</strong>这三个问题的答案决定了你的长期持有成本。
+</div>
+
+<!-- ─── 9. TCO成本模型 ─── -->
+<h2 id="sec-8">9. TCO成本模型</h2>
+
+<h3>9.1 10年TCO计算 — 日常家庭使用（每次20分钟，每周3次）</h3>
+
+<table>
+  <tr><th>成本项</th><th>无绳入门 ¥800</th><th>无绳中端 ¥2500</th><th>无绳高端 ¥5000</th><th>有绳卧式 ¥1500</th></tr>
+  <tr><td>采购成本</td><td>¥800</td><td>¥2,500</td><td>¥5,000</td><td>¥1,500</td></tr>
+  <tr><td>10年电费<br><span style="font-size:0.8rem;color:var(--color-muted)">150W/200W/250W × 1h/周 × 52周 × 10年 × ¥0.6（无绳）<br>1500W（有绳）</span></td><td>¥47</td><td>¥62</td><td>¥78</td><td>¥468</td></tr>
+  <tr><td>电池更换</td><td>¥400（换2次×¥200——第3、6年各一次）</td><td>¥500（换1次×¥500——第5年一次）</td><td>¥600（换1次×¥600——第5年一次）</td><td>¥0</td></tr>
+  <tr><td>滤网耗材</td><td>¥1,200（前置¥40×2次/年×10+H12 HEPA ¥60×1次/年×10）</td><td>¥1,600（前置¥60×1.5次/年+H12 HEPA ¥100×1次/年）</td><td>¥1,800（前置¥70×1次/年+H13 ¥120×1次/年）</td><td>¥1,200（尘袋¥15×8个/年×10年）</td></tr>
+  <tr><td>滚刷/皮带更换</td><td>¥120（滚刷×2次）</td><td>¥200（滚刷×2次）</td><td>¥300（滚刷×2次）</td><td>¥180（滚刷+皮带×3次）</td></tr>
+  <tr><td>维修</td><td>¥0（坏了直接扔）</td><td>¥200（密封圈/小零件一次）</td><td>¥400（电机轴承/密封圈一次）</td><td>¥100（换碳刷一次）</td></tr>
+  <tr><th>10年TCO</th><th>≈¥2,567</th><th>≈¥5,062</th><th>≈¥8,178</th><th>≈¥3,448</th></tr>
+  <tr><td>日均成本</td><td>¥0.70</td><td>¥1.39</td><td>¥2.24</td><td>¥0.94</td></tr>
+  <tr><td>10年TCO/购机价</td><td>3.2×</td><td>2.0×</td><td>1.6×</td><td>2.3×</td></tr>
+</table>
+
+<div class="callout good">
+  <strong>TCO核心发现：</strong>① 入门无绳的TCO/购机价比值最高（3.2×）——因为电池寿命短需要更换2次+滤网廉价但更换频率高。看起来"便宜"的¥800吸尘器10年总成本¥2,567——不比¥1,500的有绳卧式便宜多少（¥3,448），但便利性天差地别；② 高端无绳的TCO在绝对金额上最高（¥8,178），但TCO/购机价比值最低（1.6×）——因为电池和滤网的品质更好、更换频率更低；③ <strong>有绳卧式的10年TCO竟然比入门无绳只贵¥881</strong>——这意味着如果你能接受有绳的不便，它的10年经济性极好（无电池成本+尘袋便宜+电机寿命长）。④ 滤网耗材是<strong>所有吸尘器TCO的共同主导因素</strong>（占比40–60%）。
+</div>
+
+<!-- ─── 10. 供应链与产业结构 ─── -->
+<h2 id="sec-9">10. 供应链与产业结构</h2>
+
+<h3>10.1 产业链层级</h3>
+
+<table>
+  <tr><th>层级</th><th>内容</th><th>核心企业</th><th>产业特征</th></tr>
+  <tr>
+    <td><strong>Tier 1 · 核心器件</strong></td>
+    <td>高速BLDC电机、锂离子电芯、IGBT/MOSFET功率器件、MCU芯片、HEPA滤纸</td>
+    <td><strong>电机：</strong>Nidec（日本）——全球吸尘器无刷电机最大供应商。Dyson自研数字马达<br><strong>电芯：</strong>Samsung SDI/LG Energy/Panasonic/Sony 18650/21700<br><strong>MCU：</strong>ST/TI/Microchip/Nuvoton<br><strong>HEPA：</strong>同净化器——阿波制纸/Airfil/Toray/泰达</td>
+    <td>Nidec在吸尘器BLDC电机市场中占据绝对主导。Dyson是唯一自研自产电机主品牌。电芯供应高度集中</td>
+  </tr>
+  <tr>
+    <td><strong>Tier 2 · 专业部件</strong></td>
+    <td>旋风分离系统（注塑+组装）、电池Pack、控制板PCBA、滚刷总成</td>
+    <td>专业模具/注塑厂（深圳/东莞/苏州）、专业电池Pack厂、PCBA方案公司</td>
+    <td>中国在旋风锥注塑和组装领域有极强的制造优势（精密模具+大规模注塑）</td>
+  </tr>
+  <tr>
+    <td><strong>Tier 3 · 整机品牌</strong></td>
+    <td>整机设计+组装+品牌+渠道</td>
+    <td>全球：Dyson（英国/新加坡）、Shark（美国）、Miele（德国）<br>中国：Tineco添可/追觅Dreame/小狗/小米/石头科技</td>
+    <td>Dyson全球吸尘器（无绳）市场份额第一~25%。中国品牌追觅/添可快速追赶</td>
+  </tr>
+</table>
+
+<h3>10.2 产业集群</h3>
+
+<div class="card">
+  <table>
+    <tr><th>区域</th><th>核心能力</th></tr>
+    <tr><td><strong>苏州</strong></td><td><strong>中国吸尘器产业的"心脏"</strong>——追觅Dreame、Tineco添可、小狗等品牌均出自苏州。以苏州为中心形成了高速BLDC电机+旋风系统+整机设计+电池Pack的完整产业链。苏州是全球除Dyson以外最重要的吸尘器研发和制造集群</td></tr>
+    <tr><td><strong>广东深圳/东莞</strong></td><td>ODM代工中心——大量品牌的吸尘器在此代工。锂电池Pack产业发达（共享电动工具/电子烟的电池供应链）</td></tr>
+    <tr><td><strong>新加坡/马来西亚/菲律宾</strong></td><td>Dyson全球制造中心——数字马达在新加坡/菲律宾制造，整机组装在马来西亚。Dyson已将总部从英国迁至新加坡</td></tr>
+    <tr><td><strong>德国</strong></td><td>Miele（有绳卧式尘袋吸尘器的标杆）在德国本土制造——走精品路线，一台卧式吸尘器售价¥2000–4000，寿命预期20年+</td></tr>
+  </table>
+</div>
+
+<div class="callout">
+  <strong>供应链洞察：</strong>中国苏州吸尘器产业带的崛起是过去5年全球吸尘器行业最大的变化——追觅和添可的高速BLDC电机已经达到了100,000RPM+级别，旋风分离系统的气动设计能力迅速逼近Dyson。一个行业趋势是：Dyson维持电机和用户体验的领先（压电传感器/颗粒计数），而国产品牌在"性能/价格"比上持续扩大优势。<strong>在¥2000–3000价位段，国产品牌的硬件规格（电机转速/旋风锥数/电池容量/吸力AW）已经全面超过同价位Dyson。</strong>
+</div>
+
+<!-- ─── 11. 使用与维护影响 ─── -->
+<h2 id="sec-10">11. 使用与维护影响</h2>
+
+<div class="cols">
+<div class="card">
+  <h3>维护行为对性能的决定性影响</h3>
+  <table>
+    <tr><th>维护项</th><th>频率</th><th>不做/延迟的后果</th></tr>
+    <tr><td><strong>倒灰</strong></td><td>每次使用后（或尘杯>70%满时）</td><td>尘杯过满→旋风锥入口堵塞→分离效率崩溃→所有颗粒直冲滤网→滤网瞬间严重堵塞→吸力腰斩</td></tr>
+    <tr><td><strong>清洁前置滤网</strong></td><td>每月一次（拍打/水洗/晾干）</td><td>滤网堵塞→气流阻力增大→风量下降→吸力下降→同时电机散热气流减少→电机过热→退磁风险</td></tr>
+    <tr><td><strong>更换后置HEPA</strong></td><td>每1–2年</td><td>HEPA饱和→排气阻力增大→系统背压升高→风量降低+电机负载增大。HEPA破损→PM0.3直接排放→二次污染</td></tr>
+    <tr><td><strong>清理滚刷毛发</strong></td><td>每周一次（长发/宠物家庭）</td><td>毛发缠绕→滚刷阻力增大→滚刷电机过流→停机。缠绕严重→滚刷卡死→电机烧毁</td></tr>
+    <tr><td><strong>检查密封圈</strong></td><td>每半年</td><td>密封圈积灰/变形→旁路漏气→分离效率降低→重复上述所有问题</td></tr>
+    <tr><td><strong>清洁旋风锥</strong></td><td>每3–6月（如果锥体内有明显积灰）</td><td>锥体内部积灰→气流通道变窄→旋风速度降低→分离效率下降→细颗粒逃逸增加</td></tr>
+  </table>
+</div>
+<div class="card">
+  <h3>使用行为影响</h3>
+  <table>
+    <tr><th>行为</th><th>影响</th></tr>
+    <tr><td><strong>吸入湿垃圾</strong></td><td>湿垃圾（水/汤汁/湿土）进入旋风系统→尘杯内的干燥灰尘被润湿→形成糊状结块→堵塞旋风锥+滤网→需要深度拆洗。干湿两用机型除外</td></tr>
+    <tr><td><strong>吸入大量细粉</strong></td><td>装修粉尘/面粉/石膏粉→细粉(PM0.1–1)穿透旋风锥（旋风对<1μm颗粒分离效率低）→直接冲击滤网→极快速堵塞→吸力30秒内腰斩</td></tr>
+    <tr><td><strong>电池过放存储</strong></td><td>长时间（>1月）存放在低电量状态→电芯电压降至<3.0V→负极铜集流体溶解→不可逆容量损失→电池永久损伤。存放前应充电至50–60%</td></tr>
+    <tr><td><strong>高温存放/充电</strong></td><td>夏天阳光直射的储物间>50°C→锂离子电池加速老化（每升高10°C，老化速率翻倍）。充电温度>45°C→电芯安全风险</td></tr>
+    <tr><td><strong>拉扯软管/电线</strong></td><td>软管接口/电线根部是最常见的机械损伤点——大力拉扯会裂开→漏气/短路</td></tr>
+  </table>
+</div>
+</div>
+
+<div class="callout warn">
+  <strong>核心结论：</strong>吸尘器的维护不是"可有可无的建议"——它是<strong>维持吸尘器在可用状态</strong>的必要条件。一个从不维护（不倒灰/不清滤网/不清理滚刷）的吸尘器，无论买的时候多贵，都会在3–6个月内蜕变成一台"噪音很大但吸力很弱"的鸡肋设备。<strong>吸尘器的性能衰减曲线高度取决于用户的维护行为——这是它与冰箱/空调/电视等"设置后忘记"家电最本质的区别。</strong>
+</div>
+
+<!-- ─── 12. 品牌工程评级 ─── -->
+<h2 id="sec-11">12. 品牌工程评级</h2>
+
+<table>
+  <tr><th>梯队</th><th>品牌</th><th>技术能力</th><th>制造模式</th><th>核心优势</th><th>短板</th></tr>
+  <tr>
+    <td rowspan="2"><strong>第一梯队<br>技术主导型</strong></td>
+    <td><strong>Dyson 戴森</strong>（英国/新加坡）</td>
+    <td>自研数字马达(DDM，>125kRPM)+自研多锥旋风系统(专利壁垒极高)+压电传感器+自研气动设计。20年+技术积累，在电机功率密度和旋风分离效率上长期行业第一</td>
+    <td>自研自产马达(新加坡/菲律宾)+自研整机(马来西亚)+自研软件</td>
+    <td>电机和旋风系统的综合技术水平仍领先全行业；压电颗粒传感器和颗粒计数显示是真实创新；品牌价值高；产品线完整</td>
+    <td>价格极高（¥3000–8000+）；电池不可拆卸（V10+系列）→用户无法自行更换=电池衰减后必须返厂或买新机（<strong>这是Dyson有意的设计选择→最大化重复销售</strong>）；配件/滤网价格昂贵；维修体系封闭</td>
+  </tr>
+  <tr>
+    <td><strong>Miele 美诺</strong>（德国）</td>
+    <td>有绳卧式尘袋吸尘器的工程标杆。自研串激电机（1200–2200W，在德国自产）+自研尘袋多层过滤系统（9层复合尘袋+HEPA排气）。整机寿命测试标准极高（1000h+耐久测试）</td>
+    <td>德国自产</td>
+    <td>品质和耐久性无可争议的第一——一台Miele卧式吸尘器可以用20年+；尘袋垃圾处理极干净+过滤系统优秀；操作半径大（12m电线+软管）</td>
+    <td>笨重（不便利）；无无绳产品线竞争力（Miele Triflex无绳系列表现平庸）；价格高；只适合追求"极致品质+干净"而非"便利性"的用户</td>
+  </tr>
+  <tr>
+    <td rowspan="3"><strong>第二梯队<br>平衡型</strong></td>
+    <td><strong>Shark 鲨客</strong>（美国）</td>
+    <td>自研整机+自研滚刷设计（DuoClean双滚刷+PowerFins是真实创新）。在反缠绕和地板通用性上有独特技术</td>
+    <td>自研+中国OEM</td>
+    <td>滚刷技术创新（双滚刷同时处理硬地板和地毯+反缠绕）；可折叠杆设计（清理床底方便）；性价比优秀</td>
+    <td>中国市场渠道弱于Dyson；品牌知名度不如Dyson；电机和旋风技术并非行业领先；无绳产品线更新迭代速度不够快</td>
+  </tr>
+  <tr>
+    <td><strong>追觅 Dreame</strong>（中国苏州）</td>
+    <td>自研高速BLDC电机（100kRPM+）+自研多锥旋风系统+自研FOC控制。技术路线全面对标Dyson，是中国吸尘器技术天花板</td>
+    <td>自研+苏州自产</td>
+    <td>技术自研程度国产最高——电机/旋风/控制全自研；性价比极高（同规格比Dyson便宜40–60%）；创新速度快（新品迭代周期<1年）</td>
+    <td>品牌知名度主要在科技爱好者圈层；长期可靠性数据积累不足（品牌历史<10年）；售后网络覆盖不如Dyson/美的</td>
+  </tr>
+  <tr>
+    <td><strong>Tineco 添可</strong>（中国苏州）</td>
+    <td>自研电机+自研旋风+智能传感器（iLoop智能吸力调节）。在智能感应和洗地机品类上有独特创新</td>
+    <td>自研+苏州自产</td>
+    <td>智能传感器（自动调节吸力+脏污程度显示）体验做得好；产品线丰富（吸尘器+洗地机）；性价比优秀</td>
+    <td>品牌力不如Dyson；部分型号品控波动；洗地机品类占用户心智但传统吸尘器产品线认知不足</td>
+  </tr>
+  <tr>
+    <td rowspan="2"><strong>第三梯队<br>性价比型</strong></td>
+    <td><strong>小米/米家</strong></td>
+    <td>ODM（追觅等提供方案）+米家APP生态。硬件规格在同价位有竞争力</td>
+    <td>ODM</td>
+    <td>¥800–1500价位提供10锥旋风+BLDC+HEPA的配置；米家生态整合；渠道覆盖广</td>
+    <td>核心技术不自研→依赖ODM方案的技术上限；系统广告干扰体验；品控一致性取决于ODM厂</td>
+  </tr>
+  <tr>
+    <td><strong>小狗</strong></td>
+    <td>国产品牌中较早做吸尘器，但在高速BLDC和旋风技术上的自研深度不及追觅/添可</td>
+    <td>部分自研+ODM</td>
+    <td>品牌历史长（20年+）；售后服务体系成熟（"中央维修"——保修期内免费维修+双向免运费）</td>
+    <td>技术创新速度慢；产品整体技术水平落后于追觅/添可；品牌形象老化</td>
+  </tr>
+</table>
+
+<div class="callout">
+  <strong>品牌评级方法论：</strong>吸尘器品牌的工程排名判断标准：<strong>① 是否自研高速BLDC电机</strong>→ 这是技术品牌和组装品牌的分水岭。自研电机的品牌能控制电机-旋风-滤网的全系统气动匹配，组装品牌只能依赖供应商的电机特性曲线；<strong>② 电池的可更换性</strong>——这是一个<strong>商业伦理级</strong>的设计决策。Dyson选择不可拆卸电池=最大化品牌利润（迫使你在电池衰减后购买新机），追觅/添可部分型号开始支持电池可更换=最大化用户利益。这个设计选择比你想象的任何硬件参数都更影响长期使用价值；<strong>③ 滤网耗材定价</strong>——滤网是吸尘器消耗品TCO的主导因素（40–60%），品牌对原厂滤网的定价策略直接决定了你的10年持有成本。
+</div>
+
+<!-- ─── 13. 购买决策系统 ─── -->
+<h2 id="sec-12">13. 购买决策系统</h2>
+
+<div class="card">
+  <h3>Step 1：定义需求——场景·环境·人</h3>
+  <table>
+    <tr><th>决策因子</th><th>决策方向</th></tr>
+    <tr><td><strong>户型/面积</strong></td><td>小户型(<80m²)→ 无绳杆式（轻便+续航够用，标准模式20–40分钟）。中大户型(80–150m²)→ 无绳杆式（标准模式续航≥40分钟，或双电池方案）。大户型/别墅(>150m²)→ 考虑有绳卧式为主+无绳杆式为辅（快速日常清洁）</td></tr>
+    <tr><td><strong>地面类型</strong></td><td><strong>硬地板为主</strong>（瓷砖/木地板）→ 几乎所有吸尘器都能胜任——吸力需求最低，重点看重量和便利性。<strong>大面积地毯</strong>→ 需要强力滚刷+高吸力(>200AW)——地毯深层清洁是吸尘器性能的真正考验。无绳强力模式续航<10分钟可能不足以完成全地毯清洁→考虑有绳卧式。<strong>混合型</strong>→ 滚刷需要能在硬地板和地毯之间切换（或自动调节）</td></tr>
+    <tr><td><strong>宠物</strong></td><td>养宠物（猫/狗）→ ① 需要强力滚刷（清除地毯深层嵌入的宠物毛发）；② 需要反缠绕设计（宠物毛发比人发更细更易缠绕）；③ 需要高效尘杯倒灰（宠物毛发体积大→尘杯满得快→倒灰频率高）；④ <strong>不建议尘袋式</strong>（宠物毛发体积大→尘袋几天就满→尘袋成本飙升）</td></tr>
+    <tr><td><strong>过敏/哮喘</strong></td><td>对灰尘/花粉/螨虫过敏→ ① 尘袋式卧式（密封丢弃垃圾→倒灰零扬尘）是最佳选择；② 如果选无绳旋风→关注倒灰机制（防扬尘设计是否好）和后置HEPA等级（≥H13）。③ 过敏人群<strong>不应</strong>选择无HEPA或低等级过滤的吸尘器</td></tr>
+    <tr><td><strong>长发家庭成员</strong></td><td>有长头发的人→ <strong>反缠绕滚刷是刚需</strong>（不是nice-to-have）。这会直接决定你每周是花5分钟还是30分钟在清理滚刷上</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <h3>Step 2–6：技术路线→核心规格→风险过滤→TCO→品牌</h3>
+  <table>
+    <tr><th>检查项</th><th>通过标准</th></tr>
+    <tr><td><strong>吸尘器类型</strong></td><td><strong>90%的家庭→无绳杆式旋风分离</strong>（便利性+吸力持久性的最佳平衡）。深层地毯/过敏/追求极限品质→有绳卧式尘袋（Miele）。干湿混合→水过滤式。纯吸力最优先→有绳卧式旋风。¥500以下的"无绳吸尘器"通常使用低端电机+小电池→不推荐</td></tr>
+    <tr><td><strong>电机</strong></td><td>BLDC（无刷）>> 有刷电机。转速≥80,000RPM是及格线，≥100,000RPM是优良线。电机品牌：Dyson自研/Nidec/追觅自研/添可自研 > 其他国产BLDC</td></tr>
+    <tr><td><strong>旋风系统</strong></td><td>多锥旋风≥8锥（10–12锥是甜点）。<strong>可拆卸清洗</strong>的旋风锥组>不可拆卸的密封式（后者一旦积灰无法清理→性能不可恢复→相当于有设计寿命上限）</td></tr>
+    <tr><td><strong>电池可更换</strong></td><td><strong>强烈建议选择电池可拆卸/可更换的型号</strong>——这是决定吸尘器有效寿命是5年还是10年的关键设计。如果选择Dyson（电池不可拆卸）→接受3–5年电池衰减后需返厂更换或买新机的代价</td></tr>
+    <tr><td><strong>滤网可水洗</strong></td><td>前置滤网必须可水洗（拍打后水洗→晾干→重复使用）。后置HEPA部分型号可水洗（PTFE覆膜），部分不可（PP基材）——检查说明书</td></tr>
+    <tr><td><strong>AW吸力</strong></td><td>硬地板为主→100–150AW足够。<strong>有地毯→≥150AW</strong>。大面积地毯/宠物→≥200AW。超过200AW后边际回报递减明显</td></tr>
+    <tr><td><strong>续航（无绳）</strong></td><td>标准模式≥30分钟（80–120m²及格线），≥45分钟（舒适线）。强力模式≥8分钟（有地毯时及格线），≥12分钟（舒适线）。注意：标称续航是最低档→实际可用续航通常是标称值的60–80%</td></tr>
+    <tr><td><strong>滚刷</strong></td><td>独立电机驱动滚刷 >> 纯吸力涡轮滚刷（后者清洁效果差距巨大）。反缠绕设计（锥形+V形+刮条）>> 标准圆柱滚刷</td></tr>
+    <tr><td><strong>尘杯容量</strong></td><td>0.3L→小户型单人可接受。0.5–0.7L→2–3人家庭。宠物家庭→≥0.7L。尘杯太小=每次使用需倒灰（高频摩擦）</td></tr>
+    <tr><td><strong>重量</strong></td><td>主机重量（不含杆和吸头）≤1.5kg为优。整机重量（手持操作）≤3kg。>3.5kg→女性用户长时间使用会明显累</td></tr>
+  </table>
+</div>
+
+<div class="callout good">
+  <strong>最优购买策略（2026年）：</strong><br>
+  <strong>甜点级（¥1500–2500）：</strong>追觅/添可次旗舰系列——100kRPM BLDC+10–12锥旋风+H12 HEPA+可拆卸电池+反缠绕滚刷。这是<strong>无绳吸尘器的工程甜点</strong>——覆盖了90%家庭的使用场景和80%的Dyson性能，价格只有Dyson同规格的1/3–1/2。<br>
+  <strong>品质级（¥2500–4000）：</strong>追觅/添可旗舰系列——125kRPM BLDC+15锥+H13 HEPA+智能感应+OLED显示。硬件规格完全对标Dyson V15系列。<br>
+  <strong>旗舰级（¥4000–6000）：</strong>Dyson V15/Gen5系列——如果你追求最好的整机体验（颗粒计数+工业设计+品牌价值），且能接受电池不可更换的长期代价。<br>
+  <strong>经典之选（¥2000–3500）：</strong>Miele卧式尘袋吸尘器——如果你追求极致品质、干净垃圾处理、20年使用寿命，且可以接受有线+拖地机身的不便。<br>
+  <strong>避坑提醒：</strong>① 避免¥500以下的"无绳吸尘器"（电机+电池+旋风系统都太弱，使用体验会让你对无绳吸尘器绝望）；② <strong>电池可更换 > 任何其他参数</strong>（这是3–5年后吸尘器还能不能用的决定性因素）；③ 不要被250AW vs 200AW的吸力差异迷惑——在日常使用中，便利性（重量/续航/倒灰/滚刷维护）的体验差异远大于AW数字的差异。
+</div>
+
+<!-- ─── 14. 一句话结论 ─── -->
+<h2 id="sec-13">14. 一句话结论</h2>
+
+<div class="conclusion">
+  <h2>一句话结论</h2>
+  <p>
+    <strong>吸尘器的工程本质是"高速电机驱动离心风扇生成负压→大气压推动含尘空气进入→多级旋风/过滤将颗粒从气流中分离"的气力输送-分离系统——它的吸力标称值是"新机、空尘杯、干净滤网"条件下的峰值，而你永远在"已用10分钟、尘杯半满、滤网已有薄灰"的状态下使用它。</strong>无绳杆式旋风吸尘器的胜利不是吸力技术的胜利——而是<strong>"拿起即用"的便利性</strong>碾压了"7步操作链条"的有绳卧式的胜利。在¥1500–2500价位，追觅/添可的国产无绳吸尘器已经覆盖了90%家庭的90%需求。多花的每一块钱（¥2500→¥5000），主要在买Dyson的品牌光环、更精致的工业设计、颗粒计数的新奇体验——以及一个不可更换电池的设计选择（意味着3–5年后的新机购买需求）。<strong>如果让我用一句话总结吸尘器的选购：选电池可更换的国产品牌旗舰（¥2000–3000），它的10年使用价值远超任何参数表能告诉你的。</strong>
+  </p>
+  <p style="margin-top:16px; font-size:0.85rem; color:#888;">
+    <strong>工程甜点推荐：</strong>追觅/添可 ¥1500–2500无绳杆式——100kRPM+ BLDC + 多锥旋风 + 可拆卸电池 + 反缠绕滚刷。<br>
+    <strong>核心提醒：</strong>电池可更换设计 > AW吸力数字。定期清洗滤网(每月) > 任何品牌的"永久吸力"技术。
+  </p>
+</div>
+
+</main>
+
+<script>
+(function() {
+  var links = document.querySelectorAll('nav a[href^="#sec-"]');
+  var sections = [];
+  links.forEach(function(a) {
+    var el = document.getElementById(a.getAttribute('href').slice(1));
+    if (el) sections.push({el: el, a: a});
+  });
+  function update() {
+    var top = window.scrollY + 120;
+    var cur = sections[0];
+    for (var i = 0; i < sections.length; i++) {
+      if (sections[i].el.offsetTop <= top) cur = sections[i];
+    }
+    links.forEach(function(l) { l.classList.remove('active'); });
+    if (cur) cur.a.classList.add('active');
+  }
+  window.addEventListener('scroll', update, {passive: true});
+  update();
+})();
+</script>
+
+</body>
+</html>

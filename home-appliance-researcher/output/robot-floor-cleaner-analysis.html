@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>洗地机器人工程分析报告 — Home Appliance Researcher</title>
+<style>
+  :root {
+    --nav-width: 260px;
+    --color-bg: #f8f9fa; --color-surface: #ffffff; --color-text: #212529;
+    --color-muted: #6c757d; --color-accent: #0d6efd; --color-warn: #dc3545;
+    --color-good: #198754; --color-border: #dee2e6;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; font-size: 15px; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans SC", sans-serif;
+    background: var(--color-bg); color: var(--color-text); line-height: 1.7; overflow-x: hidden;
+  }
+  nav {
+    position: fixed; top: 0; left: 0; width: var(--nav-width); height: 100vh;
+    background: #1a1d23; color: #ccc; overflow-y: auto; z-index: 100; padding: 24px 0;
+  }
+  nav .brand {
+    font-size: 1.1rem; font-weight: 700; color: #fff; padding: 0 20px 20px;
+    border-bottom: 1px solid #333; margin-bottom: 12px; letter-spacing: 0.5px;
+  }
+  nav .brand span { display: block; font-size: 0.7rem; color: #888; font-weight: 400; margin-top: 2px; }
+  nav a {
+    display: block; padding: 7px 20px; color: #aaa; text-decoration: none;
+    font-size: 0.85rem; transition: color 0.15s, background 0.15s;
+    border-left: 3px solid transparent;
+  }
+  nav a:hover, nav a.active { color: #fff; background: rgba(255,255,255,0.05); }
+  main { margin-left: var(--nav-width); padding: 48px 60px; width: calc(100vw - var(--nav-width)); }
+  h1 { font-size: 2rem; margin-bottom: 8px; }
+  h2 { font-size: 1.4rem; margin: 48px 0 16px; padding-bottom: 8px; border-bottom: 2px solid var(--color-border); }
+  h3 { font-size: 1.15rem; margin: 32px 0 12px; color: #333; }
+  h4 { font-size: 1rem; margin: 20px 0 8px; }
+  p { margin-bottom: 12px; }
+  .subtitle { color: var(--color-muted); font-size: 0.95rem; margin-bottom: 40px; }
+  .card {
+    background: var(--color-surface); border: 1px solid var(--color-border);
+    border-radius: 8px; padding: 20px 24px; margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .card h3 { margin-top: 0; }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+  @media (max-width: 768px) { .cols { grid-template-columns: 1fr; } }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0 20px; font-size: 0.9rem; }
+  th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--color-border); }
+  th { background: #f1f3f5; font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--color-muted); }
+  tr:hover td { background: #fafbfc; }
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.3px; }
+  .tag-a{background:#d1fae5;color:#065f46}.tag-b{background:#fef3c7;color:#92400e}.tag-c{background:#fee2e2;color:#991b1b}
+  .tag-good{background:#d1fae5;color:#065f46}.tag-warn{background:#fef3c7;color:#92400e}.tag-bad{background:#fee2e2;color:#991b1b}
+  .callout {
+    border-left: 4px solid var(--color-accent); background: #e7f1ff;
+    padding: 14px 18px; border-radius: 0 6px 6px 0; margin: 16px 0; font-size: 0.9rem;
+  }
+  .callout.warn{border-left-color:var(--color-warn);background:#fff5f5}
+  .callout.good{border-left-color:var(--color-good);background:#f0fdf4}
+  .arch-layer {
+    border: 1px solid var(--color-border); border-radius: 6px; padding: 16px;
+    margin-bottom: 12px; background: #fafbfc;
+  }
+  .arch-layer .label {
+    font-weight: 700; font-size: 0.8rem; color: var(--color-muted);
+    text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;
+  }
+  .arch-layer .parts { font-size: 0.9rem; }
+  .flow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 12px 0; font-size: 0.9rem; }
+  .flow .step {
+    background: var(--color-surface); border: 1px solid var(--color-border);
+    border-radius: 6px; padding: 6px 14px;
+  }
+  .flow .arrow { color: var(--color-muted); font-weight: 700; }
+  .bathtub {
+    background: #f9fafb; border: 1px dashed var(--color-border); border-radius: 8px;
+    padding: 40px 24px; text-align: center; margin: 16px 0;
+  }
+  .bathtub svg { max-width: 600px; }
+  .conclusion {
+    background: linear-gradient(135deg, #1a1d23, #2d3139); color: #e0e0e0;
+    border-radius: 10px; padding: 28px 32px; margin-top: 48px;
+  }
+  .conclusion h2 { color: #fff; border-bottom-color: #444; font-size: 1.2rem; }
+  .conclusion p { font-size: 1.05rem; line-height: 1.8; }
+  @media print { nav { display: none; } main { margin-left: 0; padding: 20px; width: auto; } }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="brand">
+    洗地机器人工程分析
+    <span>Home Appliance Researcher v3.0</span>
+  </div>
+  <a href="#sec-0">1. 系统本质</a>
+  <a href="#sec-1">2. 系统架构拆解</a>
+  <a href="#sec-2">3. 核心部件工程分析</a>
+  <a href="#sec-3">4. 制造模式分析</a>
+  <a href="#sec-4">5. 技术路线对比</a>
+  <a href="#sec-5">6. 可靠性工程模型</a>
+  <a href="#sec-6">7. 用户体验建模</a>
+  <a href="#sec-7">8. 营销系统识别</a>
+  <a href="#sec-8">9. TCO成本模型</a>
+  <a href="#sec-9">10. 供应链与产业结构</a>
+  <a href="#sec-10">11. 安装与环境影响</a>
+  <a href="#sec-11">12. 品牌工程评级</a>
+  <a href="#sec-12">13. 购买决策系统</a>
+  <a href="#sec-13" style="color: #60a5fa;">14. 一句话结论</a>
+</nav>
+
+<main>
+
+<h1>洗地机器人工程分析报告</h1>
+<p class="subtitle">
+  分析框架：物理原理 &gt; 系统架构 &gt; 核心部件 &gt; 制造质量 &gt; 可靠性 &gt; 使用体验 &gt; 成本结构 &gt; 品牌 &gt; 功能营销<br>
+  分析日期：2026-06-09 &nbsp;|&nbsp; 分析对象：家用洗地机器人（扫拖一体+自清洁基站型，含扫地机器人/洗地机作为对照）
+</p>
+
+<!-- ─── 2. 系统架构拆解 ─── -->
+<h2 id="sec-0">1. 系统本质</h2>
+
+<div class="card">
+  <h3>洗地机器人是什么？</h3>
+  <table>
+    <tr><th style="width:120px">系统类型</th><td>自主移动机器人（AMR）+ 机械执行系统 + 流体处理系统 — 具备环境感知、路径规划和自主导航能力，集成扫地（边刷+滚刷+吸尘）和拖地（拖布+水泵+下压力）功能，并可自动返回基站进行拖布清洗、补水、排污、烘干和集尘等维护操作</td></tr>
+    <tr><th>输入</th><td>电能（220V AC → 机器人电池 14.4–14.8V 锂电 / 基站）、自来水（清水箱）、清洁液（可选）、待清洁地面</td></tr>
+    <tr><th>输出</th><td>清洁地面（扫+拖）+ 污水（基站污水箱）+ 灰尘（基站集尘袋）+ 洁净拖布（基站清洗烘干）</td></tr>
+    <tr><th>能量形式</th><td>电能 → ①轮式移动（差速驱动/全向轮）②滚刷/边刷旋转机械能 ③离心风机气力输送（吸尘）④水泵供水（拖布湿润）⑤基站电机（拖布清洗/排污/烘干/集尘）</td></tr>
+    <tr><th>核心物理原理</th><td>机器人通过LDS激光雷达/dToF雷达+视觉摄像头+IMU构建环境地图（SLAM算法），规划清扫路径（弓字形/沿边）。扫地：边刷将灰尘聚拢→主滚刷扬起→离心风机产生负压吸入尘盒。拖地：水泵将清水输送到旋转拖布或振动拖布，拖布在行进中对地面施加下压力（约6–10N）旋转/振动擦除污渍。返回基站后，基站电机驱动清洗盘旋转搓洗拖布→污水泵吸走脏水→热风烘干/冷风风干拖布→集尘风机将尘盒内垃圾吸入集尘袋。</td></tr>
+  </table>
+</div>
+
+<div class="callout">
+  <strong>工程视角的关键认知：</strong>洗地机器人是当前家用电器中<strong>集成度最高、系统最复杂</strong>的品类。它同时集成了<strong>自主导航（自动驾驶的微缩版）+ 气力输送（微型吸尘器）+ 机械擦洗（微型洗地机）+ 基站维护（微型洗衣机）</strong>四大子系统。没有一个工程师会把这样复杂的系统视为"小家电"——它是一台会自己走路、自己回家洗拖布的<strong>室内自动驾驶清洁机器人</strong>。理解了这一点，你就会明白：洗地机器人的可靠性天花板比较低（系统复杂=故障点多），选购时要优先考虑售后和可靠性，而非参数竞赛。
+</div>
+
+<!-- ─── 3. 核心部件工程分析 ─── -->
+<h2 id="sec-1">2. 系统架构拆解</h2>
+
+<h3>机器人本体架构</h3>
+
+<div class="arch-layer">
+  <div class="label">Layer 1 · 能源层 Energy</div>
+  <div class="parts"><strong>锂电池组</strong>（14.4V / 14.8V，4串锂离子电池，容量4800–6400mAh，能量约70–95Wh）。典型工作时间：标准模式90–180分钟（约120–200m²）。<strong>充电触点</strong>（正负极弹片，对接基站充电触点）。<strong>基站电源</strong>（220V AC→多路DC，同时为充电+清洗电机+烘干+集尘供电）。</div>
+</div>
+<div class="arch-layer">
+  <div class="label">Layer 2 · 执行层 Actuation — 清洁子系统</div>
+  <div class="parts">
+    <strong>扫地子系统：</strong>边刷（1–2个，直流电机驱动，200–400rpm）→ 主滚刷（全橡胶/胶毛混合，直流BLDC，800–2000rpm）→ 离心风机（直流BLDC，15000–25000rpm，吸力2000–8000Pa）→ 尘盒（300–500ml，HEPA滤网）。<br>
+    <strong>拖地子系统：</strong>清水箱（机器人内置150–250ml或基站管路补水）→ 蠕动泵/电磁泵（精确控制水量）→ 旋转拖布×2（直流电机180rpm，下压力6–10N）/ 振动拖布（电磁铁/电机，每分钟600–3000次高频振动）。<br>
+    <strong>移动子系统：</strong>驱动轮×2（差速驱动，直流BLDC+编码器/霍尔转速反馈）+ 万向轮×1–2。越障高度≤20mm。<br>
+    <strong>基站子系统：</strong>清水箱（3–5L）+ 污水箱（2.5–4L）+ 清洗盘（电机驱动旋转搓洗拖布）+ 污水泵（吸取清洗污水）+ 集尘风机（25000–35000rpm，吸走尘盒垃圾→集尘袋）+ 热风烘干PTC加热器+风机（40–55°C，2–4小时烘干拖布）+ 蠕动泵（基站向机器人补水/加清洁液）。
+  </div>
+</div>
+<div class="arch-layer">
+  <div class="label">Layer 3 · 感知与控制层 Perception &amp; Control — 机器人最核心的差异化子系统</div>
+  <div class="parts">
+    <strong>定位与建图（SLAM）：</strong>LDS激光雷达（360°旋转测距，探测半径8–12m，精度±2cm）/ dToF激光雷达（固态，无旋转部件）+ 线激光/结构光扫描（3D避障）+ RGB视觉摄像头（AI物体识别：电线/宠物粪便/袜子/数据线）+ 悬崖传感器（红外/ToF向下，防止楼梯跌落）+ 超声波/红外沿墙传感器。<br>
+    <strong>控制芯片：</strong>主控SoC（ARM Cortex-A系列，如RK3588/高通QRB系列，带NPU用于AI视觉推理）+ MCU协处理器（运动控制/电机PWM/传感器采集）。<br>
+    <strong>基站控制：</strong>MCU控制清洗/排污/烘干/集尘各电机的时序和反馈检测。
+  </div>
+</div>
+<div class="arch-layer">
+  <div class="label">Layer 4 · 结构层 Structural</div>
+  <div class="parts">机器人外壳（ABS/PC工程塑料）、减震悬挂（驱动轮独立悬挂，弹簧/扭力臂）、防撞缓冲条（机械+红外双重检测）、基站外壳（ABS/钣金）、集尘袋（无纺布+PP复合，容量2–3L，可用30–60天）</div>
+</div>
+
+<h3>系统协同流</h3>
+<div class="flow">
+  <span class="step">LDS建图→SLAM路径规划</span><span class="arrow">→</span>
+  <span class="step">驱动轮执行路径</span><span class="arrow">→</span>
+  <span class="step">边刷+滚刷+吸尘(扫地)</span><span class="arrow">→</span>
+  <span class="step">拖布旋转/振动+下压(拖地)</span><span class="arrow">→</span>
+  <span class="step">脏污检测/水量不足→回基站</span><span class="arrow">→</span>
+  <span class="step">基站:清洗拖布+排污+补水+集尘+烘干</span><span class="arrow">→</span>
+  <span class="step">继续任务/待机</span>
+</div>
+
+<!-- ─── 4. 制造模式分析 ─── -->
+<h2 id="sec-2">3. 核心部件工程分析</h2>
+
+<h3>2.1 Single Point of Failure (SPoF)</h3>
+
+<div class="card">
+  <h4>🔴 LDS激光雷达 / dToF传感器 — 第一SPoF（导航失效=机器人变"盲人"）</h4>
+  <p><strong>为什么是它？</strong>LDS激光雷达是机器人的"眼睛"。一旦LDS旋转机构卡死（头发缠绕转轴）或激光测距模块故障，机器人无法定位和建图，导航完全失效——表现为原地转圈、撞墙、找不到基站回充。LDS是所有自主导航功能的物理基础，坏了整个智能清洁体验降级为随机碰撞。</p>
+  <table>
+    <tr><th></th><th>机械式LDS</th><th>dToF固态激光雷达</th></tr>
+    <tr><td>结构</td><td>旋转电机+激光收发模块+皮带/齿轮</td><td>半导体激光阵列（无旋转件）</td></tr>
+    <tr><td>寿命</td><td>旋转电机寿命约2000–3000h，皮带老化</td><td>无机械磨损，理论寿命10年+</td></tr>
+    <tr><td>典型失效</td><td>转轴缠头发→旋转受阻、皮带松脱、激光管老化</td><td>极少失效（固体器件）</td></tr>
+    <tr><td>探测距离</td><td>8–12m</td><td>8–10m</td></tr>
+    <tr><td>搭载品牌</td><td>科沃斯、石头、追觅中端</td><td>石头G系列、科沃斯X系列</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <h4>🔴 锂电池 — 第二SPoF（能量枯竭=彻底罢工）</h4>
+  <p>洗地机器人的锂电池在每次清扫后回充、长期处于浮充状态。2–3年后电池内阻增大→实际可用容量下降30–50%→清扫面积从120m²缩水到60m²→频繁中途回充。电池不可更换的设计（部分机型）导致换电池=换机。</p>
+</div>
+
+<div class="card">
+  <h4>🟡 基站清洗/排污系统 — 被低估的故障集</h4>
+  <p>基站是洗地机器人的"后勤系统"，也是故障最密集的地方。清洗电机、污水泵、蠕动泵、烘干风机——多达4–6个电机同时在底座运转。任何一个失效都会导致拖布洗不干净/排污不畅/拖布发霉。基站故障率在用户反馈中排第一。</p>
+</div>
+
+<h3>2.2 核心部件性能等级</h3>
+
+<table>
+  <tr><th>部件</th><th>旗舰级</th><th>中端</th><th>入门级</th></tr>
+  <tr>
+    <td>导航系统</td>
+    <td>dToF固态雷达 + RGB AI视觉 + 3D结构光避障</td>
+    <td>机械式LDS + 线激光/单目视觉避障</td>
+    <td>陀螺仪惯性导航（无激光）+ 机械防撞</td>
+  </tr>
+  <tr>
+    <td>风机吸力</td>
+    <td>6000–8000Pa (离心BLDC风机)</td>
+    <td>3000–5000Pa</td>
+    <td>&lt;2500Pa</td>
+  </tr>
+  <tr>
+    <td>拖布类型</td>
+    <td>旋转双盘拖布（180rpm）+ 主动下压力（6–10N）+ 自动抬升（地毯识别）</td>
+    <td>旋转双盘拖布 + 被动重力下压</td>
+    <td>单片平板拖布（无旋转，静态拖行）</td>
+  </tr>
+  <tr>
+    <td>基站功能</td>
+    <td>自动洗拖布+排污+补水+热风烘干+集尘+清洁液自动添加+上下水改造</td>
+    <td>自动洗拖布+补水+冷风风干</td>
+    <td>简易充电桩（无清洗功能）</td>
+  </tr>
+  <tr>
+    <td>电池/续航</td>
+    <td>5200–6400mAh，可更换设计</td>
+    <td>4800–5200mAh</td>
+    <td>3200–4000mAh</td>
+  </tr>
+  <tr>
+    <td>AI物体识别</td>
+    <td>RGB摄像头+NPU AI芯片，识别宠物粪便/电线/袜子等</td>
+    <td>线激光+简单避障（识别障碍物但不分类）</td>
+    <td>机械碰撞条（无主动避障）</td>
+  </tr>
+</table>
+
+<h3>2.3 BOM拆解 — 关键组件来源识别</h3>
+
+<div class="card">
+  <table>
+    <tr><th>组件</th><th>顶级供应商</th><th>搭载品牌</th></tr>
+    <tr><td>LDS激光雷达</td><td>思岚科技(SLAMTEC)、杉川、EAI</td><td>几乎所有主流品牌</td></tr>
+    <tr><td>dToF雷达</td><td>禾赛科技、速腾聚创(定制)</td><td>石头、科沃斯旗舰</td></tr>
+    <tr><td>主控SoC</td><td>Rockchip RK3588、高通QRB系列、全志MR系列</td><td>科沃斯(RK)、石头(高通/全志)、追觅</td></tr>
+    <tr><td>离心风机</td><td>Nidec、威灵(美的)</td><td>各品牌旗舰/中端</td></tr>
+    <tr><td>锂电池</td><td>LG化学、三星SDI、比亚迪、力神</td><td>各品牌</td></tr>
+    <tr><td>蠕动泵</td><td>科漫、Kamoer</td><td>各品牌基站补水/加液</td></tr>
+  </table>
+</div>
+
+<!-- ─── 5. 技术路线对比 ─── -->
+<h2 id="sec-3">4. 制造模式分析</h2>
+
+<table>
+  <tr><th>品牌</th><th>制造模式</th><th>导航技术</th><th>核心竞争力</th></tr>
+  <tr><td>科沃斯 (Ecovacs)</td><td>自研+自产</td><td>自研dToF+AI视觉(AIVI/AINA)</td><td>中国扫地机器人先驱(1998年起)，全自研SLAM+AI</td></tr>
+  <tr><td>石头科技 (Roborock)</td><td>自研+自产</td><td>自研LDS/dToF+RR Mason算法</td><td>小米生态链出身，算法公认行业最强，全链路自研</td></tr>
+  <tr><td>追觅 (Dreame)</td><td>自研+自产</td><td>自研LDS+dToF+AI</td><td>高速数字马达(吸尘器/风机)技术起家，转速自研领先</td></tr>
+  <tr><td>云鲸 (Narwal)</td><td>自研+自产</td><td>自研LDS</td><td>自清洁基站品类开创者(2019)，拖地技术路线创新者</td></tr>
+  <tr><td>小米/米家</td><td>ODM外包</td><td>LDS(追觅/石头/杉川供)</td><td>品牌+渠道+米家IoT。代工商包括追觅、石头(早期)、杉川等</td></tr>
+  <tr><td>iRobot</td><td>自研+自产</td><td>视觉SLAM(vSLAM)</td><td>扫地机器人发明者(2002)，视觉导航技术独特，但被中国品牌全面超越</td></tr>
+</table>
+
+<div class="callout warn">
+  <strong>ODM与自研的品牌差距：</strong>洗地机器人是软件驱动的硬件产品——SLAM算法、AI物体识别模型、清洁策略决策树是真正的竞争壁垒，而非参数表上的吸力数字。自研品牌（石头/科沃斯/追觅/云鲸）的SLAM算法和避障模型是多年迭代积累的结果，ODM品牌的导航方案来自方案商（如杉川），算法优化深度有限。这就是为什么<strong>看似参数相同的两个机器，实际清扫覆盖率和避障成功率可以差20%以上</strong>。
+</div>
+
+<!-- ─── 6. 可靠性工程模型 ─── -->
+<h2 id="sec-4">5. 技术路线对比</h2>
+
+<h3>4.1 扫拖机器人 vs 手持洗地机 vs 传统扫地机</h3>
+
+<table>
+  <tr><th>维度</th><th>扫拖机器人 (自清洁基站型)</th><th>手持洗地机</th><th>传统扫地机器人 (仅扫地)</th></tr>
+  <tr><td>自动化程度</td><td><span class="tag tag-good">全自动</span> 扫+拖+洗+烘+集尘全自动</td><td><span class="tag tag-warn">半自动</span> 人工操作，手持推拉</td><td><span class="tag tag-warn">半自动</span> 仅扫地，拖布需手洗</td></tr>
+  <tr><td>清洁深度</td><td>日常维护级（轻度污渍）</td><td><span class="tag tag-good">深度清洁级</span> 咖啡渍/酱油渍等顽固污渍</td><td>日常维护级（仅灰尘毛发）</td></tr>
+  <tr><td>干湿垃圾</td><td><span class="tag tag-bad">不可</span>（湿垃圾会堵塞尘盒风机）</td><td><span class="tag tag-good">可</span> 干湿垃圾一次清理</td><td><span class="tag tag-bad">不可</span>（仅干垃圾）</td></tr>
+  <tr><td>使用频率</td><td>每天自动/定时清洁</td><td>需要时手动操作（2–3天/次）</td><td>每天自动/定时</td></tr>
+  <tr><td>人介入程度</td><td><span class="tag tag-good">极低</span>（3–7天倒一次污水+加清水）</td><td><span class="tag tag-bad">高</span>（每次操作+事后清理污水箱）</td><td><span class="tag tag-warn">中</span>（每天倒尘盒）</td></tr>
+  <tr><td>单次成本</td><td>3000–7000元（采购）</td><td>1500–4000元</td><td>800–2000元</td></tr>
+  <tr><td>适用场景</td><td>日常地面保持，轻度污渍</td><td>深度清洁、顽固污渍、厨房餐厅</td><td>仅日常灰尘毛发清理</td></tr>
+</table>
+
+<h3>4.2 导航技术对比 — 洗地机器人的灵魂</h3>
+
+<div class="card">
+  <table>
+    <tr><th></th><th>陀螺仪惯性导航</th><th>视觉SLAM (vSLAM)</th><th>LDS激光SLAM</th><th>dToF + AI视觉融合</th></tr>
+    <tr><td>建图精度</td><td>极差（无地图，随机碰撞）</td><td>中（依赖光照，弱光下失效）</td><td>优（精度±2cm，不受光照影响）</td><td>最优（3D建图+物体识别）</td></tr>
+    <tr><td>暗光工作</td><td>—</td><td><span class="tag tag-bad">不可</span>（视觉失效）</td><td><span class="tag tag-good">可</span>（激光不受光照影响）</td><td><span class="tag tag-good">可</span></td></tr>
+    <tr><td>物体识别</td><td><span class="tag tag-bad">无</span></td><td><span class="tag tag-warn">可</span>（单目局限）</td><td><span class="tag tag-warn">有限</span>（需配视觉）</td><td><span class="tag tag-good">可</span>（AI模型识别）</td></tr>
+    <tr><td>成本</td><td>极低</td><td>中</td><td>中高</td><td>高</td></tr>
+    <tr><td>工程评级</td><td><span class="tag tag-c">淘汰</span></td><td><span class="tag tag-c">非主流</span></td><td><span class="tag tag-a">主流首选</span></td><td><span class="tag tag-a">旗舰标配</span></td></tr>
+  </table>
+</div>
+
+<h3>4.3 拖地方式对比</h3>
+
+<div class="card">
+  <table>
+    <tr><th></th><th>平板拖布 (被动拖行)</th><th>平板拖布 (振动擦地)</th><th>旋转双盘拖布 (主动旋转)</th></tr>
+    <tr><td>原理</td><td>拖布贴在机身底部，随机器人移动被动拖行</td><td>电机驱动拖布区域高频振动(600–3000次/min)</td><td>两个圆形拖布由电机驱动旋转(180rpm)+下压力</td></tr>
+    <tr><td>下压力</td><td>仅机身自重（≈0.5–1kg）</td><td>振动辅助但无额外下压</td><td>主动下压6–10N</td></tr>
+    <tr><td>去污能力</td><td><span class="tag tag-bad">弱</span> 浮尘+极轻度污渍</td><td><span class="tag tag-warn">中</span> 中度污渍</td><td><span class="tag tag-good">强</span> 咖啡渍/脚印等</td></tr>
+    <tr><td>地毯抬升</td><td>不可/手动</td><td>部分支持（振动模块抬升）</td><td>支持（双盘整体抬升5–10mm）</td></tr>
+    <tr><td>工程评级</td><td><span class="tag tag-c">淘汰</span></td><td><span class="tag tag-b">体验增强</span></td><td><span class="tag tag-a">主流方案</span></td></tr>
+  </table>
+</div>
+
+<h3>4.4 基站功能对比</h3>
+
+<div class="card">
+  <table>
+    <tr><th>基站类型</th><th>功能</th><th>人工介入频率</th><th>工程评级</th></tr>
+    <tr><td>简易充电桩</td><td>仅充电</td><td>每天：倒尘盒+手洗拖布</td><td><span class="tag tag-c">过时</span></td></tr>
+    <tr><td>自清洁基站</td><td>充电+洗拖布+补水</td><td>3–5天：倒污水+加清水+倒尘盒</td><td><span class="tag tag-b">中端标配</span></td></tr>
+    <tr><td>全能基站</td><td>充电+洗拖布+补水+热风烘干+集尘</td><td>7天：倒污水+加清水。30–60天：换集尘袋</td><td><span class="tag tag-a">旗舰标配</span></td></tr>
+    <tr><td>全功能基站+上下水</td><td>全能基站+自动上下水+自动加清洁液</td><td>30–60天：换集尘袋。几乎零日常维护</td><td><span class="tag tag-a">终极形态</span></td></tr>
+  </table>
+</div>
+
+<div class="callout good">
+  <strong>基站是洗地机器人的"第二台机器"——选购时请给予同等重视：</strong>机器人在基站内度过超过90%的时间（清洁、充电、待机）。基站的质量决定了机器人的维护体验。一个清洗盘漏水/排水不畅/烘干不干的基站=拖布发霉发臭=整机体验崩盘。买洗地机器人时<strong>请把基站当作独立电器来审视</strong>：清洗盘是否易清洁？污水箱是否易清洗？集尘袋容量多大？烘干是热风还是冷风？这些基站细节比机器人的吸力参数更影响长期使用体验。
+</div>
+
+<!-- ─── 7. 用户体验建模 ─── -->
+<h2 id="sec-5">6. 可靠性工程模型</h2>
+
+<h3>5.1 浴盆曲线</h3>
+
+<div class="bathtub">
+  <svg viewBox="0 0 600 180" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#fee2e2" stop-opacity="0.5"/>
+        <stop offset="25%" stop-color="#d1fae5" stop-opacity="0.5"/>
+        <stop offset="75%" stop-color="#d1fae5" stop-opacity="0.5"/>
+        <stop offset="100%" stop-color="#fee2e2" stop-opacity="0.5"/>
+      </linearGradient>
+    </defs>
+    <rect x="30" y="10" width="540" height="120" rx="8" fill="url(#bg)" stroke="#ddd" stroke-width="1"/>
+    <path d="M40,100 Q100,100 130,40 Q160,20 300,20 Q440,20 470,40 Q500,100 560,100"
+          fill="none" stroke="#dc3545" stroke-width="2.5" stroke-linecap="round"/>
+    <text x="90" y="140" text-anchor="middle" font-size="11" fill="#991b1b">早期失效期</text>
+    <text x="300" y="140" text-anchor="middle" font-size="11" fill="#065f46">稳定运行期</text>
+    <text x="510" y="140" text-anchor="middle" font-size="11" fill="#991b1b">磨损失效期</text>
+    <line x1="40" y1="155" x2="40" y2="165" stroke="#999" stroke-width="1"/>
+    <line x1="170" y1="155" x2="170" y2="165" stroke="#999" stroke-width="1"/>
+    <line x1="430" y1="155" x2="430" y2="165" stroke="#999" stroke-width="1"/>
+    <line x1="560" y1="155" x2="560" y2="165" stroke="#999" stroke-width="1"/>
+    <text x="40" y="178" text-anchor="middle" font-size="10" fill="#999">0</text>
+    <text x="170" y="178" text-anchor="middle" font-size="10" fill="#999">6月</text>
+    <text x="430" y="178" text-anchor="middle" font-size="10" fill="#999">2.5年</text>
+    <text x="560" y="178" text-anchor="middle" font-size="10" fill="#999">4年+</text>
+  </svg>
+</div>
+
+<h3>5.2 故障模式与影响分析 (FMEA)</h3>
+
+<table>
+  <tr><th>故障模式</th><th>发生概率</th><th>影响程度</th><th>修复成本</th><th>风险等级</th></tr>
+  <tr><td>LDS激光雷达故障 (转轴缠发/皮带松脱/激光管老化)</td><td>中高 (10–15%)</td><td>致命 — 无法定位建图，导航完全失效</td><td>300–800元(换LDS模块)</td><td><span class="tag tag-bad">高</span></td></tr>
+  <tr><td>电池严重衰减 (2–3年后容量下降30–50%)</td><td>必然(100%，随时间)</td><td>严重 — 清扫面积大幅缩水，频繁回充</td><td>200–500元(换电池)</td><td><span class="tag tag-warn">中高</span></td></tr>
+  <tr><td>基站污水泵堵塞/故障</td><td>中 (8–12%)</td><td>严重 — 污水无法排出，基站溢水</td><td>200–400元</td><td><span class="tag tag-warn">中高</span></td></tr>
+  <tr><td>基站清洗电机故障 (拖布不转)</td><td>中 (5–10%)</td><td>严重 — 拖布洗不干净</td><td>200–400元</td><td><span class="tag tag-warn">中</span></td></tr>
+  <tr><td>驱动轮电机/齿轮箱故障</td><td>中 (5–8%)</td><td>致命 — 机器人无法移动</td><td>200–500元</td><td><span class="tag tag-warn">中高</span></td></tr>
+  <tr><td>吸尘风机故障 (进灰卡死/轴承磨损)</td><td>中 (5–8%)</td><td>中等 — 扫地功能失效（拖地仍可用）</td><td>200–400元</td><td><span class="tag tag-warn">中</span></td></tr>
+  <tr><td>蠕动泵/电磁泵故障 (不补水)</td><td>中低 (3–6%)</td><td>中等 — 拖布干拖，拖地失效</td><td>100–200元</td><td><span class="tag tag-warn">中</span></td></tr>
+  <tr><td>基站传感器故障 (清水/污水箱水位检测失效)</td><td>中低 (3–5%)</td><td>轻微—中等 — 误报满/空</td><td>50–150元</td><td><span class="tag tag-good">低</span></td></tr>
+  <tr><td>拖布/边刷/滚刷磨损</td><td>100% (消耗品)</td><td>轻微 — 清洁效果下降</td><td>30–80元/套</td><td><span class="tag tag-good">低</span></td></tr>
+</table>
+
+<h3>5.3 高风险部件总结</h3>
+
+<div class="cols">
+  <div class="card">
+    <h4>🔴 致命级 (整机瘫痪/导航失效)</h4>
+    <ul>
+      <li>LDS/dToF激光雷达（导航失效=变"盲人"）</li>
+      <li>驱动轮系统（机器人无法移动）</li>
+      <li>电池严重衰减（不可换设计=换机）</li>
+      <li>基站整体故障（后勤瘫痪）</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h4>🟡 严重级 (功能严重受损)</h4>
+    <ul>
+      <li>基站污水泵（污水排不出→溢水）</li>
+      <li>基站清洗电机（拖布洗不净→发臭）</li>
+      <li>吸尘风机（扫地功能失效）</li>
+      <li>蠕动泵/水泵（拖地功能失效）</li>
+      <li>烘干系统（拖布不干→发霉发臭）</li>
+    </ul>
+  </div>
+</div>
+
+<div class="callout warn">
+  <strong>洗地机器人的可靠性现实：</strong>洗地机器人是当前家电中故障率最高的品类之一。这不完全是质量问题——而是系统复杂度的客观结果。一台全能基站的洗地机器人内部有 <strong>10–15个电机、5–8个传感器模块、3–5个水泵/风机</strong>。每个组件都是潜在的故障点。行业平均2–3年的MTBF（平均无故障运行时间）远低于洗衣机/冰箱等成熟品类（8–12年）。<strong>买洗地机器人时，延保和售后口碑的重要性不亚于产品参数。</strong>
+</div>
+
+<!-- ─── 8. 营销系统识别 ─── -->
+<h2 id="sec-6">7. 用户体验建模</h2>
+
+<div class="card">
+  <h3>体验权重排序 (按工程重要性)</h3>
+  <table>
+    <tr><th>#</th><th>维度</th><th>权重</th><th>洗地机器人工程对应项</th></tr>
+    <tr><td>1</td><td>覆盖率 &amp; 避障能力</td><td>⭐⭐⭐⭐⭐</td><td>不漏扫、不撞家具、不被电线/袜子卡住。覆盖率>98%才算及格（SLAM算法+避障传感器）</td></tr>
+    <tr><td>2</td><td>基站维护体验</td><td>⭐⭐⭐⭐⭐</td><td>清洗盘是否自洁、污水箱是否易洗、集尘袋更换频率、拖布是否烘干发臭。这是决定"用了三个月还想不想用"的关键</td></tr>
+    <tr><td>3</td><td>清洁效果</td><td>⭐⭐⭐⭐</td><td>扫地（毛发缠绕率、地毯深度清洁） + 拖地（咖啡渍/脚印去除率）</td></tr>
+    <tr><td>4</td><td>噪音控制</td><td>⭐⭐⭐⭐</td><td>标准模式 55–65dB(A)、基站集尘瞬间 70–80dB(A)（3–5秒）、烘干40–50dB(A)（持续2–4小时）</td></tr>
+    <tr><td>5</td><td>智能联动 &amp; App</td><td>⭐⭐⭐</td><td>分区清扫、划区、虚拟墙、定时计划、脏污地图。App的稳定性比功能多少更重要</td></tr>
+    <tr><td>6</td><td>耗材成本</td><td>⭐⭐⭐</td><td>拖布、边刷、滚刷、滤网、集尘袋、清洁液 — 每年耗材200–600元</td></tr>
+    <tr><td>7</td><td>越障/脱困</td><td>⭐⭐⭐</td><td>过门槛（≤20mm）、不卡地毯流苏、不从楼梯坠落</td></tr>
+  </table>
+</div>
+
+<div class="callout">
+  <strong>关键洞察：</strong>洗地机器人的体验拐点不在参数表上。买回来后第一周你会惊叹于"真聪明"，第二个月你会开始烦心"污水箱又臭了"。决定你长期使用满意度的不是吸力大小，而是<strong>基站维护的便利性和拖布是否发臭</strong>。如果每次用完都要花10分钟清理基站（清洗盘+污水箱+刮水板），这台机器人的"自动化"价值就被维护负担冲抵了。选购时优先关注：①基站的清洗盘是否能拆卸清洗（不能拆=死角积污=发臭），②是否有热风烘干（冷风风干=拖布半干不干=细菌繁殖），③污水箱的密封和清洁便利性。
+</div>
+
+<!-- ─── 9. TCO成本模型 ─── -->
+<h2 id="sec-7">8. 营销系统识别</h2>
+
+<table>
+  <tr><th>功能/卖点</th><th>分类</th><th>工程评价</th></tr>
+  <tr><td>dToF固态雷达</td><td><span class="tag tag-a">A类 — 真实技术提升</span></td><td>无旋转件=无缠发故障+寿命长+建图快。机械LDS的进化方向</td></tr>
+  <tr><td>AI视觉物体识别（宠物粪便/电线/袜子）</td><td><span class="tag tag-a">A类 — 真实技术提升</span></td><td>识别并主动避开宠物粪便=避免了灾难级事故。养宠家庭刚需</td></tr>
+  <tr><td>拖布自动抬升（遇地毯）</td><td><span class="tag tag-a">A类 — 真实技术提升</span></td><td>拖布抬升5–10mm，避免湿拖布污染地毯。地毯家庭必备功能</td></tr>
+  <tr><td>热风烘干（拖布）</td><td><span class="tag tag-a">A类 — 真实技术提升</span></td><td>拖布彻底烘干=不发霉不发臭。比冷风风干效果好一个量级</td></tr>
+  <tr><td>自动上下水改造</td><td><span class="tag tag-a">A类 — 真实技术提升</span></td><td>自动进清水+排污水，告别倒水加水。需要预留管路，接近"零维护"</td></tr>
+  <tr><td>全能基站（集尘+清洗+烘干+补水）</td><td><span class="tag tag-a">A类 — 真实技术提升</span></td><td>集成度越高=人工介入越少。但基站本身复杂度也成倍增加</td></tr>
+  <tr><td>边角清洁/扭动机身</td><td><span class="tag tag-b">B类 — 体验增强</span></td><td>圆形机器人墙角清洁是物理死穴。扭动机身/伸出机械臂有一定改善</td></tr>
+  <tr><td>清洁液自动添加</td><td><span class="tag tag-b">B类 — 体验增强</span></td><td>省去每次加清洁液的步骤。但不能用第三方清洁液（被品牌绑定）</td></tr>
+  <tr><td>脏污检测/智能复拖</td><td><span class="tag tag-b">B类 — 体验增强</span></td><td>检测拖布脏污程度→自动回基站洗拖布后再回来继续拖。逻辑合理</td></tr>
+  <tr><td>视频管家/远程看家</td><td><span class="tag tag-c">C类 — 营销功能</span></td><td>机器人上的摄像头用于看猫看家——隐私风险（家里多个移动摄像头）</td></tr>
+  <tr><td>语音控制/智能音箱联动</td><td><span class="tag tag-c">C类 — 营销功能</span></td><td>定时清扫已经满足99%场景。喊一声"小X开始扫地"不如App设置每天10点自动扫</td></tr>
+  <tr><td>超大吸力数字竞赛 (10000Pa+)</td><td><span class="tag tag-c">C类 — 营销数字</span></td><td>吸力从4000Pa卷到8000Pa到10000Pa。实际清洁效果的提升曲线在对数区域——4000→6000有提升，8000→10000几乎无感知。吸力竞赛已然是数字游戏</td></tr>
+  <tr><td>紫外线UV杀菌（基站）</td><td><span class="tag tag-c">C类 — 营销功能</span></td><td>UV灯照射拖布几秒就想杀菌？——剂量不足。热风烘干本身的高温+干燥环境已经高效抑菌</td></tr>
+  <tr><td>电解水/银离子除菌</td><td><span class="tag tag-c">C类 — 营销功能</span></td><td>自来水电解产生的次氯酸浓度极低，除菌效果存疑。不要为这个功能多花钱</td></tr>
+</table>
+
+<div class="callout warn">
+  <strong>洗地机器人行业当前最大的问题——参数竞赛不可持续：</strong>吸力从2000Pa卷到10000Pa只用了三年。但实际清洁体验的提升早就进入了边际递减区。10000Pa的吸力意味着更大的风机噪音和更快的电池消耗，而真实地面的灰尘根本不需要10000Pa来吸除。品牌在"可量化的参数"上拼命内卷（吸力/转速/Pa数），在"不可量化的体验"上进步缓慢（基站维护便利性/污水箱防臭/算法稳定性）。<strong>选机器时不要被吸力数字裹挟——6000Pa以上现有主流机型都已经够用。</strong>
+</div>
+
+<!-- ─── 10. 供应链与产业结构 ─── -->
+<h2 id="sec-8">9. TCO成本模型</h2>
+
+<div class="card">
+  <h3>案例对比：全能基站型扫拖机器人 (100m²家庭, 每天清扫1次)</h3>
+
+  <table>
+    <tr><th>成本项</th><th>中端全能基站 (3500元)</th><th>旗舰全能基站 (5500元)</th><th>旗舰+上下水 (7000元)</th></tr>
+    <tr><td>采购成本</td><td>3,500</td><td>5,500</td><td>7,000</td></tr>
+    <tr><td>安装费</td><td>0 (免安装)</td><td>0</td><td>200 (上下水改造)</td></tr>
+    <tr><td>5年耗材<br><span style="font-size:0.8rem;color:var(--color-muted)">拖布4对/年 30元<br>边刷2对/年 20元<br>滚刷1支/年 50元<br>滤网2个/年 30元<br>集尘袋6个/年 15元<br>清洁液 100元/年</span></td><td>245 × 5 = <strong>1,225</strong></td><td>245 × 5 = <strong>1,225</strong></td><td>245 × 5 = <strong>1,225</strong></td></tr>
+    <tr><td>5年电费<br><span style="font-size:0.8rem;color:var(--color-muted)">机器人充电 0.3度/次<br>基站烘干 0.5度/次<br>0.6元/度 × 365天</span></td><td>≈ <strong>175</strong>/年 × 5 = 875</td><td>≈ <strong>175</strong>/年 × 5 = 875</td><td>≈ <strong>175</strong>/年 × 5 = 875</td></tr>
+    <tr><td>维修/换电池</td><td>电池×1 + 污水泵×1 ≈ <strong>800</strong></td><td>电池×1 ≈ <strong>400</strong></td><td>≈ <strong>300</strong></td></tr>
+    <tr style="font-weight:700; background:#f0fdf4;">
+      <td><strong>5年TCO</strong></td>
+      <td><strong>6,400元</strong></td>
+      <td><strong>8,000元</strong></td>
+      <td><strong>9,600元</strong></td>
+    </tr>
+    <tr>
+      <td>年均</td><td>1,280元/年</td><td>1,600元/年</td><td>1,920元/年</td>
+    </tr>
+    <tr style="background:#fffaf0;">
+      <td><strong>vs 人工清洁</strong></td>
+      <td colspan="3">假设每天扫地+拖地需15分钟(含接水/洗拖布/倒水)，5年=456小时=19整天。以30元/小时人工价值计算=约13,680元。洗地机器人年均成本1280元，不到人工时间价值的1/10。且不说每天回家看到干净地面的心理价值。</td>
+    </tr>
+  </table>
+</div>
+
+<div class="callout good">
+  <strong>TCO核心结论：</strong>洗地机器人年均TCO约1300–1900元。看起来不便宜，但和它每天自动化完成的清洁工作量相比——约日节省15分钟×365天=91小时/年——每小时"自动化成本"仅14–21元。这还不包括心理收益（每天回家地面干净）和健康收益（过敏原/宠物毛发的定期清除）。<strong>洗地机器人不是省钱的家电，是买时间+生活质量的家电。</strong>选配建议：3500元中端全能基站足够满足绝大多数家庭日常清洁，旗舰机的额外溢价主要在更快的建图速度和更好的避障AI上。
+</div>
+
+<!-- ─── 11. 安装与环境影响 ─── -->
+<h2 id="sec-9">10. 供应链与产业结构</h2>
+
+<div class="card">
+  <h4>Tier 1 — 核心部件供应商</h4>
+  <table>
+    <tr><th>领域</th><th>头部供应商</th></tr>
+    <tr><td>LDS激光雷达</td><td>思岚科技(SLAMTEC)、杉川、EAI科技(国内三巨头，市占>80%)</td></tr>
+    <tr><td>dToF固态雷达</td><td>禾赛科技、速腾聚创（源自自动驾驶LiDAR技术）</td></tr>
+    <tr><td>主控SoC</td><td>Rockchip(瑞芯微RK3588)、Qualcomm(高通QRB)、Allwinner(全志MR系列)</td></tr>
+    <tr><td>离心风机</td><td>Nidec(日本电产)，追觅(自研高速数字马达)</td></tr>
+    <tr><td>锂电池</td><td>LG化学、三星SDI、比亚迪、力神、亿纬锂能</td></tr>
+    <tr><td>蠕动泵/水泵</td><td>科漫(Kamoer) — 国产微型泵龙头</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <h4>Tier 2 — ODM / 方案商</h4>
+  <p>洗地机器人的ODM生态高度成熟。杉川、EAI等供应商不仅提供LDS硬件，还提供整套SLAM导航方案（硬件+SDK+参考设计）。品牌方可以采购方案商的"交钥匙"解决方案快速出产品。追觅科技也为小米/米家提供ODM代工。石头科技早期为小米代工（米家扫地机器人一代/二代），后独立发展自有品牌。</p>
+</div>
+
+<div class="card">
+  <h4>Tier 3 — 品牌</h4>
+  <p>洗地机器人行业是目前中国家电品牌集中度较低、技术迭代最快的品类。科沃斯+石头+追觅+云鲸四大金刚占国内市场份额约80%。小米/米家依靠多ODM协同保持全价格段覆盖。iRobot在中国市场已基本被挤出，松下/三星/博世等传统家电巨头在洗地机器人品类几乎没有存在感——这是少数几个由中国品牌绝对主导的全球性家电品类。</p>
+</div>
+
+<!-- ─── 12. 品牌工程评级 ─── -->
+<h2 id="sec-10">11. 安装与环境影响</h2>
+
+<div class="cols">
+  <div class="card">
+    <h4>环境适配 (决定机器人能不能用)</h4>
+    <ul>
+      <li><strong>地面类型：</strong>硬质地板（瓷砖/木地板/大理石）最佳。中长毛地毯（>15mm）=越障困难+拖布拖湿。深色地板可能导致悬崖传感器误触发（认为前方是悬崖而拒绝前进）</li>
+      <li><strong>门槛高度：</strong>机器人越障能力≤20mm。老式房屋门槛(25–35mm)需要加斜坡垫</li>
+      <li><strong>地面杂物：</strong>地面电线/数据线/袜子/玩具是机器人的头号杀手（卡住拖布/卷入滚刷/缠绕）。每次使用前需要"机器人-proof"地面</li>
+      <li><strong>镜子/落地窗：</strong>激光雷达遇到镜子会产生镜面反射导致"幻影墙"（检测到房间外的物体）。需要设置虚拟墙</li>
+      <li><strong>照明：</strong>视觉SLAM机型需要一定照度（>50lux），暗光/全黑房间无法工作。LDS机型不受光照影响</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h4>基站安装 &amp; 维护</h4>
+    <ul>
+      <li><strong>基站位置：</strong>左右≥0.5m、前方≥1.0m无障碍空间。不能紧贴墙角或沙发下</li>
+      <li><strong>上下水改造：</strong>自动上下水版本需要在基站附近预留进水管（类似洗衣机龙头）和排水口（地漏或下水管接口）。装修阶段预留最佳</li>
+      <li><strong>污水箱清洁：</strong>每周至少清洗一次污水箱。污水箱内的有机污垢+水分=细菌培养皿。如果超过一周不倒污水，内部会发臭、长霉斑</li>
+      <li><strong>清洗盘清洁：</strong>基站底部的清洗盘是藏污纳垢的第一重灾区。建议每2–4周拆卸清洗。不能拆卸清洗的清洗盘=设计缺陷</li>
+      <li><strong>传感器清洁：</strong>LDS顶盖、悬崖传感器、充电触点 — 每1–2周用干布擦拭一次。灰尘积累=传感器误判</li>
+      <li><strong>滚刷缠绕：</strong>长头发/宠物毛会缠绕滚刷两端轴承。每周清理一次滚刷两端，否则轴承卡死=滚刷电机烧毁</li>
+    </ul>
+  </div>
+</div>
+
+<div class="callout warn">
+  <strong>洗地机器人不是"买了就完了"——它需要维护：</strong>这是洗地机器人和其他家电最大的不同。冰箱插上电就不用管了，空调一年洗一次滤网就够了。但洗地机器人是一个<strong>需要每周/每月人工维护</strong>的系统。如果你无法接受每周花5分钟清理污水箱和清洗盘，那么请选择支持自动上下水+自动集尘的旗舰机型（维护间隔延长到30–60天），或者接受一个不那么"自动化"的清洁方案。
+</div>
+
+<!-- ─── 13. 购买决策系统 ─── -->
+<h2 id="sec-11">12. 品牌工程评级</h2>
+
+<table>
+  <tr><th>梯队</th><th>类型</th><th>品牌</th><th>核心特征</th></tr>
+  <tr>
+    <td><span class="tag tag-a">第一梯队</span></td>
+    <td>技术主导型</td>
+    <td>石头科技 (Roborock)</td>
+    <td>SLAM算法行业第一，dToF+AI避障领先，全链路自研。清洁硬件+软件算法双强。3000–7000元</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-a">第一梯队</span></td>
+    <td>技术主导型</td>
+    <td>科沃斯 (Ecovacs)</td>
+    <td>中国扫地机器人先驱(1998年起)，全自研SLAM+AI芯片(AIVI/AINA)，自研dToF。品类最全。2500–7000元</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-a">第一梯队</span></td>
+    <td>技术主导型</td>
+    <td>追觅 (Dreame)</td>
+    <td>高速数字马达自研(风机/吸尘器技术起家)，吸力参数领跑。产品力爆发式增长。2500–6000元</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-b">第二梯队</span></td>
+    <td>创新/平衡型</td>
+    <td>云鲸 (Narwal)</td>
+    <td>自清洁基站品类开创者(2019)，拖地技术路径创新(旋转拖布+清洗基站)，但产品线单一。3000–5000元</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-b">第二梯队</span></td>
+    <td>平衡型</td>
+    <td>小米/米家</td>
+    <td>多ODM协同（追觅/杉川等），全价格段覆盖，米家IoT联动。1000–4000元</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-c">第三梯队</span></td>
+    <td>低端/ODM</td>
+    <td>众多白牌/ODM贴牌</td>
+    <td>拼多多/淘宝低价扫地机(200–800元)，陀螺仪导航+随机碰撞，几乎无用。不如买扫帚</td>
+  </tr>
+</table>
+
+<!-- ─── 14. 一句话结论 ─── -->
+<h2 id="sec-12">13. 购买决策系统</h2>
+
+<div class="flow" style="flex-direction: column; align-items: flex-start; gap: 16px;">
+  <div class="step" style="width: 100%;">
+    <strong>Step 1 — 确认使用场景与环境</strong><br>
+    <span style="font-size:0.85rem;color:var(--color-muted)">地面类型：硬质地板✓ 地毯△(中短毛型可)。房间复杂度：门槛≤20mm? 地面杂物多? 有宠物? 有落地镜? 暗光环境选LDS机型。养宠家庭优先选AI视觉识别(避开粪便/电线)。</span>
+  </div>
+  <div class="step" style="width: 100%;">
+    <strong>Step 2 — 确定导航等级（最重要）</strong><br>
+    <span style="font-size:0.85rem;color:var(--color-muted)">LDS激光SLAM（最低要求，覆盖率>98%）&gt; dToF+AI视觉（旗舰，覆盖率>99%+物体识别）。绝对不要买陀螺仪导航（随机碰撞=完全没用）。避障：3D结构光/AI视觉 &gt; 线激光 &gt; 机械防撞条。</span>
+  </div>
+  <div class="step" style="width: 100%;">
+    <strong>Step 3 — 确定基站功能等级</strong><br>
+    <span style="font-size:0.85rem;color:var(--color-muted)">全能基站（自清洁+热风烘干+集尘+补水）= 7天维护一次。全功能+上下水 = 30–60天几乎零维护。仅自清洁（无集尘）= 每3天倒尘盒。简易充电桩 = 每天手洗拖布+倒尘盒（不推荐）。</span>
+  </div>
+  <div class="step" style="width: 100%;">
+    <strong>Step 4 — 关注基站可维护性（关键！）</strong><br>
+    <span style="font-size:0.85rem;color:var(--color-muted)">查看真机评测中的基站维护部分：清洗盘能否拆卸？污水箱内部结构是否容易清洁？烘干温度是否够（40–55°C）？有烘干 ≠ 能烘干——冷风风干在潮湿天气下根本干不透。</span>
+  </div>
+  <div class="step" style="width: 100%;">
+    <strong>Step 5 — 计算5年TCO</strong><br>
+    <span style="font-size:0.85rem;color:var(--color-muted)">年均TCO约1300–1900元，其中耗材245元/年、电费175元/年、维修摊分约100–300元/年。中端全能基站(3500元)性价比最优。旗舰溢价在AI避障和算法而非清洁硬件。</span>
+  </div>
+  <div class="step" style="width: 100%;">
+    <strong>Step 6 — 选品牌（售后和延保优先）</strong><br>
+    <span style="font-size:0.85rem;color:var(--color-muted)">算法优先：石头。品类最全：科沃斯。高速风机：追觅。拖地创新：云鲸。性价比：小米/米家。强烈建议购买≥3年延保（系统复杂度高=故障率高于传统家电）。</span>
+  </div>
+</div>
+
+<!-- ─── 14. 一句话结论 ─── -->
+<h2 id="sec-13">14. 一句话结论</h2>
+
+<div class="conclusion">
+  <h2>最终结论</h2>
+  <p>
+    洗地机器人的本质是一台<strong>室内自动驾驶清洁系统</strong>——它同时集成了SLAM导航（自动驾驶微缩版）+ 气力输送（微型吸尘器）+ 机械擦洗（微型洗地机）+ 基站维护（微型洗衣机）四大子系统。核心价值由<strong>导航与避障（LDS/dToF+AI视觉 &gt;&gt; 陀螺仪）、基站功能完整性（热风烘干+集尘+上下水 &gt; 冷风+无集尘）、拖地方式（旋转双盘+主动下压 &gt; 平拖）</strong>三要素决定。洗地机器人是当前家电中系统最复杂、故障率最高的品类——不是"买了就不用管"的电器，而是"每周需要5分钟维护"的系统。
+  </p>
+  <p>
+    <strong>3500–4500元的LDS全功能基站型（自清洁+热风烘干+集尘）是综合最优解。</strong>低于此价位的机型在基站功能上做了妥协（冷风风干/无集尘/无避障），体验折扣明显。高于此价位的旗舰溢价主要在AI避障算法和dToF雷达上——对日常清洁覆盖率有提升但非必需。不要被吸力数字裹挟（6000Pa足够），关注基站可维护性和拖布是否真正烘干——这些才是长期体验的决定因素。
+  </p>
+  <p style="margin-bottom:0;">
+    <strong>记住三个"绝对不要"：</strong>绝对不要买陀螺仪导航的扫地机（随机碰撞=浪费钱），绝对不要选冷风风干基站（拖布永远半干半湿=发霉发臭），绝对不要让地面布满电线和杂物才去开机器人（卡住=每天救援）。<strong>记住三个"一定要"：</strong>一定要有热风烘干（不发臭的底线），一定要关注基站清洗盘是否可拆卸（不能拆=死角=细菌培养皿），一定要买延保（洗地机器人是故障率最高的家电品类之一）。
+  </p>
+</div>
+
+</main>
+
+<script>
+(function() {
+  const links = document.querySelectorAll('nav a[href^="#sec-"]');
+  const sections = [];
+  links.forEach(a => {
+    const el = document.getElementById(a.getAttribute('href').slice(1));
+    if (el) sections.push({el, a});
+  });
+  function update() {
+    const top = window.scrollY + 120;
+    let cur = sections[0];
+    for (const s of sections) {
+      if (s.el.offsetTop <= top) cur = s;
+    }
+    links.forEach(l => l.classList.remove('active'));
+    if (cur) cur.a.classList.add('active');
+  }
+  window.addEventListener('scroll', update, {passive: true});
+  update();
+})();
+</script>
+<script>
+(function() {
+  var links = document.querySelectorAll('nav a[href^="#sec-"]');
+  var sections = [];
+  links.forEach(function(a) {
+    var el = document.getElementById(a.getAttribute('href').slice(1));
+    if (el) sections.push({el: el, a: a});
+  });
+  function update() {
+    var top = window.scrollY + 120;
+    var cur = sections[0];
+    for (var i = 0; i < sections.length; i++) {
+      if (sections[i].el.offsetTop <= top) cur = sections[i];
+    }
+    links.forEach(function(l) { l.classList.remove('active'); });
+    if (cur) cur.a.classList.add('active');
+  }
+  window.addEventListener('scroll', update, {passive: true});
+  update();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>家用新风系统工程分析报告 — Home Appliance Researcher</title>
+<style>
+  :root {
+    --nav-width: 260px;
+    --color-bg: #f8f9fa; --color-surface: #ffffff; --color-text: #212529;
+    --color-muted: #6c757d; --color-accent: #0d6efd; --color-warn: #dc3545;
+    --color-good: #198754; --color-border: #dee2e6;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; font-size: 15px; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans SC", sans-serif;
+    background: var(--color-bg); color: var(--color-text); line-height: 1.7; overflow-x: hidden;
+  }
+  nav {
+    position: fixed; top: 0; left: 0; width: var(--nav-width); height: 100vh;
+    background: #1a1d23; color: #ccc; overflow-y: auto; z-index: 100; padding: 24px 0;
+  }
+  nav .brand {
+    font-size: 1.1rem; font-weight: 700; color: #fff; padding: 0 20px 20px;
+    border-bottom: 1px solid #333; margin-bottom: 12px; letter-spacing: 0.5px;
+  }
+  nav .brand span { display: block; font-size: 0.7rem; color: #888; font-weight: 400; margin-top: 2px; }
+  nav a {
+    display: block; padding: 7px 20px; color: #aaa; text-decoration: none;
+    font-size: 0.85rem; transition: color 0.15s, background 0.15s;
+    border-left: 3px solid transparent;
+  }
+  nav a:hover, nav a.active { color: #fff; background: rgba(255,255,255,0.05); }
+  main { margin-left: var(--nav-width); padding: 48px 60px; width: calc(100vw - var(--nav-width)); }
+  h1 { font-size: 2rem; margin-bottom: 8px; }
+  h2 { font-size: 1.4rem; margin: 48px 0 16px; padding-bottom: 8px; border-bottom: 2px solid var(--color-border); }
+  h3 { font-size: 1.15rem; margin: 32px 0 12px; color: #333; }
+  h4 { font-size: 1rem; margin: 20px 0 8px; }
+  p { margin-bottom: 12px; }
+  .subtitle { color: var(--color-muted); font-size: 0.95rem; margin-bottom: 40px; }
+  .card {
+    background: var(--color-surface); border: 1px solid var(--color-border);
+    border-radius: 8px; padding: 20px 24px; margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .card h3 { margin-top: 0; }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+  @media (max-width: 768px) { .cols { grid-template-columns: 1fr; } }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0 20px; font-size: 0.9rem; }
+  th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--color-border); }
+  th { background: #f1f3f5; font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--color-muted); }
+  tr:hover td { background: #fafbfc; }
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.3px; }
+  .tag-a{background:#d1fae5;color:#065f46}.tag-b{background:#fef3c7;color:#92400e}.tag-c{background:#fee2e2;color:#991b1b}
+  .tag-good{background:#d1fae5;color:#065f46}.tag-warn{background:#fef3c7;color:#92400e}.tag-bad{background:#fee2e2;color:#991b1b}
+  .callout {
+    border-left: 4px solid var(--color-accent); background: #e7f1ff;
+    padding: 14px 18px; border-radius: 0 6px 6px 0; margin: 16px 0; font-size: 0.9rem;
+  }
+  .callout.warn{border-left-color:var(--color-warn);background:#fff5f5}
+  .callout.good{border-left-color:var(--color-good);background:#f0fdf4}
+  .arch-layer {
+    border: 1px solid var(--color-border); border-radius: 6px; padding: 16px;
+    margin-bottom: 12px; background: #fafbfc;
+  }
+  .arch-layer .label {
+    font-weight: 700; font-size: 0.8rem; color: var(--color-muted);
+    text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;
+  }
+  .arch-layer .parts { font-size: 0.9rem; }
+  .flow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 12px 0; font-size: 0.9rem; }
+  .flow .step {
+    background: var(--color-surface); border: 1px solid var(--color-border);
+    border-radius: 6px; padding: 6px 14px;
+  }
+  .flow .arrow { color: var(--color-muted); font-weight: 700; }
+  .bathtub {
+    background: #f9fafb; border: 1px dashed var(--color-border); border-radius: 8px;
+    padding: 40px 24px; text-align: center; margin: 16px 0;
+  }
+  .bathtub svg { max-width: 600px; }
+  .conclusion {
+    background: linear-gradient(135deg, #1a1d23, #2d3139); color: #e0e0e0;
+    border-radius: 10px; padding: 28px 32px; margin-top: 48px;
+  }
+  .conclusion h2 { color: #fff; border-bottom-color: #444; font-size: 1.2rem; }
+  .conclusion p { font-size: 1.05rem; line-height: 1.8; }
+  @media print { nav { display: none; } main { margin-left: 0; padding: 20px; width: auto; } }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="brand">
+    新风系统工程分析
+    <span>Home Appliance Researcher v3.0</span>
+  </div>
+  <a href="#sec-0">1. 系统本质</a>
+  <a href="#sec-1">2. 系统架构拆解</a>
+  <a href="#sec-2">3. 核心部件工程分析</a>
+  <a href="#sec-3">4. 制造模式分析</a>
+  <a href="#sec-4">5. 技术路线对比</a>
+  <a href="#sec-5">6. 可靠性工程模型</a>
+  <a href="#sec-6">7. 用户体验建模</a>
+  <a href="#sec-7">8. 营销系统识别</a>
+  <a href="#sec-8">9. TCO成本模型</a>
+  <a href="#sec-9">10. 供应链与产业结构</a>
+  <a href="#sec-10">11. 安装与环境影响</a>
+  <a href="#sec-11">12. 品牌工程评级</a>
+  <a href="#sec-12">13. 购买决策系统</a>
+  <a href="#sec-13" style="color: #60a5fa;">14. 一句话结论</a>
+</nav>
+
+<main>
+
+<h1>家用新风系统工程分析报告</h1>
+<p class="subtitle">
+  分析框架：物理原理 &gt; 系统架构 &gt; 核心部件 &gt; 制造质量 &gt; 可靠性 &gt; 使用体验 &gt; 成本结构 &gt; 品牌 &gt; 功能营销<br>
+  分析日期：2026-06-09 &nbsp;|&nbsp; 分析对象：家用新风系统（中央管道式 / 壁挂式 / 柜式；全热交换 / 显热交换 / 单向流）
+</p>
+
+<!-- ─── 1. 系统本质 ─── -->
+<h2 id="sec-0">1. 系统本质</h2>
+
+<div class="card">
+  <h3>新风系统是什么？</h3>
+  <table>
+    <tr><th style="width:120px">系统类型</th><td>空气交换与处理系统（Air Exchange &amp; Treatment System）——通过机械强制通风，将经过过滤的室外新鲜空气有组织地送入室内各房间，同时将室内污浊空气（含高浓度CO₂、甲醛/VOCs、异味、过量水蒸气）有组织地排出室外。与空气净化器（仅循环过滤室内已有空气）的根本区别在于：<strong>新风系统是"换气"装置，净化器是"过滤"装置</strong>——新风解决了净化器无法解决的CO₂累积问题，而净化器在面对室外严重PM2.5污染时，作为新风的补充过滤手段仍有价值。</td></tr>
+    <tr><th>输入</th><td>电能（220V AC，功率20–200W，24h×365d连续运行）+ 室外空气（含O₂ 21%、CO₂ 420ppm、PM2.5 0–500μg/m³、温度-20至40°C、湿度10–95%RH）+ 室内污浊空气（含高CO₂ 1000–3000ppm、甲醛/VOCs、水蒸气）+ 滤芯（消耗品）</td></tr>
+    <tr><th>输出</th><td>过滤后的新鲜空气（PM2.5 ≤10μg/m³，经温湿度交换后温度/湿度接近室内值，以降低冷热负荷）+ 排出的室内污浊空气 + 回收的能量（热量+水分，全热交换效率60–80%）+ 热量（电机发热，<100W）+ 噪音（20–45dBA @出风口）</td></tr>
+    <tr><th>能量形式</th><td><strong>核心物理过程：</strong>电能 → BLDC电机轴功率（双电机：送风+排风）→ 气流静压（克服热交换芯体+滤芯+管道的沿程阻力和局部阻力，总压降100–300Pa）→ 两股气流（室外新风、室内排风）以<strong>逆流或叉流</strong>方式通过热交换芯体的相邻通道→ <strong>热量通过芯体壁面（金属/纸质/高分子膜）从高温侧传导至低温侧</strong>，水蒸气（如果是全热交换芯体）通过膜孔扩散从高湿侧迁移至低湿侧→ 冬季：排风将热量+水分传递给进入的冷新风（减少供暖负荷）；夏季：排风从进入的热新风中吸收冷量+水分（减少制冷负荷）。<strong>新风系统的核心工程价值就在这个热交换过程</strong>——它将"必须的换气"所需的能耗降低了60–80%。</td></tr>
+    <tr><th>核心物理原理</th><td><strong>1. 空气-空气热交换：</strong>两种不同温度的气流通过固体壁面（金属/塑料/纸/高分子膜）进行间壁式换热——热量以<strong>热传导</strong>方式穿过壁面，从高温气流传递到低温气流。这是<strong>无相变的显热交换</strong>（仅交换温度）。冬季典型工况：排风22°C → 芯体 → 新风10°C → 送入室内18°C（热回收效率≈(18-10)/(22-10)=67%）。<br><strong>2. 全热交换（焓交换）：</strong>在显热交换的基础上，通过<strong>具有水蒸气渗透性的膜材料</strong>（如改性纤维素纸/高分子微孔膜）实现水分子的跨膜扩散——水蒸气分压差驱动水分子从高湿侧穿过膜孔到达低湿侧。冬季典型：排风30%RH（室内干燥）→ 水分透过膜→ 新风70%RH（室外湿冷）→ 排风被加湿、新风被除湿。全热交换同时回收显热+潜热（水蒸气相变热），<strong>总焓效率显著高于显热交换</strong>，特别在潮湿气候区域（如中国南方）优势明显。<br><strong>3. 过滤：</strong>室外空气→ G4粗效过滤（拦截>5μm颗粒/昆虫/柳絮）→ HEPA H11/H13（拦截PM2.5/PM0.3）→ 进入热交换芯体。部分型号增加活性炭段（吸附室外空气中的VOCs/异味/汽车尾气NO₂）。<strong>过滤等级需要平衡：</strong>更高的过滤等级=更大的气流压降=需要更高功率的电机=更大的噪音+功耗。H11是工程甜点（>95% @0.3μm，压降适中），H13是高品质选择（>99.95%但压降增加约50%+）。</td></tr>
+  </table>
+</div>
+
+<div class="callout">
+  <strong>工程视角的关键认知：</strong>新风系统是所有家电中<strong>"安装决定性"最强</strong>的品类——系统性能的差异中，<strong>安装质量（管道设计+施工+气流平衡调试）占比≥60%</strong>，设备本身的硬件素质约占40%。一台¥15000的顶级中央新风如果安装在设计错误/施工粗糙的管道系统中（弯头过多/管径过小/未做风量平衡/未密封漏风），其实际性能可以不如一台¥3000的入门新风安装在精心设计的管道中。更关键的是，新风系统的管道是<strong>埋在吊顶/墙体内的隐蔽工程</strong>——安装错误在装修完成后几乎不可逆（除非砸吊顶重做）。这是"安装风险"最高的家电品类。
+</div>
+
+<!-- ─── 2. 系统架构拆解 ─── -->
+<h2 id="sec-1">2. 系统架构拆解</h2>
+
+<h3>2.1 中央管道式双向流全热交换新风系统（主流方案）</h3>
+
+<div class="arch-layer">
+  <div class="label">Layer 1 · 能源层 Energy</div>
+  <div class="parts"><strong>双BLDC电机</strong>（送风电机 + 排风电机，各15–100W，DC 310V或24V，PWM无级调速）——新风系统需要双电机分别独立控制送风量和排风量，以实现<strong>室内微正压</strong>（送风量略大于排风量，防止室外未过滤空气从门窗缝隙渗入）。双电机的<strong>转速同步精度</strong>是决定室内压力平衡和热交换效率的关键控制参数。<br>
+  <strong>AC-DC开关电源</strong>（220V AC → 310V DC（电机母线） + 12V/5V DC（控制/传感器供电），功率50–250W）+ <strong>电机驱动板</strong>（双通道FOC矢量控制，正弦波驱动以降低电磁噪音）。</div>
+</div>
+<div class="arch-layer">
+  <div class="label">Layer 2 · 执行层 Actuation（气流组织 + 热交换 + 过滤）</div>
+  <div class="parts"><strong>热交换芯体</strong>——新风系统的<strong>核心功能部件</strong>。室外新风和室内排风两股气流以叉流或逆流方式穿过芯体的相邻通道（通道间距2–5mm，由波纹状隔板分隔）。芯体材料决定交换类型：<strong>显热芯体</strong>（铝箔/塑料薄片——仅交换热量不交换湿度，适合干冷气候）；<strong>全热芯体</strong>（改性纤维素纸/高分子微孔膜——同时交换热量和水蒸气，适合潮湿气候和中国大部分地区）。芯体的<strong>换热面积</strong>（通常10–30m²，由通道层数和芯体尺寸决定）和<strong>气流分布均匀性</strong>是决定热交换效率的两个核心气动参数。<br>
+  <strong>过滤段：</strong>室外进风侧→ ① 不锈钢丝网（拦截>2mm异物/昆虫）→ ② G4粗效过滤袋/滤网（拦截>5μm颗粒/花粉/柳絮，保护HEPA滤芯延长寿命，可水洗/吸尘重复使用）→ ③ HEPA H11/H13滤芯（拦截PM2.5/PM0.3/细菌，不可水洗，消耗品）→ ④ 可选：活性炭滤网（吸附室外异味/汽车尾气NO₂/VOCs）→ 进入热交换芯体。室内回风侧→ G2/G3初效滤网（保护热交换芯体不被室内灰尘/纤维污染）。<br>
+  <strong>管道与气流分配：</strong>送风主管（PVC/PE软管，Φ75–160mm）→ 分风箱（静压箱）→ 各房间送风支管→ 送风口（顶送/地送）。回风从公共区域（走廊/客厅）集中回风→ 回风主管→ 主机。关键气动设计参数：<strong>各支管的风量平衡</strong>——通过调节阀/不同管径/不同长度实现各房间的设计风量分配。<br>
+  <strong>可选辅热：</strong>PTC电辅热模块（500–1000W，位于送风段）——在极寒天气（室外<-10°C）时预热进入的新风，防止热交换芯体结霜/结冰堵塞气流通道。这是北方寒冷地区的<strong>必选配置</strong>。</div>
+</div>
+<div class="arch-layer">
+  <div class="label">Layer 3 · 控制层 Control</div>
+  <div class="parts"><strong>传感器组：</strong>① <strong>PM2.5传感器</strong>（激光散射式，检测送风空气质量+室内空气质量）；② <strong>CO₂传感器</strong>（NDIR非色散红外，新风系统的<strong>核心传感器</strong>——CO₂浓度是新风量的直接反馈指标。Senseair/Sensirion高端NDIR传感器精度±30ppm+3%，国产NDIR精度±50ppm）；③ 温湿度传感器×2（室外新风入口+室内回风入口——用于计算和优化热交换效率，以及在极端天气下启动防冻模式）；④ 可选：TVOC传感器（半导体，精度差，仅作为参考趋势）<br>
+  <strong>MCU控制板</strong>（32位ARM MCU）→ 读取传感器→ 运行控制算法：① <strong>CO₂闭环PID控制</strong>——根据室内CO₂浓度（目标<800–1000ppm）自动调节送/排风电机转速（风量）；② <strong>防冻控制</strong>——当室外温度< -5°C且排风侧检测到芯体温度接近0°C→ 启动旁通模式（新风不经过芯体直接送入）或间歇式降低送风/排风或启动PTC辅热；③ <strong>滤芯寿命计算</strong>——累积运行时间+风量积分→ 估算滤芯容尘量→ 提示更换。<br>
+  <strong>操作面板/APP</strong>：风量档位调节、定时、滤芯寿命显示、室内外空气质量实时显示、旁通模式（春秋季室外温度适宜时直接引入室外空气不经过热交换，节能）。</div>
+</div>
+<div class="arch-layer">
+  <div class="label">Layer 4 · 结构层 Structural</div>
+  <div class="parts"><strong>主机壳体</strong>（钣金+EPP发泡保温——防止夏季主机表面结露滴落损坏吊顶。壳体内部需<strong>气密分隔</strong>送风通道和排风通道，防止交叉污染）。<strong>吊装支架</strong>（减震吊装，主机悬挂在天花板下的吊顶空间内——需要预留检修口（≥600×600mm）用于更换滤芯和维护）。<strong>进/排风口</strong>（室外：新风进风口 + 排风出风口——两者必须在建筑外墙上<strong>相距≥1.5m</strong>以防止排风被吸入进风口造成短路）。<strong>保温管道</strong>（室外进风管和排风管必须做保温包覆（≥20mm橡塑保温），防止冬季冷凝水/夏季结露）。<strong>消音管</strong>（主机送风/回风接口安装消音软管以降低电机噪音沿管道传播）。</div>
+</div>
+
+<h3>2.2 壁挂式/柜式单向流新风（无管道方案）</h3>
+
+<div class="arch-layer">
+  <div class="label">简化架构</div>
+  <div class="parts"><strong>单向正压新风：</strong>单BLDC电机→ 室外进风→ 过滤（G4+HEPA）→ 可选PTC辅热→ 室内送风。通过持续向室内送入过滤后的新鲜空气，在室内形成<strong>微正压</strong>，将室内污浊空气从门窗缝隙和卫生间排风扇挤出。<strong>没有热交换</strong>——冬天送入冷空气增加供暖负荷，夏天送入热空气增加制冷负荷。仅适合对节能要求不高的小空间（如单个卧室/书房）。<br>
+  <strong>双向流壁挂式（带热交换）：</strong>双BLDC电机+小型热交换芯体+过滤——单向流的基础上增加了排风通道和热交换芯体，但受限于壁挂尺寸（通常<500mm宽），<strong>热交换芯体面积远小于中央式</strong>（通常<5m² vs >15m²），导致热交换效率明显偏低（标称50–60%，实际40–55%）。</div>
+</div>
+
+<h3>2.3 能量-气流路径</h3>
+
+<div class="cols">
+<div class="card">
+  <h4>冬季工况（室外0°C/室内22°C）</h4>
+  <div class="flow" style="font-size:0.8rem">
+    <span class="step">室外0°C脏空气</span><span class="arrow">→</span><span class="step">G4+HEPA过滤</span><span class="arrow">→</span><span class="step">热交换芯体（从排风吸热→升温至16°C）</span><span class="arrow">→</span><span class="step">可选PTC辅热</span><span class="arrow">→</span><span class="step">洁净16°C新风送入室内</span>
+  </div>
+  <div class="flow" style="font-size:0.8rem; margin-top:4px">
+    <span class="step">室内22°C污浊排风</span><span class="arrow">→</span><span class="step">初效过滤（保护芯体）</span><span class="arrow">→</span><span class="step">热交换芯体（放热给新风→降温至6°C）</span><span class="arrow">→</span><span class="step">6°C排风排至室外</span>
+  </div>
+  <p style="font-size:0.78rem;color:var(--color-muted);margin-top:4px"><strong>热回收热量=新风量(m³/h)×ρCp×(16-0)°C≈风量×5.3Wh/m³。</strong>150m³/h风量≈800W热回收。如果没有热交换，这800W就是供暖系统需要额外负担的热负荷。</p>
+</div>
+<div class="card">
+  <h4>夏季工况（室外35°C/室内26°C）</h4>
+  <div class="flow" style="font-size:0.8rem">
+    <span class="step">室外35°C湿热空气</span><span class="arrow">→</span><span class="step">G4+HEPA过滤</span><span class="arrow">→</span><span class="step">热交换芯体（向排风放热→降温至28°C）</span><span class="arrow">→</span><span class="step">洁净28°C新风送入室内</span>
+  </div>
+  <div class="flow" style="font-size:0.8rem; margin-top:4px">
+    <span class="step">室内26°C凉爽排风</span><span class="arrow">→</span><span class="step">初效过滤</span><span class="arrow">→</span><span class="step">热交换芯体（从新风吸热→升温至33°C）</span><span class="arrow">→</span><span class="step">33°C排风排至室外</span>
+  </div>
+  <p style="font-size:0.78rem;color:var(--color-muted);margin-top:4px"><strong>冷量回收=新风量(m³/h)×ρCp×(35-28)°C≈风量×2.3Wh/m³。</strong>夏季温差通常小于冬季→冷量回收的绝对值小于冬季热量回收，但在潮湿气候中全热交换回收的水蒸气潜热同样显著。</p>
+</div>
+</div>
+
+<!-- ─── 3. 核心部件工程分析 ─── -->
+<h2 id="sec-2">3. 核心部件工程分析</h2>
+
+<h3>3.1 Single Point of Failure（SPoF）</h3>
+
+<table>
+  <tr><th>部件</th><th>为何是SPoF</th><th>失效模式</th><th>寿命区间</th><th>修复可行性</th></tr>
+  <tr>
+    <td><strong>双BLDC电机</strong></td>
+    <td>送风或排风任意一个电机停转→系统失衡→要么只有正压送风无排风（室内正压过大→门缝啸叫），要么只有排风无送风（室内负压→室外未过滤空气渗入）</td>
+    <td>轴承磨损→噪音增大→停转；驱动板MOSFET击穿；Hall传感器失效→电机抖动/不转</td>
+    <td>优质(Nidec/EBM)：10–15年<br>国产中端：5–8年<br>低成本：2–5年</td>
+    <td>可更换电机+驱动板模组（¥200–600），但需要拆下吊顶内的主机→人工成本高</td>
+  </tr>
+  <tr>
+    <td><strong>热交换芯体</strong></td>
+    <td>芯体堵塞→气流阻力急剧增大→风量下降→换气不足+热回收效率下降。冬季结冰→完全堵塞气流通道→系统停机</td>
+    <td><strong>灰尘堵塞：</strong>回风侧初效滤网长期不清洁→灰尘穿透进入芯体→积灰→气流通道变窄→压降增大；<strong>结冰：</strong>严寒天气(室外<-10°C)排风侧水蒸气在芯体冷端冷凝结冰→冰层逐渐增厚→完全堵塞；<strong>纸质芯体受潮：</strong>长期高湿+冷凝→纸质通道软化塌陷</td>
+    <td>纸质全热芯体：5–10年<br>高分子膜全热芯体：8–15年<br>铝箔显热芯体：15–20年</td>
+    <td>可更换芯体（¥500–2000），但同样需要拆吊顶→人工+材料费用高。纸质芯体不可清洗（水洗会破坏纸质通道结构），只能更换</td>
+  </tr>
+  <tr>
+    <td><strong>HEPA滤芯</strong></td>
+    <td>滤芯饱和→压降过大→风量下降→换气不足。滤芯<strong>超期使用</strong>→过滤效率下降→PM2.5穿透→送入室内的"新风"变成"脏风"</td>
+    <td>容尘量饱和（压降超过初始值的2倍→风量衰减>30%）；受潮发霉（高湿+关机后冷凝→霉菌滋生→开机吹出霉味）</td>
+    <td>3–6个月（取决于室外空气质量和运行风量）</td>
+    <td>用户可自行更换（设计为消耗品，¥80–300/套，更换周期3–6月）。但中央新风换滤芯需要爬梯子→打开吊顶检修口→操作不便</td>
+  </tr>
+  <tr>
+    <td><strong>CO₂传感器（NDIR）</strong></td>
+    <td>传感器故障→自动风量调节失效→可能在不需要时高速运转（浪费电+噪音），或在需要时低速运转（CO₂超标不自知→头晕犯困）。<strong>这是隐蔽但影响健康的SPoF</strong></td>
+    <td>红外光源衰减（NDIR光源寿命5–8年→信号漂移）；光学腔污染（灰尘积累→基线漂移）；自动校准逻辑错误（ABC自动基线校准在长期无新鲜空气参考时反而会"校准"到错误基线）</td>
+    <td>5–8年（NDIR光源寿命+光学腔洁净度）</td>
+    <td>可更换（¥100–400），但多数用户不知道传感器已经不准了</td>
+  </tr>
+  <tr>
+    <td><strong>控制板/电源</strong></td>
+    <td>控制板故障→整机无法运行/风量不可控。电源故障→整机停电</td>
+    <td>电解电容老化；继电器触点粘连；雷击/浪涌损坏；WiFi模块失效</td>
+    <td>5–10年</td>
+    <td>可更换控制板/电源板（¥200–600），需要拆机</td>
+  </tr>
+</table>
+
+<div class="callout warn">
+  <strong>SPoF结论：</strong>新风系统的SPoF结构有两个独特特征——① <strong>双电机互为依赖</strong>：任意一个故障→系统失衡；② <strong>滤芯超期使用是最常见但最隐蔽的SPoF</strong>——你肉眼看不到滤芯的饱和状态（滤芯在吊顶里），你只能通过"感觉"来判断（最近家里灰尘多了？CO₂浓度报警？但这些在早期都无法明确归因到滤芯问题）。<strong>建议为新风机设置固定的滤芯更换提醒（3个月检查、6个月更换），而不是依赖APP的"滤芯寿命"算法</strong>——后者通常不准确（它不知道你的室外实际空气有多脏）。
+</div>
+
+<h3>3.2 核心部件性能等级</h3>
+
+<table>
+  <tr><th>部件</th><th>高端/专业级</th><th>中端</th><th>入门/低成本</th></tr>
+  <tr>
+    <td><strong>电机</strong></td>
+    <td>EBM-Papst（德国）/Nidec（日本）原装BLDC，正弦波FOC驱动，G1.0动平衡，滚动轴承，低噪音</td>
+    <td>国产中端BLDC（威灵/大洋），方波驱动，G2.5动平衡</td>
+    <td>国产低成本BLDC，含油轴承，G6.3动平衡，噪音随使用时间增大</td>
+  </tr>
+  <tr>
+    <td><strong>热交换芯体</strong></td>
+    <td>高分子微孔膜（ePTFE/改性聚酰亚胺），水蒸气透过率高+气密性好（>99%无交叉泄漏），耐水解耐霉变，可水洗，寿命>15年。逆流结构，换热面积>20m²</td>
+    <td>改性纤维素纸（ER纸），水蒸气透过率中等，叉流结构，换热面积10–15m²，寿命8–12年</td>
+    <td>普通纸浆纸，叉流/单流程结构，换热面积<8m²，寿命5–8年，不可水洗</td>
+  </tr>
+  <tr>
+    <td><strong>过滤系统</strong></td>
+    <td>室外：G4+H13 HEPA；室内回风：G3。滤芯框架与主机<strong>密封配合</strong>（旁路泄漏<1%）</td>
+    <td>室外：G4+H11/H12 HEPA；室内回风：G2。密封中等（旁路<3%）</td>
+    <td>室外：G3+H11；缺乏回风过滤。密封差（旁路>5%）</td>
+  </tr>
+  <tr>
+    <td><strong>CO₂传感器</strong></td>
+    <td>Sensirion SCD4x / Senseair K30——NDIR双通道（测量+参考），精度±30ppm，10年寿命，ABC自动基线校准</td>
+    <td>国产NDIR（炜盛/四方光电），单通道，精度±50–100ppm</td>
+    <td>无CO₂传感器（使用TVOC半导体作为替代→无法准确测定CO₂）或国产低成本NDIR（精度±200ppm）</td>
+  </tr>
+  <tr>
+    <td><strong>壳体/保温/密封</strong></td>
+    <td>双层钣金+30mm EPP发泡保温。送风/排风通道物理隔离+密封条。EPP整体成型内胆（无拼接缝→漏风率<1%）</td>
+    <td>单层钣金+10mm橡塑保温。密封条隔离。漏风率<3%</td>
+    <td>薄钣金+无保温（结露风险）。送排风通道隔离简单。漏风率>5%</td>
+  </tr>
+</table>
+
+<h3>3.3 BOM（Bill of Materials）拆解 — 中央管道式新风主机（250m³/h风量）</h3>
+
+<table>
+  <tr><th>子系统</th><th>入门 ¥2500</th><th>中端 ¥5000</th><th>高端 ¥10000</th></tr>
+  <tr><td>双BLDC电机+驱动</td><td>国产 2×40W ¥200</td><td>国产中端 2×60W ¥350</td><td>EBM-Papst/Nidec 2×80W ¥800</td></tr>
+  <tr><td>热交换芯体</td><td>普通纸浆纸 叉流 ~10m² ¥150</td><td>ER改性纸 叉流 ~15m² ¥300</td><td>高分子膜 逆流 ~22m² ¥800</td></tr>
+  <tr><td>过滤系统</td><td>G3+G4+H11 ¥80</td><td>G4+G4+H12 ¥150</td><td>G4+G4+H13+活性炭 ¥300</td></tr>
+  <tr><td>CO₂传感器</td><td>国产NDIR ¥60</td><td>国产NDIR+温湿度 ¥100</td><td>Sensirion SCD4x+PM2.5+温湿度 ¥300</td></tr>
+  <tr><td>控制板+MCU+WiFi</td><td>8位MCU+LED ¥60</td><td>32位MCU+LCD+WiFi ¥120</td><td>32位MCU+Touch+WiFi+BT ¥200</td></tr>
+  <tr><td>壳体/保温/风阀</td><td>薄钣金+无保温 ¥200</td><td>钣金+10mm保温 ¥350</td><td>双层钣金+30mm EPP ¥600</td></tr>
+  <tr><td>PTC辅热</td><td>无 ¥0</td><td>可选 500W ¥80</td><td>标配 800W 自动温控 ¥150</td></tr>
+  <tr><td>旁通阀</td><td>无 ¥0</td><td>手动旁通 ¥30</td><td>电动旁通(电机驱动) ¥100</td></tr>
+  <tr><th>BOM合计</th><th>≈¥750</th><th>≈¥1,480</th><th>≈¥3,250</th></tr>
+  <tr><th>零售价</th><th>¥2000–3000</th><th>¥4000–6000</th><th>¥8000–12000</th></tr>
+  <tr><th>BOM占比</th><th>~28%</th><th>~30%</th><th>~30%</th></tr>
+</table>
+
+<div class="callout">
+  <strong>BOM关键发现：</strong>新风主机的BOM占比极低（28–30%），远低于其他家电品类——这意味着<strong>设备本身不是新风系统的主要成本</strong>。真正的大头是<strong>管道系统+安装人工</strong>（通常占中央新风总投入的40–60%）。这个成本结构是理解新风系统的关键——你花¥10,000买的新风系统，只有约¥3,000是设备本身，另外¥7,000是管道材料+设计+施工+调试+吊顶改造。因此，<strong>管道系统的质量和安装施工的规范程度对新风系统的最终性能影响，远大于你选了哪个品牌的主机</strong>。
+</div>
+
+<!-- ─── 4. 制造模式分析 ─── -->
+<h2 id="sec-3">4. 制造模式分析</h2>
+
+<div class="cols">
+<div class="card">
+  <h3>制造模式概览</h3>
+  <table>
+    <tr><th>模式</th><th>代表品牌</th><th>特征</th></tr>
+    <tr><td><strong>自研自产核心</strong></td><td>松下（日本）、大金（日本）</td><td>自研电机+自研热交换芯体（松下专利纸质芯体）+自研控制系统+自产</td></tr>
+    <tr><td><strong>自研整机+外购核心</strong></td><td>霍尼韦尔（美国）、百朗（美国）、远大（中国）、环都/艾迪卫（中国）</td><td>自研整机设计/壳体/风道/系统集成，电机和传感器外购。远大以静电除尘替代HEPA走差异化技术路线</td></tr>
+    <tr><td><strong>ODM</strong></td><td>小米/米家新风、352新风、部分互联网品牌</td><td>整机方案由专业新风ODM厂（深圳/厦门/浙江）提供，品牌提供外观+软件+渠道</td></tr>
+    <tr><td><strong>进口贴牌</strong></td><td>部分"德国/美国"品牌</td><td>中国ODM生产→贴欧美品牌→溢价销售。纯品牌营销驱动</td></tr>
+  </table>
+</div>
+<div class="card">
+  <h3>核心能力自主度判断</h3>
+  <table>
+    <tr><th>能力</th><th>自研可控</th><th>外购依赖</th></tr>
+    <tr><td>热交换芯体</td><td>松下、大金（自研纸质芯体材料和工艺）</td><td>多数品牌从专业芯体供应商采购（日本三菱纸业/王子制纸、中国浙江芯体厂）</td></tr>
+    <tr><td>电机</td><td>松下（部分自产）</td><td>绝大多数品牌采购EBM/Nidec/国产威灵等</td></tr>
+    <tr><td>传感器</td><td>极少</td><td>100%外购</td></tr>
+    <tr><td>壳体/风道</td><td>有研发投入的品牌自研</td><td>ODM品牌使用公模</td></tr>
+    <tr><td>管道系统</td><td>松下/百朗等自研管道配件体系（PE软管+分风箱+风口）</td><td>多数品牌使用通用管道配件（联塑/中财/伟星PVC管+标准风口）</td></tr>
+  </table>
+</div>
+</div>
+
+<div class="callout">
+  <strong>产业真相：</strong>中国的新风系统产业链极其分散——主机品牌有上百个，管道品牌有几十个，但<strong>掌控全链条设计能力的品牌屈指可数</strong>（松下、百朗）。绝大多数新风"品牌"只是主机销售商——它们卖主机给你，但不负责管道设计/施工/调试。而<strong>管道系统是决定新风系统80%使用体验的关键</strong>。这就是新风行业最大的结构性矛盾：<strong>品牌卖设备，但体验由安装商决定。品牌不为安装质量负责（声称"安装由经销商/第三方完成"）。</strong>
+</div>
+
+<!-- ─── 5. 技术路线对比 ─── -->
+<h2 id="sec-4">5. 技术路线对比</h2>
+
+<table>
+  <tr><th>维度</th><th>中央管道式<br>全热交换（双向流）</th><th>壁挂/柜式<br>双向流热交换</th><th>壁挂式<br>单向正压流</th><th>负压式（排风扇）</th></tr>
+  <tr><td><strong>原理</strong></td><td>双风机+管道送排风+全热交换芯体</td><td>双风机+小型热交换芯体+单房间</td><td>单风机正压送风，从门缝/排风扇排风</td><td>单风机排风，从门缝自然进风</td></tr>
+  <tr><td><strong>适用面积</strong></td><td>全屋（80–300m²）</td><td>单个房间（15–40m²）</td><td>单个房间（15–40m²）</td><td>单个房间（卫生间/厨房）</td></tr>
+  <tr><td><strong>风量范围</strong></td><td>150–500 m³/h</td><td>60–150 m³/h</td><td>60–150 m³/h</td><td>60–300 m³/h</td></tr>
+  <tr><td><strong>热回收</strong></td><td><strong>✅ 全热60–80%</strong>（冬季省暖/夏季省冷）</td><td>✅ 显热/全热 40–60%（芯体面积受限→效率偏低）</td><td>❌ 无热回收（冬季吹冷风/夏季吹热风→不舒适+浪费能源）</td><td>❌ 无热回收</td></tr>
+  <tr><td><strong>空气过滤</strong></td><td>G4+H11/H13 HEPA，室外空气经深度过滤后送入</td><td>G4+H11/H13 HEPA</td><td>G4+H11/H13 HEPA</td><td>无过滤（室外空气未经处理直接渗入）</td></tr>
+  <tr><td><strong>CO₂控制</strong></td><td><strong>✅ 有组织换气——各房间CO₂浓度均衡</strong></td><td>⚠️ 仅覆盖单个房间——其他房间CO₂无法控制</td><td>⚠️ 仅覆盖单个房间——且排风路径不可控</td><td>❌ 被动进风——无法保证足够的换气量</td></tr>
+  <tr><td><strong>安装复杂度</strong></td><td>极高——需要装修前设计管道+吊顶内走管+外墙开孔×2+电源预留</td><td>中等——外墙开孔×2（Φ160mm）+挂墙安装+电源</td><td>低——外墙开孔×1（Φ160mm）+挂墙+电源</td><td>低——外墙/窗户开孔+电源</td></tr>
+  <tr><td><strong>安装时机</strong></td><td><strong>装修前/装修中</strong>（管道必须在吊顶封板前完成）</td><td>装修后（需开孔，装修后也可以安装）</td><td>装修后（需开孔）</td><td>装修后</td></tr>
+  <tr><td><strong>噪音（睡眠档）</strong></td><td>25–35 dBA（主机在吊顶内，送风口在房间顶棚→距离人耳2–3m→衰减后极安静）</td><td>25–40 dBA（设备在卧室墙上→离人耳更近）</td><td>25–40 dBA（同上）</td><td>35–50 dBA（排风扇噪音显著）</td></tr>
+  <tr><td><strong>维护复杂度</strong></td><td>高——换滤芯需要爬梯子开吊顶检修口。管道每3–5年需要专业清洗（积灰）。</td><td>低——设备在墙上，直接打开面板换滤芯</td><td>低</td><td>极低</td></tr>
+  <tr><td><strong>初投资（含安装）</strong></td><td>¥8,000–25,000（主机+管道+施工+吊顶改造）</td><td>¥3,000–8,000（设备+开孔+安装）</td><td>¥1,500–4,000</td><td>¥300–1,000</td></tr>
+</table>
+
+<div class="callout good">
+  <strong>技术路线结论：</strong>① <strong>中央管道式双向流全热交换</strong>是<strong>覆盖全屋的唯一工程正确方案</strong>——它能解决所有房间的CO₂/PM2.5/甲醛/VOC问题，且通过热回收将换气能耗降至最低。但它必须在<strong>装修前</strong>决定，装修后无法追加；② <strong>壁挂式双向流</strong>是装修后<strong>单个房间的最佳补救方案</strong>——但请接受它只能覆盖一个房间的现实；③ <strong>单向正压壁挂</strong>在寒冷/炎热气候下是"不舒适的解决方案"（无热回收→冬季冷风直吹/夏季热风直吹——需要在出风口前加PTC辅热或接受体感不适）；④ <strong>不要误以为开窗=新风</strong>——开窗通风的换气量无法控制（过大→能源浪费/室外噪音/灰尘；过小→CO₂仍超标），且室外PM2.5/花粉/噪音/安全风险全部长驱直入。
+</div>
+
+<!-- ─── 6. 可靠性工程模型 ─── -->
+<h2 id="sec-5">6. 可靠性工程模型</h2>
+
+<h3>6.1 浴盆曲线（Bathtub Curve）</h3>
+
+<div class="bathtub">
+  <svg viewBox="0 0 600 200" width="100%" height="auto">
+    <defs>
+      <linearGradient id="fade" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#dc3545" stop-opacity="0.12"/>
+        <stop offset="100%" stop-color="#dc3545" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+    <line x1="50" y1="160" x2="560" y2="160" stroke="#aaa" stroke-width="1"/>
+    <line x1="50" y1="20" x2="50" y2="160" stroke="#aaa" stroke-width="1"/>
+    <text x="300" y="190" font-size="10" fill="#888" text-anchor="middle">使用时间</text>
+    <text x="15" y="95" font-size="10" fill="#888" text-anchor="middle" transform="rotate(-90, 15, 95)">失效率</text>
+    <path d="M50,118 C108,132 148,106 200,42 C220,28 260,18 300,22 C340,26 380,24 440,48 C470,62 500,85 525,118 L560,125"
+          fill="none" stroke="#dc3545" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M50,118 C108,132 148,106 200,42 C220,28 260,18 300,22 C340,26 380,24 440,48 C470,62 500,85 525,118 L560,125 L560,160 L50,160 Z"
+          fill="url(#fade)"/>
+    <text x="130" y="82" font-size="10" fill="#dc3545" text-anchor="middle">早期失效期<br/><tspan font-size="8">（安装缺陷：漏风/噪音/风量失衡/结露）</tspan></text>
+    <text x="310" y="40" font-size="10" fill="#198754" text-anchor="middle">稳定期 · 偶发失效（需定期换滤芯/清洁管道）</text>
+    <text x="498" y="70" font-size="10" fill="#dc3545" text-anchor="middle">损耗失效期<br/><tspan font-size="8">（电机/芯体/传感器老化/管道积灰）</tspan></text>
+    <line x1="195" y1="145" x2="195" y2="160" stroke="#888" stroke-width="0.5" stroke-dasharray="4,3"/>
+    <text x="195" y="172" font-size="8" fill="#888" text-anchor="middle">0–1年</text>
+    <line x1="430" y1="145" x2="430" y2="160" stroke="#888" stroke-width="0.5" stroke-dasharray="4,3"/>
+    <text x="430" y="172" font-size="8" fill="#888" text-anchor="middle">8–12年</text>
+  </svg>
+</div>
+
+<h3>6.2 故障模式与影响分析（FMEA）</h3>
+
+<table>
+  <tr><th>故障模式</th><th>发生率</th><th>影响</th><th>可探测性</th><th>修复成本</th><th>RPN</th></tr>
+  <tr>
+    <td>安装缺陷（管道漏风/风量失衡/未保温结露）</td>
+    <td><span class="tag tag-bad">极高（<strong>50%+的新风安装有不规范问题</strong>）</span></td>
+    <td>实际换气量远低于设计值/噪音大/滴水损坏吊顶</td>
+    <td>低——需要专业仪器(风速仪/风量罩/热成像)检测，肉眼看不到</td>
+    <td>极高——通常需要砸吊顶重做管道</td>
+    <td><strong>极高</strong></td>
+  </tr>
+  <tr>
+    <td>滤芯超期未更换</td>
+    <td><span class="tag tag-bad">极高（多数用户<strong>忘记换或懒得换</strong>吊顶里的滤芯）</span></td>
+    <td>风量衰减→换气不足→CO₂超标→头晕；过滤效率下降→PM2.5穿透→新风变脏风</td>
+    <td>极低（滤芯在吊顶里，用户看不到。风量衰减是渐进过程不易觉察）</td>
+    <td>低（换滤芯¥80–300），但<strong>超期使用的后果（管道积灰/芯体堵塞）不可逆</strong></td>
+    <td><strong>极高</strong></td>
+  </tr>
+  <tr>
+    <td>热交换芯体结冰/堵塞</td>
+    <td><span class="tag tag-warn">中（北方严寒天气）</span></td>
+    <td>气流完全堵塞→系统停机→失去换气功能</td>
+    <td>高（系统报警/风量骤降）</td>
+    <td>中（化冰后可能恢复——但纸质芯体冻融循环会永久损伤）</td>
+    <td><strong>高</strong></td>
+  </tr>
+  <tr>
+    <td>管道积灰（长期）</td>
+    <td><span class="tag tag-bad">高（3–5年后，取决于滤芯更换习惯）</span></td>
+    <td>管道内壁附着灰层→滋生细菌/霉菌→送风有异味→二次污染</td>
+    <td>极低（管道内部不可见。只有管道清洗时才会发现）</td>
+    <td>高（管道专业清洗¥1500–3000/次）</td>
+    <td><strong>高</strong></td>
+  </tr>
+  <tr>
+    <td>电机轴承磨损</td>
+    <td><span class="tag tag-warn">中（5–10年 24h运行→轴承累计运行>40,000–80,000h）</span></td>
+    <td>噪音增大→风速不稳定→停转</td>
+    <td>中（噪音先增大→用户能觉察）</td>
+    <td>中（换电机¥300–600+拆吊顶人工）</td>
+    <td><strong>中</strong></td>
+  </tr>
+  <tr>
+    <td>CO₂传感器漂移</td>
+    <td><span class="tag tag-warn">中（5–8年）</span></td>
+    <td>自动风量调节失效→CO₂超标不自知</td>
+    <td>极低（需要独立CO₂计对照验证）</td>
+    <td>中（换传感器¥100–400）</td>
+    <td><strong>中</strong></td>
+  </tr>
+</table>
+
+<div class="callout warn">
+  <strong>可靠性核心洞察：</strong>新风系统的可靠性风险高度集中在<strong>安装质量和用户维护习惯</strong>这两个非设备因素上——设备本身的故障率在所有家电中属于中低水平（电机+传感器+控制板都是成熟技术），但<strong>安装错误和滤芯超期使用</strong>导致的性能衰退和二次污染问题，比设备本身的故障更普遍、更严重。一台中央新风系统被安装在地下室的吊顶里，在接下来的5–10年中，主人可能只会主动打开检修口2–3次（换滤芯）——这意味着<strong>安装时的"一次性正确"决定了未来10年的使用体验</strong>。错误的安装造成的后果几乎不可逆。
+</div>
+
+<!-- ─── 7. 用户体验建模 ─── -->
+<h2 id="sec-6">7. 用户体验建模</h2>
+
+<h3>7.1 体验维度权重排序</h3>
+
+<table>
+  <tr><th>优先级</th><th>维度</th><th>权重</th><th>工程解释</th></tr>
+  <tr><td>1</td><td><strong>CO₂控制能力（换气效率）</strong></td><td>30%</td><td>这是新风系统的<strong>核心价值函数</strong>——如果不能有效控制CO₂（<800ppm），那么买新风系统的意义就丧失了。换气效率取决于：①风量是否足够（按人均30m³/h或换气次数0.5–1次/h计算）；②各房间风量分配是否均衡（设计+调试）。一台中央新风如果风量失衡——主卧风量不足、次卧风量过剩——则主卧的CO₂控制失败而次卧浪费了过多的换气能量。</td></tr>
+  <tr><td>2</td><td><strong>噪音（24h×365d运行）</strong></td><td>25%</td><td>新风系统是<strong>全天候运行</strong>的设备——这意味着噪音级别必须在"可忘记其存在"的范围内。核心噪音指标：<strong>睡眠档在卧室送风口处≤30dBA</strong>。这需要：①低噪音电机（EBM/松下）+ ②合理的管道风速（主管≤5m/s，支管≤3m/s）——管道风速过高会产生"呼呼"的气流噪音，这是安装问题不是设备问题；③主机与卧室之间有足够的管道距离（声音衰减）+ 消音管。</td></tr>
+  <tr><td>3</td><td><strong>送风舒适度（温度/湿度）</strong></td><td>18%</td><td>全热交换芯体对送风温度的调节能力是新风系统<strong>"舒适 vs 不舒适"</strong>的分水岭。冬季室外0°C→经全热交换后送风16°C→体感是"微凉但可以接受"；如果没有热交换→0°C新风直吹→体感是"寒冷不适"。全热交换效率每提升10%，送风温度可以提升约2°C——这个差异在冬季是体感明显的。</td></tr>
+  <tr><td>4</td><td><strong>滤芯更换便利性</strong></td><td>12%</td><td>换滤芯是用户与新风系统<strong>唯一的定期物理交互</strong>。如果更换操作需要爬梯子→拆吊顶检修口→拧螺丝→取出滤芯→安装新滤芯→复位→整个过程耗时30分钟且不舒服——用户拖延更换的概率显著增加。设计良好的系统可以在检修口处快速卡扣式更换滤芯（<3分钟）。</td></tr>
+  <tr><td>5</td><td><strong>智能控制/自动化</strong></td><td>10%</td><td>CO₂传感器+自动风量调节让系统可以"设置后忘记"——根据室内人数（CO₂浓度）和室外污染（PM2.5）自动调整风量。这是<strong>提升系统能效和降低噪音的关键</strong>——不需要的时候以最低风量运行（静音+节能），需要的时候自动提升风量。</td></tr>
+  <tr><td>6</td><td><strong>PM2.5过滤效果</strong></td><td>5%</td><td>这是新风系统最常被营销的指标——但<strong>实际上新风解决PM2.5的效率远不如室内净化器</strong>（新风受限于换气速率，净化器则可以实现5–10倍于新风的洁净空气输出率）。新风对PM2.5的价值在于<strong>防止室外PM2.5渗入</strong>（室内微正压），而非主动清除室内已有PM2.5。</td></tr>
+</table>
+
+<div class="callout good">
+  <strong>核心体验洞察：</strong>新风系统的用户体验公式：<strong>好体验 = 正确的安装设计(60%) + 合理的设备选择(30%) + 定期维护(10%)</strong>。一台设备本身优秀但安装错误的新风系统，会带来持续10年的噪音-风量失衡-结露滴水噩梦。而一台设备中规中矩但安装精良的系统，可以让你在未来10年中几乎忘记它的存在，只享受"不关窗也能呼吸干净空气"的自由。
+</div>
+
+<!-- ─── 8. 营销系统识别 ─── -->
+<h2 id="sec-7">8. 营销系统识别</h2>
+
+<table>
+  <tr><th>类别</th><th>技术/功能</th><th>工程判断</th><th>识别依据</th></tr>
+  <tr>
+    <td><span class="tag tag-a">A·真实技术</span></td>
+    <td>全热交换芯体（高分子膜/ER纸）</td>
+    <td>真实的节能技术——全热交换在冬季可回收60–80%的排风热量，是<strong>新风系统实现舒适+节能双重目标的物理基础</strong>。没有全热交换的新风=冬季吹冷风或必须开启大功率PTC辅热</td>
+    <td>热回收效率有标准测试方法（GB/T 21087），焓效率可量化验证</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-a">A·真实技术</span></td>
+    <td>NDIR CO₂传感器</td>
+    <td>真实的CO₂定量检测——NDIR是唯一可靠的室内CO₂浓度测量技术。新风系统的自动风量调节若没有NDIR传感器，就是"盲调"——不知道室内CO₂实际多少，只能凭时间或PM2.5猜测</td>
+    <td>NDIR原理的CO₂选择性吸收4.26μm红外波长是物理事实，精度可对照标准气体校准</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-a">A·真实技术</span></td>
+    <td>逆流热交换芯体</td>
+    <td>真实的换热提升——逆流（两股气流反向通过芯体）的热交换效率比叉流（交叉通过）高10–15个百分点。因为逆流可以在整个换热长度上维持更大的对数平均温差（LMTD）</td>
+    <td>逆流vs叉流的热力学原理是成熟工程理论，效率差异可通过标准测试验证</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-a">A·真实技术</span></td>
+    <td>EPP整体成型内胆</td>
+    <td>真实的保温和密封提升——EPP（发泡聚丙烯）整体成型无拼接缝→漏风率<1%，同时本身是良好保温材料→主机表面无结露风险。比钣金壳体+分块保温+密封条的方案在气密性和防结露上领先</td>
+    <td>漏风率和保温性能是可测量的工程指标</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-b">B·体验增强</span></td>
+    <td>CO₂自动风量调节</td>
+    <td>真实的自动化——NDIR传感器+变频BLDC电机+PID算法→室内CO₂浓度闭环控制。无需用户手动调节风量档位。是"设置后忘记"体验的核心</td>
+    <td>传感器+执行器+算法三层均真实存在，体验可感知</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-b">B·体验增强</span></td>
+    <td>电动旁通阀</td>
+    <td>在春秋季（室外温度15–25°C适宜时）自动切换旁通模式——新风不经过热交换芯体直接送入，减少芯体阻力→降低风阻→更低的功耗和噪音，同时延长芯体寿命</td>
+    <td>旁通阀是真实的机械风阀+电机驱动，功能真实存在</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-b">B·体验增强</span></td>
+    <td>PTC电辅热 + 防冻控制</td>
+    <td>北方寒冷地区（冬季室外<-10°C持续天数>30天/年）的<strong>必选配置</strong>。防冻控制（室外低温时自动降低送风量或间歇运行或启动PTC）保护热交换芯体不结冰。PTC辅热将送风温度从<5°C提升至>12°C以提升送风舒适度</td>
+    <td>PTC加热是成熟技术；防冻控制逻辑是真实的控制工程需求</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-c">C·营销功能</span></td>
+    <td>"PM2.5一次过滤效率99.99%"</td>
+    <td>HEPA H13在<strong>实验室标准条件</strong>下对0.3μm的过滤效率确实是>99.95%。但在新风系统中，由于<strong>旁路漏气</strong>（滤芯与框架之间的密封不完美）和<strong>室内微正压不足导致室外脏空气从门窗缝隙渗入</strong>，整机实际的有效过滤效率可能显著低于滤芯本身的标称效率。而且PM2.5不是新风系统的核心目标（CO₂才是）</td>
+    <td>滤芯效率≠整机效率。旁路泄漏率和建筑气密性是真实的损失因子</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-c">C·营销功能</span></td>
+    <td>"医用级/手术室级新风"</td>
+    <td>医用洁净室需要：正压梯度控制（不同洁净区压差>5Pa）、高速层流送风（>0.25m/s）、每小时换气>15–25次、HEPA H14终端过滤。这些要求家用新风<strong>一个都达不到</strong>。家用的换气次数只有0.5–1次/h。"医用级"对家用新风是纯营销话术</td>
+    <td>医疗洁净室标准（ISO 14644/GB 50333）与家用的要求不在同一个量级</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-c">C·营销功能</span></td>
+    <td>"智能AI新风"</td>
+    <td>实际就是CO₂传感器→MCU→调节电机转速的PID控制回路。反馈控制是控制理论中已经存在了一个世纪的技术。与"AI"无关。真正的AI需要预测（如"预测未来2小时室内CO₂趋势→提前调节风量"），而当前的产品只是在做简单的反馈控制</td>
+    <td>"AI"需要训练模型进行预测。PID反馈区别于AI预测——前者是当下家电的标配</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-c">C·营销功能</span></td>
+    <td>"负离子/等离子/光触媒/UV杀菌"等叠加功能</td>
+    <td>与空气净化器同理——这些技术在流动空气中的实际净化贡献<总净化量的5%。新风系统的核心价值在<strong>换气</strong>和<strong>热回收</strong>，不在这些附加的"消毒"功能。且负离子发生器产生O₃副产物，在一个24h密闭运行的气流系统中累积O₃是真实的健康风险</td>
+    <td>气流停留时间<0.1s→反应动力学不支持有效净化。O₃副产物风险真实</td>
+  </tr>
+  <tr>
+    <td><span class="tag tag-c">C·营销功能</span></td>
+    <td>"德国技术/日本原装进口"（低价位产品）</td>
+    <td>¥3000–5000价位的"进口"新风，绝大部分是中国ODM工厂生产+贴牌。核心电机可能是EBM原装（这个是真的），但<strong>整机设计/制造/品控全部在ODM工厂完成</strong>——"德国技术"只是品牌注册地而已</td>
+    <td>查看整机CCC认证生产企业名称（在中国市场销售必须标注）→可追溯真实生产主体</td>
+  </tr>
+</table>
+
+<div class="callout warn">
+  <strong>新风营销识别法则：</strong>① 新风的核心价值是<strong>CO₂控制+热回收</strong>——一切不谈CO₂传感器的新风宣传都在回避核心功能；② 全热交换效率是<strong>可用标准测试验证</strong>的指标——要求提供GB/T 21087标准下的焓效率测试报告；③ 新风不是空气净化器的替代品——新风解决CO₂（净化器解决不了），净化器解决高浓度PM2.5爆发（新风风量太小解决不了）。两者是互补关系而非替代关系。
+</div>
+
+<!-- ─── 9. TCO成本模型 ─── -->
+<h2 id="sec-8">9. TCO成本模型</h2>
+
+<h3>9.1 10年TCO计算 — 120m²住宅，中央管道式新风系统</h3>
+
+<table>
+  <tr><th>成本项</th><th>入门中央 ¥8000</th><th>中端中央 ¥15000</th><th>高端中央 ¥25000</th><th>壁挂单向 ¥2500（单房间）</th></tr>
+  <tr><td>设备+管道+安装</td><td>¥8,000</td><td>¥15,000</td><td>¥25,000</td><td>¥2,500</td></tr>
+  <tr><td>10年电费<br><span style="font-size:0.8rem;color:var(--color-muted)">40W/50W/60W × 24h × 365d × 10y × ¥0.6</span></td><td>¥2,102</td><td>¥2,628</td><td>¥3,154</td><td>¥788（20W）</td></tr>
+  <tr><td>滤芯更换<br><span style="font-size:0.8rem;color:var(--color-muted)">G4(可洗)+HEPA(3–4次/年)+活性炭(选购)</span></td><td>¥6,000（HEPA ¥150×4次×10年）</td><td>¥8,000（HEPA ¥200×4次×10年）</td><td>¥12,000（HEPA ¥300×4次×10年）</td><td>¥3,600（HEPA ¥120×3次×10年）</td></tr>
+  <tr><td>管道清洗（3–5年/次）</td><td>¥3,000（¥1,500×2次）</td><td>¥3,000（¥1,500×2次）</td><td>¥3,000（¥1,500×2次）</td><td>¥0（无管道）</td></tr>
+  <tr><td>热交换芯体更换</td><td>¥800（第7年，纸质芯体寿命到期）</td><td>¥1,200（第9年）</td><td>¥0（高分子膜芯体寿命>15年）</td><td>¥400（第6年，小芯体寿命更短）</td></tr>
+  <tr><td>维修</td><td>¥500（电机/传感器/电源各一次概率）</td><td>¥800</td><td>¥1,000</td><td>¥200</td></tr>
+  <tr><th>10年TCO</th><th>≈¥20,402</th><th>≈¥30,628</th><th>≈¥44,154</th><th>≈¥7,488</th></tr>
+  <tr><td>日均成本</td><td>¥5.59</td><td>¥8.39</td><td>¥12.10</td><td>¥2.05</td></tr>
+  <tr><td>年化成本（含折旧）</td><td>¥2,040</td><td>¥3,063</td><td>¥4,415</td><td>¥749</td></tr>
+</table>
+
+<div class="callout good">
+  <strong>TCO核心发现：</strong>① 中央新风的滤芯费用是10年TCO的第二大组成（仅次于初投资）——¥200×4次×10年=¥8,000，几乎等于初投资本身；② <strong>管道清洗</strong>是被严重低估的隐性成本——3–5年一次的管道清洗每次¥1,500–3,000，10年累计¥3,000–6,000。不洗=管道内部成为二次污染源；③ 中央新风的日均成本¥5.59–12.10，比空气净化器（¥1.35–3.77/天）和除湿机等贵得多——但新风提供的是"全屋持续换气自由"，这是净化器无法提供的核心价值（CO₂控制）；④ <strong>壁挂单向流的年化成本最低（¥749/年）但只覆盖单个房间</strong>——全屋覆盖需要3–4台→年化成本¥2,247–2,996，与入门中央新风接近，但每台都是独立维护+独立噪音源+无热交换。
+</div>
+
+<!-- ─── 10. 供应链与产业结构 ─── -->
+<h2 id="sec-9">10. 供应链与产业结构</h2>
+
+<h3>10.1 产业链层级</h3>
+
+<table>
+  <tr><th>层级</th><th>内容</th><th>核心企业</th><th>产业特征</th></tr>
+  <tr>
+    <td><strong>Tier 1 · 核心材料/部件</strong></td>
+    <td>电机、热交换芯体材料（ER纸/高分子膜）、传感器、HEPA滤纸</td>
+    <td><strong>电机：</strong>EBM-Papst（德国）/ Nidec（日本）/ 威灵（中国）<br><strong>芯体材料：</strong>三菱制纸/王子制纸（日本）/ 浙江（中国纸芯产业带）<br><strong>传感器：</strong>Sensirion（瑞士）/ Senseair（瑞典）/ 炜盛/四方光电（中国）</td>
+    <td>电机和传感器的供应高度集中——EBM/Nidec/Sensirion在高端市场占主导。芯体材料中国产纸芯的产能极大但品质差异显著</td>
+  </tr>
+  <tr>
+    <td><strong>Tier 2 · 主机集成</strong></td>
+    <td>新风主机整机设计+组装</td>
+    <td>松下（日本/中国）/ 百朗Broan（美国）/ 霍尼韦尔（美国）/ 远大（中国）/ 环都/艾迪卫/造梦者（中国）/ 深圳厦门ODM厂</td>
+    <td>品牌集中度低——中国有上百个新风品牌，但CR5<30%。行业极度分散，大量ODM和小品牌充斥</td>
+  </tr>
+  <tr>
+    <td><strong>Tier 3 · 管道系统</strong></td>
+    <td>管道（PVC/PE软管/螺旋管）+ 分风箱 + 风口 + 管件</td>
+    <td>联塑/中财/伟星（通用PVC管道）/ 松下/百朗（自研PE管道体系）/ 德国适加/德国博乐（进口高端管道）</td>
+    <td><strong>管道系统的品牌化和标准化程度极低</strong>——多数新风安装使用通用PVC排水管替代专业新风管道，管径/弯头/密封/保温均不匹配需求</td>
+  </tr>
+  <tr>
+    <td><strong>Tier 4 · 安装服务</strong></td>
+    <td>设计+施工+调试</td>
+    <td>各品牌的授权经销商/安装商 + 独立暖通公司 + 装修公司</td>
+    <td><strong>这是整个产业链中最薄弱的环节</strong>——新风安装没有全国性的安装服务标准/资质认证体系。安装质量完全取决于个体安装商的技术水平和责任心</td>
+  </tr>
+</table>
+
+<h3>10.2 行业结构性问题</h3>
+
+<div class="callout warn">
+  <strong>供应链核心洞察——"卖设备的不做安装，做安装的不懂设计"：</strong>中国新风行业的最大结构性问题：<strong>① 品牌方只卖主机</strong>——松下/百朗/霍尼韦尔等品牌的核心商业模式是制造和销售新风主机设备。它们不直接控制安装质量（声称"由授权经销商负责"），但授权经销商的技术培训、资质认证和品控力度因地区而异，差异巨大。<strong>② 装修公司不懂新风</strong>——多数家装公司的新风施工由水电工顺带完成（"打孔走管嘛，跟水电一样"），缺乏暖通气动设计能力（风量计算/管道阻力计算/气流平衡调试）。<strong>③ 用户无法评估安装质量</strong>——装修完成后，管道被封闭在吊顶里，用户只能靠"感觉风大不大"来判断安装质量。而专业的安装质量评估需要风速仪/风量罩/热成像仪。这个信息不对称导致了行业充斥着"劣币驱逐良币"现象——报价更低的粗放安装商抢走了订单，精工安装商因报价更高而难以竞争（因为用户看不到"精工"的价值）。
+</div>
+
+<!-- ─── 11. 安装与环境影响 ─── -->
+<h2 id="sec-10">11. 安装与环境影响</h2>
+
+<div class="cols">
+<div class="card">
+  <h3>安装质量——决定新风系统命运的60%</h3>
+  <table>
+    <tr><th>安装要素</th><th>正确做法</th><th>常见错误及后果</th></tr>
+    <tr><td><strong>管道设计</strong></td><td>逐房间计算所需风量→设计各支管管径和路径→计算沿程+局部阻力→校核风机工作点。主管风速≤5m/s，支管≤3m/s</td><td>所有支管用同一管径→近端风量过剩(噪音大)→远端风量不足(CO₂超标)。<strong>风量失衡是中央新风安装中最常见的系统性缺陷</strong></td></tr>
+    <tr><td><strong>管道材质</strong></td><td>PE软管（内壁光滑+抗菌+柔性可弯曲→减少弯头阻力+便于施工）或 镀锌螺旋管（刚性+光滑+长寿命）</td><td>使用PVC排水管（非新风专用→内壁粗糙=高风阻=降低风量+增大噪音+增加耗电）——这是<strong>最普遍的低成本安装"节省"</strong></td></tr>
+    <tr><td><strong>弯头处理</strong></td><td>用PE软管的大弧度弯曲代替90°直角弯头（弯头阻力系数=0.3–1.5/个，大弧弯≈0.1）。尽量减少弯头数量</td><td>使用标准90° PVC直角弯头→每个弯头等效于3–5m直管阻力→过多的直角弯头→总压降增加50–100%→风量减半</td></tr>
+    <tr><td><strong>管道密封</strong></td><td>所有管道接口用铝箔胶带/专业密封胶密封→漏风率<3%。室外进排风口用不锈钢防虫网+风帽</td><td>管道接口不密封→漏风率>15%→送入房间的有效风量<设计值的85%。更糟的是→漏风点在吊顶内→吊顶内灰尘/碎屑被"新风"裹挟送入房间</td></tr>
+    <tr><td><strong>保温包覆</strong></td><td>室外进风管和排风管全程包覆≥20mm厚橡塑保温棉。室内送风管视吊顶内温度决定是否需要保温</td><td>室外进风管不保温→冬季管外壁结露滴水→损坏吊顶；夏季热空气在冷管道外壁结露→滴水</td></tr>
+    <tr><td><strong>室外风口间距</strong></td><td>新风进风口与排风出风口在建筑外墙上<strong>水平间距≥1.5m</strong>（优选2m+），且排风口位于下风向</td><td>风口间距<1m→排风被直接吸入进风口→"短路"→送入室内的"新风"是刚排出去的污浊空气→新风系统形同虚设</td></tr>
+    <tr><td><strong>主机安装</strong></td><td>吊装+减震吊架+弹性软接+预留≥600×600mm检修口。主机位置远离卧室（优选阳台/储藏间/过道上方）</td><td>主机硬装在天花龙骨上→结构传声→卧室顶棚嗡嗡声。检修口过小/位置不当→无法更换滤芯/维护→系统荒废</td></tr>
+    <tr><td><strong>气流平衡调试</strong></td><td>安装完成后逐风口测量实际风量（风速仪+风量罩）→与设计值对比→调整各支管调节阀→重新测量直至各房间风量误差<±15%</td><td>不做风量平衡调试→"装完通电能转就行"→风量失衡→部分房间换气不足/部分房间换气过量→噪音大+能效低</td></tr>
+  </table>
+</div>
+<div class="card">
+  <h3>环境与使用因素</h3>
+  <table>
+    <tr><th>因素</th><th>工程影响</th></tr>
+    <tr><td><strong>气候区域</strong></td><td>北方严寒(<-10°C持续天>30天)→必须选全热交换+防冻控制+PTC辅热（否则冬季热交换芯体结冰）。南方湿热(夏季室外>35°C/80%RH)→全热交换芯体必须能处理高湿冷凝+防霉。长江流域(冬季湿冷无集中供暖)→全热交换在冬季对减少室内湿冷有显著帮助</td></tr>
+    <tr><td><strong>建筑气密性</strong></td><td>高气密性建筑(新建筑/系统窗)→新风系统的正负压控制效果好→CO₂和PM2.5控制精确。低气密性建筑(老建筑/普通推拉窗)→室外空气通过门窗缝隙大量渗透→新风的正压控制失效→换气被自然渗透"淹没"</td></tr>
+    <tr><td><strong>室外空气质量</strong></td><td>高PM2.5区域(京津冀/冬季)→需要H13级HEPA+频繁更换滤芯(3个月/次)。低PM2.5区域→H11级足够+6个月/次更换。如果室外常年空气质量优良→是否真的需要新风系统值得重新思考（开窗通风可能更经济）</td></tr>
+    <tr><td><strong>装修污染</strong></td><td>新装修后头2年是室内甲醛/VOC释放峰值期→新风系统的换气量需≥1次/h才能有效稀释（120m²×2.7m层高÷换气1次=324m³/h风量）→小风量新风(<200m³/h)对甲醛的稀释能力不足</td></tr>
+  </table>
+</div>
+</div>
+
+<div class="callout warn">
+  <strong>核心结论：</strong>新风系统的安装质量 <strong>&gt;</strong> 设备品牌 <strong>&gt;</strong> 价格档次。一个精工安装的¥8,000入门中央新风，性能和使用体验可以显著超越粗放安装的¥25,000高端中央新风。新风系统是<strong>唯一一个"安装价值 > 设备价值"的家电品类</strong>——在你未来的10年使用中，你不会记得买了什么品牌的主机，但你会每天感受到管道噪音、风量不均和结露滴水。因此，<strong>把60%的预算和精力放在选择靠谱的安装商和管道系统上，30%放在主机选型上，10%放在后期的定期维护上</strong>。
+</div>
+
+<!-- ─── 12. 品牌工程评级 ─── -->
+<h2 id="sec-11">12. 品牌工程评级</h2>
+
+<table>
+  <tr><th>梯队</th><th>品牌</th><th>技术能力</th><th>管道体系</th><th>核心优势</th><th>短板</th></tr>
+  <tr>
+    <td rowspan="2"><strong>第一梯队<br>技术主导型</strong></td>
+    <td><strong>松下 Panasonic</strong>（日本）</td>
+    <td>自研电机（部分自产DC马达）+自研热交换芯体（专利纸质全热交换芯体，30年+技术积累）+自研控制系统。全热交换效率行业领先</td>
+    <td>自研PE管道+分风箱+风口体系——提供<strong>"主机+管道+配件"完整解决方案</strong></td>
+    <td>全热交换芯体技术全球领先；电机自研能力强；产品线最全（从入门到旗舰）；管道体系标准化程度高；中国市场渠道和售后覆盖广</td>
+    <td>中国市场的安装商授权体系管控不严→松下品牌的安装质量波动大；中低端型号减配明显（如改用国产电机）；部分型号滤芯更换设计不够便利</td>
+  </tr>
+  <tr>
+    <td><strong>百朗 Broan</strong>（美国）</td>
+    <td>北美新风/通风设备龙头。自研全热交换芯体+风机系统+控制。在美国有近百年通风设备制造历史</td>
+    <td>自研管道体系（Solaris系列PE管道系统）</td>
+    <td>产品线在北美市场统治级地位；管道体系完整；工业设计扎实不浮夸；专业渠道服务体系完善</td>
+    <td>中国市场品牌知名度低；产品线在中国区缩减（不如松下丰富）；价格偏高；部分型号由中国ODM生产</td>
+  </tr>
+  <tr>
+    <td rowspan="3"><strong>第二梯队<br>平衡型</strong></td>
+    <td><strong>远大</strong>（中国）</td>
+    <td>走差异化技术路线——<strong>静电集尘</strong>替代HEPA过滤（零耗材滤芯+可水洗集尘板）+全热交换。在大风量新风和商用领域有深厚积累</td>
+    <td>管道配件体系较完善</td>
+    <td>静电除尘=零滤芯耗材成本（长远经济性好）；大风量产品线国内领先（适合大户型/别墅）；国产品牌中技术投入最高</td>
+    <td>静电集尘有O₃副产物风险（远大宣称其高压静电的O₃释放量在国标安全范围内）；集尘板需要频繁清洗（1–2月/次）；CO₂传感器和智能控制不如竞品</td>
+  </tr>
+  <tr>
+    <td><strong>环都/艾迪卫</strong>（中国）</td>
+    <td>国产新风技术积累较深的专业品牌。自研热交换芯体+自研控制。产品定位中端，性价比突出</td>
+    <td>管道体系较完善（PE管道方案）</td>
+    <td>性价比——同规格下比松下/百朗便宜30–50%；全热交换效率与松下中端接近；专业暖通工程师团队支持较好</td>
+    <td>品牌知名度低——消费者认知不足；品控一致性不如松下；渠道覆盖有限（以北方市场为主）；长期可靠性数据积累不足</td>
+  </tr>
+  <tr>
+    <td><strong>小米/米家新风</strong></td>
+    <td>壁挂式新风为主（中央新风产品线较弱）。将激光PM2.5传感器+CO₂传感器+智能控制带入¥2000–5000价格段</td>
+    <td>壁挂式不需要管道。中央新风的管道体系依赖第三方</td>
+    <td>¥2000–4000的壁挂新风——将CO₂传感器+激光PM2.5+电辅热+PID自动控制压入了大众可及的价格区间；米家APP生态整合</td>
+    <td>中央新风产品力弱（风量偏小/热交换效率偏低）；安装依赖第三方（无自有专业安装体系）；风量标称和实际有差异；系统广告影响体验</td>
+  </tr>
+  <tr>
+    <td rowspan="2"><strong>第三梯队<br>渠道/营销型</strong></td>
+    <td><strong>霍尼韦尔/通用/曼瑞德</strong></td>
+    <td>品牌知名度高（依托母品牌信任度），但在新风领域的技术积累不如松下/百朗。多数产品为ODM</td>
+    <td>管道体系不完备</td>
+    <td>品牌信任度（霍尼韦尔在工业/航天领域的品牌背书）让消费者更有信心</td>
+    <td>品牌认知来自其他领域（非新风专业品牌）；多数产品为ODM→同价位下硬件规格和能效低于专业品牌；价格中包含"品牌税"</td>
+  </tr>
+  <tr>
+    <td><strong>各类"德国/日本"贴牌</strong></td>
+    <td>纯品牌营销——在中国ODM工厂贴牌生产→取一个德式/日式名字→线上线下溢价销售</td>
+    <td>无自研管道体系</td>
+    <td>品牌名字看起来"高级"</td>
+    <td>无自研核心技术；产品规格和品控完全依赖ODM工厂；售后和滤芯供应稳定性无长期保障；存在虚假宣传的风险（"原装进口"实为国内生产）</td>
+  </tr>
+</table>
+
+<div class="callout">
+  <strong>品牌评级方法论：</strong>新风品牌的工程排名判断标准与之前所有家电不同——<strong>① 是否提供"主机+管道配件+安装标准"的完整体系</strong>→ 这是第一分水岭。仅卖主机不提供管道体系支持=品牌只负责了系统性能的30%；<strong>② 热交换芯体技术专利/自研能力</strong>→ 芯体是新风系统的"心脏"，它的性能和寿命决定了系统的长期价值和体验；<strong>③ 安装商网络的质量管控</strong>→ 这是新风行业最关键的"产品"——精良的安装=性能实现，粗放的安装=性能灾难。品牌对安装商的技术培训、认证考核和定期巡检的投入力度，比主机硬件参数更重要。<strong>④ 滤芯供应的长期保障</strong>——小众品牌可能在5年后停产→滤芯断供→你的新风机变成"只吹风不过滤"的普通风扇。
+</div>
+
+<!-- ─── 13. 购买决策系统 ─── -->
+<h2 id="sec-12">13. 购买决策系统</h2>
+
+<div class="card">
+  <h3>Step 1：定义需求和约束——这是所有决策的前提</h3>
+  <table>
+    <tr><th>决策因子</th><th>决策内容</th></tr>
+    <tr><td><strong>装修阶段</strong></td><td><strong>装修前/装修中</strong>→ 可以安装中央管道式新风（最佳方案）。<strong>装修后</strong>→ 只能选择壁挂式/柜式新风（单个房间）。如果正在装修且在犹豫要不要做新风——<strong>做</strong>（因为装修后无法追加中央新风）</td></tr>
+    <tr><td><strong>覆盖范围</strong></td><td><strong>全屋</strong>→ 必须中央管道式（一间主机覆盖全部房间）。<strong>1–2个重点房间</strong>（如主卧+儿童房）→ 壁挂式双向流×2台。单个房间→ 壁挂式单向流或双向流</td></tr>
+    <tr><td><strong>气候区域</strong></td><td><strong>北方严寒</strong>→ 全热交换+防冻+PTC辅热是必选。<strong>南方湿热</strong>→ 全热交换（夏季回收冷量+除湿）优势最大——这是全热交换回报最高的气候区。<strong>长江流域</strong>→ 全热交换+防冻（冬季虽不如北方严寒但仍有<0°C天数）</td></tr>
+    <tr><td><strong>室外空气质量</strong></td><td>常年优良（PM2.5<35μg/m³ 年均）→ H11 HEPA足够，甚至可以考虑不带热交换的简单通风方案（开窗+净化器组合）。冬霾季严重（PM2.5常>100μg/m³）→ H13 HEPA+频繁换滤芯（3月/次）</td></tr>
+    <tr><td><strong>室内污染源</strong></td><td>新装修（甲醛释放高峰期）→ 新风+净化器双系统（新风控制CO₂+稀释甲醛，净化器聚焦PM2.5深度净化）。非新装（甲醛已趋于稳定）→ 新风为主，净化器辅助</td></tr>
+    <tr><td><strong>对噪音敏感度</strong></td><td>高敏感（睡眠浅/有婴儿）→ 优先考虑中央管道式（主机远离卧室+送风口安静）而非壁挂式（设备在卧室内）。投入更多预算在消音措施上（消音管+管道降噪）</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <h3>Step 2–6：技术选型→安装商选择→主机→TCO→品牌</h3>
+  <table>
+    <tr><th>检查项</th><th>通过标准</th></tr>
+    <tr><td><strong>系统类型</strong></td><td>中央管道式（装修前）> 壁挂双向流（装修后/单房间）> 壁挂单向流（极端预算/温和气候）。<strong>必须双向流</strong>——单向流没有热交换=冬季冷风直吹+夏季热风直吹+能源浪费。单向流只适合对舒适度要求极低或气候极温和（全年15–25°C）的区域</td></tr>
+    <tr><td><strong>热交换类型</strong></td><td><strong>全热交换（焓交换）</strong>——中国大部分地区（特别是南方和长江流域）是必选。显热交换（仅热量回收）只适合干燥寒冷气候（如西北/东北冬季干燥区）。全热vs显热的价差约¥1000–2000，但全热的节能和舒适回报在3–5年内即可回收</td></tr>
+    <tr><td><strong>焓交换效率</strong></td><td>制冷工况焓效率≥60%，制热工况焓效率≥65%（GB/T 21087标准条件）。<strong>注意：标称效率是在标准测试工况下的一一实际安装中的效率通常低于标称值5–10个百分点</strong>（管道漏风+实际风量偏高或偏低+结垢后效率下降）</td></tr>
+    <tr><td><strong>风量计算</strong></td><td><strong>按人均：</strong>常住人数×30m³/h。例如3人家庭→ 90m³/h。<br><strong>按压差换气次数：</strong>面积×层高×0.5–1次/h。120m²×2.7m×0.6次/h=194m³/h。<br>取两者中的较大值作为所需新风量→选择主机风量（需留20%余量——管道阻力随使用时间增加）。<strong>120m²家庭通常需要≥200m³/h风量的主机</strong></td></tr>
+    <tr><td><strong>CO₂传感器</strong></td><td><strong>NDIR CO₂传感器是刚需</strong>——没有CO₂传感器的新风系统是无法闭环控制风量的"盲盒系统"。没有CO₂传感器的新风=你永远不知道它是否在做它应该做的唯一任务（控制CO₂）</td></tr>
+    <tr><td><strong>防冻功能</strong></td><td>北方严寒区域→必须选有<strong>自动防冻控制</strong>（室外温度<-5°C时自动降低风量/启动旁通/启动PTC）的型号。无防冻→冬季芯体结冰→系统停机。南方/长江流域→防冻可选但建议（偶尔有<0°C天）</td></tr>
+    <tr><td><strong>安装商评估</strong></td><td>这是<strong>最重要的选购步骤</strong>——询问安装商：① 是否逐房间计算风量？（要求看计算书/暖通设计图）；② 使用什么材质的管道？（标准答案：PE软管/镀锌螺旋管；扣分答案：PVC排水管）；③ 是否做风量平衡调试？（标准答案：有，提供逐风口实测风量报告）。④ 查看该安装商的过往施工案例照片（关注管道走向/弯头处理/密封/保温）。如果安装商对你的问题回答含糊或显得不耐烦→<strong>换一家</strong></td></tr>
+    <tr><td><strong>品牌最后看</strong></td><td>在确定了可靠的安装商后，在该安装商代理的品牌中选择产品（安装商的品牌代理范围会约束你的选择）。优先选有完整管道体系的品牌（松下/百朗/环都）。避免选择需要单独找三方安装的品牌（主机和安装服务脱钩=责任推诿空间）</td></tr>
+  </table>
+</div>
+
+<div class="callout good">
+  <strong>最优购买策略（2026年）：</strong><br>
+  <strong>标准全屋方案（装修前，¥10,000–15,000）：</strong>松下 FY-25/35ZJD系列 或 环都 ERV系列——250–350m³/h风量+全热交换+NDIR CO₂+PE管道系统+精工安装。<strong>这是中国120–150m²家庭新风的工程甜点</strong>——全热交换效率65–75%+风量覆盖3–4个卧室+噪音在可接受范围内。<br>
+  <strong>经济全屋方案（装修前，¥7,000–10,000）：</strong>环都/艾迪卫入门系列——250m³/h+全热交换+CO₂+PE管道+精工安装。减少预算但不减少安装质量。<br>
+  <strong>高端全屋方案（装修前，¥20,000–30,000）：</strong>松下旗舰系列 或 百朗——350–500m³/h+高分子膜全热交换芯体+EBM电机+精密管道系统+专业暖通工程师全程设计+调试。<br>
+  <strong>装修后补救方案（单房间，¥3,000–6,000/台）：</strong>松下/小米 壁挂双向流新风——60–100m³/h+全热交换+CO₂传感器。主卧和儿童房优先安装。<br>
+  <strong>避坑提醒：</strong>① <strong>选安装商 > 选品牌 > 选型号</strong>——这是新风选购的核心逻辑，与所有其他家电相反；② 不要让装修公司的水电工"顺便做新风管道"——这是行业中最常见的灾难性决策；③ 如果装修已在进行中但还没做新风管道→立即叫停吊顶施工，先把新风管道做完再封板。
+</div>
+
+<!-- ─── 14. 一句话结论 ─── -->
+<h2 id="sec-13">14. 一句话结论</h2>
+
+<div class="conclusion">
+  <h2>一句话结论</h2>
+  <p>
+    <strong>新风系统的工程本质是"通过机械强制通风实现室内外空气有组织交换，并通过全热交换芯体回收排风中60–80%的热量/冷量/湿度以最小化换气能耗"——它解决的是空气净化器无法解决的CO₂累积问题，但它的性能上限60%由安装质量决定（管道设计+施工+气流平衡调试）、30%由设备本身、10%由定期维护决定。</strong>一台精工安装的¥10,000中央新风可以让你在未来10年中每天24小时享受"不开窗也能呼吸的洁净新鲜空气"——这是新风系统不可替代的工程价值。但这个价值能否兑现，取决于你是否在装修前做出了正确的决策（做新风），是否选择了靠谱的安装商（比品牌更重要），以及你是否能做到每年至少更换滤芯3–4次（一个大多数用户做不到的维护频率）。中央新风是<strong>"一次性正确"的设备——安装错了，代价是未来10年的每一天</strong>。壁挂式新风是装修后单个房间的有效补救方案，但请接受它只能覆盖一间房的物理现实。
+  </p>
+  <p style="margin-top:16px; font-size:0.85rem; color:#888;">
+    <strong>工程甜点推荐：</strong>松下/环都 250–350m³/h中央全热交换新风 + PE管道体系 + 精工安装（找有风量平衡调试能力的专业暖通安装商）。<br>
+    <strong>核心提醒：</strong>安装商比品牌重要，PE管道比PVC重要，风量平衡调试比"通电就转"重要。新风的钱，60%花在管道和安装上。
+  </p>
+</div>
+
+</main>
+
+<script>
+(function() {
+  var links = document.querySelectorAll('nav a[href^="#sec-"]');
+  var sections = [];
+  links.forEach(function(a) {
+    var el = document.getElementById(a.getAttribute('href').slice(1));
+    if (el) sections.push({el: el, a: a});
+  });
+  function update() {
+    var top = window.scrollY + 120;
+    var cur = sections[0];
+    for (var i = 0; i < sections.length; i++) {
+      if (sections[i].el.offsetTop <= top) cur = sections[i];
+    }
+    links.forEach(function(l) { l.classList.remove('active'); });
+    if (cur) cur.a.classList.add('active');
+  }
+  window.addEventListener('scroll', update, {passive: true});
+  update();
+})();
+</script>
+
+</body>
+</html>
